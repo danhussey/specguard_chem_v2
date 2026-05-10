@@ -89,7 +89,22 @@ def _write_ablation_table(frame: pd.DataFrame, out_dir: Path) -> None:
         return
     by_system = {str(row["system_name"]): row for _, row in frame.iterrows()}
     metrics = ["feasible_utility", "compliance_rate", "constrained_regret", "schema_error_rate"]
+
+    pairs: list[tuple[str, str, str]] = []
     for before, after, label in ABLATION_PAIRS:
+        pairs.append((before, after, label))
+        suffixes = {
+            system_name.removeprefix(f"{before}__")
+            for system_name in by_system
+            if system_name.startswith(f"{before}__")
+        }
+        for suffix in sorted(suffixes):
+            variant_before = f"{before}__{suffix}"
+            variant_after = f"{after}__{suffix}"
+            if variant_after in by_system:
+                pairs.append((variant_before, variant_after, f"{label}__{suffix}"))
+
+    for before, after, label in pairs:
         if before not in by_system or after not in by_system:
             continue
         row: dict[str, object] = {"ablation": label, "before": before, "after": after}

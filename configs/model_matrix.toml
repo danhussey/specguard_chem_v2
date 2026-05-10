@@ -1,0 +1,59 @@
+# Provider/model conditions for live LLM experiment runs.
+#
+# `id` is the stable experiment condition name used in run directories and
+# cache paths. Keep IDs stable once a paper-scale run starts.
+
+[models.openai_frontier]
+provider = "openai"
+model = "gpt-5.5"
+tier = "frontier"
+reasoning_effort = "high"
+api_key_env = "OPENAI_API_KEY"
+max_tokens = 4096
+notes = "OpenAI flagship reasoning/professional-work model."
+
+[models.openai_fast]
+provider = "openai"
+model = "gpt-5.4-mini"
+tier = "fast"
+reasoning_effort = "low"
+api_key_env = "OPENAI_API_KEY"
+max_tokens = 4096
+notes = "Lower-latency OpenAI condition."
+
+[models.anthropic_frontier]
+provider = "anthropic"
+model = "claude-opus-4-7"
+tier = "frontier"
+api_key_env = "ANTHROPIC_API_KEY"
+max_tokens = 4096
+notes = "Anthropic most capable generally available model."
+
+[models.anthropic_fast]
+provider = "anthropic"
+model = "claude-haiku-4-5-20251001"
+tier = "fast"
+api_key_env = "ANTHROPIC_API_KEY"
+max_tokens = 4096
+notes = "Anthropic fastest current model condition."
+
+[models.deepseek_frontier]
+provider = "deepseek"
+model = "deepseek-v4-pro"
+tier = "frontier"
+base_url = "https://api.deepseek.com"
+api_key_env = "DEEPSEEK_API_KEY"
+reasoning_effort = "high"
+thinking = true
+max_tokens = 4096
+notes = "DeepSeek pro condition with thinking enabled."
+
+[models.deepseek_fast]
+provider = "deepseek"
+model = "deepseek-v4-flash"
+tier = "fast"
+base_url = "https://api.deepseek.com"
+api_key_env = "DEEPSEEK_API_KEY"
+thinking = false
+max_tokens = 4096
+notes = "DeepSeek fast condition with thinking disabled."

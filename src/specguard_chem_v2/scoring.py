@@ -130,7 +130,20 @@ def score_record(card: DecisionCard, record: RunRecord, *, hit_threshold: float 
         constraint_violation_count=constraint_violation_count,
         valid_selected_count=len(valid_selected_ids),
         hit_threshold=hit_threshold,
-        metadata={},
+        metadata={
+            key: value
+            for key, value in record.metadata.items()
+            if key
+            in {
+                "base_system_name",
+                "run_label",
+                "llm_provider",
+                "llm_model",
+                "llm_model_config_id",
+                "request_sha256",
+            }
+            and value is not None
+        },
     )
 
 
@@ -185,6 +198,14 @@ def summarize_scores(
         "system_name": scores[0].system_name,
         "num_cards": len(scores),
     }
+    for metadata_key in ["base_system_name", "llm_provider", "llm_model", "llm_model_config_id"]:
+        values = {
+            str(score.metadata[metadata_key])
+            for score in scores
+            if score.metadata.get(metadata_key) is not None
+        }
+        if len(values) == 1:
+            summary[metadata_key] = values.pop()
     for field in numeric_fields:
         values = [getattr(score, field) for score in scores]
         filtered = [float(value) for value in values if value is not None]

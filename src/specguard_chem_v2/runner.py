@@ -7,6 +7,7 @@ from .io import load_models, write_jsonl
 from .schemas import DecisionCard, RunRecord, SelectionItem, SystemOutput, ValidationIssue
 from .systems.baselines import DETERMINISTIC_SYSTEMS, fallback_ranking, run_baseline_system
 from .systems.llm import LLM_SYSTEMS, run_llm_system
+from .systems.providers import LLMModelConfig
 
 
 def validate_output(card: DecisionCard, output: SystemOutput) -> list[ValidationIssue]:
@@ -112,6 +113,8 @@ def run_system_on_card(
     cache_dir: Path | None = None,
     allow_external: bool = False,
     model: str = "gpt-4.1-mini",
+    model_config: LLMModelConfig | None = None,
+    run_label: str | None = None,
 ) -> RunRecord:
     if system_name in DETERMINISTIC_SYSTEMS:
         output = run_baseline_system(card, system_name, seed=seed)
@@ -122,6 +125,8 @@ def run_system_on_card(
             cache_dir=cache_dir,
             allow_external=allow_external,
             model=model,
+            model_config=model_config,
+            run_label=run_label,
         )
     else:
         raise ValueError(f"Unknown system: {system_name}")
@@ -134,11 +139,19 @@ def run_system_on_card(
     final_issues = validate_output(card, output)
     return RunRecord(
         task_id=card.task_id,
-        system_name=system_name,
+        system_name=output.system_name,
         output=output,
         issues=final_issues,
         repaired=repaired,
-        metadata={"initial_issue_count": len(initial_issues)},
+        metadata={
+            "initial_issue_count": len(initial_issues),
+            "base_system_name": system_name,
+            "run_label": run_label,
+            "llm_provider": output.metadata.get("llm_provider"),
+            "llm_model": output.metadata.get("llm_model"),
+            "llm_model_config_id": output.metadata.get("llm_model_config_id"),
+            "request_sha256": output.metadata.get("request_sha256"),
+        },
     )
 
 
@@ -150,6 +163,8 @@ def run_system_on_cards(
     cache_dir: Path | None = None,
     allow_external: bool = False,
     model: str = "gpt-4.1-mini",
+    model_config: LLMModelConfig | None = None,
+    run_label: str | None = None,
 ) -> list[RunRecord]:
     return [
         run_system_on_card(
@@ -159,6 +174,8 @@ def run_system_on_cards(
             cache_dir=cache_dir,
             allow_external=allow_external,
             model=model,
+            model_config=model_config,
+            run_label=run_label,
         )
         for card in cards
     ]
@@ -173,6 +190,8 @@ def run_system_file(
     cache_dir: Path | None = None,
     allow_external: bool = False,
     model: str = "gpt-4.1-mini",
+    model_config: LLMModelConfig | None = None,
+    run_label: str | None = None,
 ) -> list[RunRecord]:
     cards = load_models(cards_path, DecisionCard)
     records = run_system_on_cards(
@@ -182,6 +201,8 @@ def run_system_file(
         cache_dir=cache_dir,
         allow_external=allow_external,
         model=model,
+        model_config=model_config,
+        run_label=run_label,
     )
     write_jsonl(out, records)
     return records

@@ -190,6 +190,7 @@ the same tables so paper artifacts remain traceable to run outputs.
 
 ```bash
 uv run sgchem export-llm-requests data/cards/cara_lo_cards.jsonl --systems bare_llm,llm_tools --out runs/llm_requests.jsonl
+uv run sgchem export-llm-requests data/cards/cara_lo_cards.jsonl --systems llm_tools --model-matrix configs/model_matrix.toml --out runs/llm_matrix_requests.jsonl
 ```
 
 This exports the exact prompts/messages that would be sent to LLM-backed systems
@@ -214,6 +215,44 @@ Example LLM review record:
 }
 ```
 
+## Provider Matrix Pilot
+
+```bash
+uv run sgchem list-model-matrix configs/model_matrix.toml
+uv run sgchem run-llm-matrix tests/fixtures/cards.jsonl --systems llm_tools_validator --model-conditions openai_fast,deepseek_fast --out runs/fixture_llm_matrix
+```
+
+The matrix runner executes the same LLM system condition across configured
+provider/model conditions. Without `--allow-external`, it is a cache/replay
+check: missing responses become explicit offline outputs, and validator systems
+repair them with deterministic fallback rankings. This verifies directory shape,
+trace labels, scoring, and comparison compatibility without spending provider
+tokens.
+
+Use a tiny live pilot before a full run:
+
+```bash
+uv run sgchem run-llm-matrix data/cards/cara_lo_cards.jsonl \
+  --systems llm_tools,llm_tools_validator \
+  --model-conditions openai_fast,anthropic_fast,deepseek_fast \
+  --out runs/cara_lo_llm_pilot \
+  --allow-external
+```
+
+Provider API keys are read from `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, and
+`DEEPSEEK_API_KEY`. The run writes per-condition traces under:
+
+```text
+runs/cara_lo_llm_pilot/
+  openai_fast/
+    llm_tools/
+      trace.jsonl
+      scores/summary.json
+  cache/
+    openai_fast/
+      llm_tools/
+```
+
 ## Interpreting Results
 
 Use these rules when reading tables or writing the report:
@@ -223,6 +262,10 @@ Use these rules when reading tables or writing the report:
 - Compare systems on paired cards first; aggregate averages are secondary.
 - Report compliance and feasible utility separately.
 - Do not describe oracle controls as deployable systems.
+- Use oracle controls as upper bounds for regret/headroom checks, not as
+  evidence that a real system can make those choices.
+- Treat QSAR as the main non-language chemistry baseline: it trains on support
+  compounds and predicts candidate activity from molecular fingerprints.
 - Do not treat a valid output schema as medicinal-chemistry utility.
 - Do not use live LLM outputs in default CI or fixture smoke tests.
 

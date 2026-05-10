@@ -4,11 +4,13 @@ import hashlib
 import json
 import os
 import re
+import time
 from pathlib import Path
 from typing import Any
 
 from ..io import ensure_parent, read_json, write_json
 from ..schemas import DecisionCard, SelectionItem, SystemOutput
+from .providers import LLMModelConfig, default_openai_config
 
 LLM_SYSTEMS = {
     "bare_llm",
@@ -40,11 +42,27 @@ def _candidate_summary(card: DecisionCard, *, include_tool_fields: bool) -> list
     return rows
 
 
-def build_llm_request(card: DecisionCard, system_name: str) -> dict[str, Any]:
+def _request_hash(request: dict[str, Any]) -> str:
+    canonical = json.dumps(request, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def build_llm_request(
+    card: DecisionCard,
+    system_name: str,
+    *,
+    model_config: LLMModelConfig | None = None,
+) -> dict[str, Any]:
+    model_config = model_config or default_openai_config("gpt-4.1-mini")
     include_tool_fields = system_name in {"llm_tools", "llm_tools_validator"}
     return {
         "task_id": card.task_id,
         "system_name": system_name,
+        "model_config_id": model_config.id,
+        "provider": model_config.provider,
+        "model": model_config.model,
+        "reasoning_effort": model_config.reasoning_effort,
+        "thinking": model_config.thinking,
         "condition": {
             "uses_tools": system_name in {"llm_tools", "llm_tools_validator"},
             "uses_validator": system_name in {"llm_validator", "llm_tools_validator"},
@@ -61,7 +79,9 @@ def build_llm_request(card: DecisionCard, system_name: str) -> dict[str, Any]:
             for compound in card.support_set
         ],
         "candidate_pool": _candidate_summary(card, include_tool_fields=include_tool_fields),
-        "hard_constraints": [constraint.model_dump(mode="json") for constraint in card.hard_constraints],
+        "hard_constraints": [
+            constraint.model_dump(mode="json") for constraint in card.hard_constraints
+        ],
         "response_contract": {
             "task_id": card.task_id,
             "system_name": system_name,
@@ -104,13 +124,20 @@ def build_llm_messages(request: dict[str, Any]) -> list[dict[str, str]]:
 
 
 def _cache_path(cache_dir: Path, request: dict[str, Any]) -> Path:
-    canonical = json.dumps(request, sort_keys=True, separators=(",", ":"))
-    digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    digest = _request_hash(request)
     return cache_dir / f"{request['system_name']}__{digest}.json"
 
 
-def _stable_task_cache_path(cache_dir: Path, request: dict[str, Any]) -> Path:
-    return cache_dir / f"{request['system_name']}__{request['task_id']}.json"
+def _stable_task_cache_paths(cache_dir: Path, request: dict[str, Any]) -> list[Path]:
+    model_config_id = request.get("model_config_id")
+    paths = []
+    if model_config_id:
+        paths.append(
+            cache_dir / f"{request['system_name']}__{model_config_id}__{request['task_id']}.json"
+        )
+    # Backwards-compatible fixture path used before provider/model matrix support.
+    paths.append(cache_dir / f"{request['system_name']}__{request['task_id']}.json")
+    return paths
 
 
 def _extract_json_object(text: str) -> dict[str, Any]:
@@ -124,36 +151,179 @@ def _extract_json_object(text: str) -> dict[str, Any]:
     return json.loads(match.group(0))
 
 
-def _empty_offline_output(card: DecisionCard, system_name: str, cache_path: Path | None) -> SystemOutput:
+def _metadata_for_request(request: dict[str, Any], model_config: LLMModelConfig) -> dict[str, Any]:
+    return {
+        "llm_provider": model_config.provider,
+        "llm_model": model_config.model,
+        "llm_model_config_id": model_config.id,
+        "request_sha256": _request_hash(request),
+    }
+
+
+def _empty_offline_output(
+    card: DecisionCard,
+    system_name: str,
+    cache_path: Path | None,
+    *,
+    request: dict[str, Any],
+    model_config: LLMModelConfig,
+    run_label: str | None = None,
+) -> SystemOutput:
     metadata = {
         "external_skipped": True,
         "reason": "No replay cache was available and live external calls were not allowed.",
+        **_metadata_for_request(request, model_config),
     }
     if cache_path is not None:
         metadata["cache_path"] = str(cache_path)
-    return SystemOutput(task_id=card.task_id, system_name=system_name, selections=[], metadata=metadata)
+    if run_label is not None:
+        metadata["base_system_name"] = system_name
+    return SystemOutput(
+        task_id=card.task_id,
+        system_name=run_label or system_name,
+        selections=[],
+        metadata=metadata,
+    )
 
 
-def _call_openai(request: dict[str, Any], *, model: str) -> dict[str, Any]:
+def _usage_payload(value: Any) -> dict[str, Any] | None:
+    if value is None:
+        return None
+    if hasattr(value, "model_dump"):
+        return value.model_dump(mode="json")
+    if isinstance(value, dict):
+        return value
+    return None
+
+
+def _call_openai(request: dict[str, Any], *, model_config: LLMModelConfig) -> dict[str, Any]:
     try:
         from openai import OpenAI
     except ImportError as exc:  # pragma: no cover - optional provider path
         raise RuntimeError("Install specguard-chem-v2[providers] to use live OpenAI calls") from exc
-    if not os.environ.get("OPENAI_API_KEY"):
-        raise RuntimeError("OPENAI_API_KEY is required for live OpenAI calls")
-    client = OpenAI()
-    response = client.chat.completions.create(
-        model=model,
-        messages=build_llm_messages(request),
-        temperature=0,
-        response_format={"type": "json_object"},
-    )
+    api_key_env = model_config.api_key_env or "OPENAI_API_KEY"
+    api_key = os.environ.get(api_key_env)
+    if not api_key:
+        raise RuntimeError(f"{api_key_env} is required for live OpenAI calls")
+    client = OpenAI(api_key=api_key)
+    kwargs: dict[str, Any] = {
+        "model": model_config.model,
+        "messages": build_llm_messages(request),
+        "response_format": {"type": "json_object"},
+        "max_completion_tokens": model_config.max_tokens,
+    }
+    if model_config.reasoning_effort is not None:
+        kwargs["reasoning_effort"] = model_config.reasoning_effort
+    if model_config.temperature is not None:
+        kwargs["temperature"] = model_config.temperature
+    started = time.perf_counter()
+    response = client.chat.completions.create(**kwargs)
+    latency_ms = int((time.perf_counter() - started) * 1000)
     content = response.choices[0].message.content or "{}"
     payload = _extract_json_object(content)
     payload.setdefault("metadata", {})
     payload["metadata"]["provider"] = "openai"
-    payload["metadata"]["model"] = model
+    payload["metadata"]["model"] = model_config.model
+    payload["metadata"]["model_config_id"] = model_config.id
+    payload["metadata"]["response_id"] = getattr(response, "id", None)
+    payload["metadata"]["latency_ms"] = latency_ms
+    payload["metadata"]["usage"] = _usage_payload(getattr(response, "usage", None))
     return payload
+
+
+def _call_anthropic(request: dict[str, Any], *, model_config: LLMModelConfig) -> dict[str, Any]:
+    try:
+        from anthropic import Anthropic
+    except ImportError as exc:  # pragma: no cover - optional provider path
+        raise RuntimeError(
+            "Install specguard-chem-v2[providers] to use live Anthropic calls"
+        ) from exc
+    api_key_env = model_config.api_key_env or "ANTHROPIC_API_KEY"
+    api_key = os.environ.get(api_key_env)
+    if not api_key:
+        raise RuntimeError(f"{api_key_env} is required for live Anthropic calls")
+    messages = build_llm_messages(request)
+    system_prompt = messages[0]["content"]
+    user_messages = messages[1:]
+    kwargs: dict[str, Any] = {
+        "model": model_config.model,
+        "max_tokens": model_config.max_tokens,
+        "system": system_prompt,
+        "messages": user_messages,
+    }
+    if model_config.temperature is not None:
+        kwargs["temperature"] = model_config.temperature
+    client = Anthropic(api_key=api_key)
+    started = time.perf_counter()
+    response = client.messages.create(**kwargs)
+    latency_ms = int((time.perf_counter() - started) * 1000)
+    content_parts = []
+    for block in response.content:
+        if getattr(block, "type", None) == "text":
+            content_parts.append(str(getattr(block, "text", "")))
+    payload = _extract_json_object("\n".join(content_parts))
+    payload.setdefault("metadata", {})
+    payload["metadata"]["provider"] = "anthropic"
+    payload["metadata"]["model"] = model_config.model
+    payload["metadata"]["model_config_id"] = model_config.id
+    payload["metadata"]["response_id"] = getattr(response, "id", None)
+    payload["metadata"]["latency_ms"] = latency_ms
+    payload["metadata"]["usage"] = _usage_payload(getattr(response, "usage", None))
+    return payload
+
+
+def _call_deepseek(request: dict[str, Any], *, model_config: LLMModelConfig) -> dict[str, Any]:
+    try:
+        from openai import OpenAI
+    except ImportError as exc:  # pragma: no cover - optional provider path
+        raise RuntimeError(
+            "Install specguard-chem-v2[providers] to use live DeepSeek calls"
+        ) from exc
+    api_key_env = model_config.api_key_env or "DEEPSEEK_API_KEY"
+    api_key = os.environ.get(api_key_env)
+    if not api_key:
+        raise RuntimeError(f"{api_key_env} is required for live DeepSeek calls")
+    client = OpenAI(api_key=api_key, base_url=model_config.base_url or "https://api.deepseek.com")
+    kwargs: dict[str, Any] = {
+        "model": model_config.model,
+        "messages": build_llm_messages(request),
+        "response_format": {"type": "json_object"},
+        "max_tokens": model_config.max_tokens,
+    }
+    if model_config.reasoning_effort is not None:
+        kwargs["reasoning_effort"] = model_config.reasoning_effort
+    extra_body: dict[str, Any] = {}
+    if model_config.thinking is not None:
+        extra_body["thinking"] = {"type": "enabled" if model_config.thinking else "disabled"}
+    if extra_body:
+        kwargs["extra_body"] = extra_body
+    started = time.perf_counter()
+    response = client.chat.completions.create(**kwargs)
+    latency_ms = int((time.perf_counter() - started) * 1000)
+    message = response.choices[0].message
+    payload = _extract_json_object(message.content or "{}")
+    payload.setdefault("metadata", {})
+    payload["metadata"]["provider"] = "deepseek"
+    payload["metadata"]["model"] = model_config.model
+    payload["metadata"]["model_config_id"] = model_config.id
+    payload["metadata"]["thinking_enabled"] = model_config.thinking
+    payload["metadata"]["response_id"] = getattr(response, "id", None)
+    payload["metadata"]["latency_ms"] = latency_ms
+    payload["metadata"]["usage"] = _usage_payload(getattr(response, "usage", None))
+    payload["metadata"]["reasoning_content_present"] = bool(
+        getattr(message, "reasoning_content", None)
+    )
+    return payload
+
+
+def _call_provider(request: dict[str, Any], *, model_config: LLMModelConfig) -> dict[str, Any]:
+    if model_config.provider == "openai":
+        return _call_openai(request, model_config=model_config)
+    if model_config.provider == "anthropic":
+        return _call_anthropic(request, model_config=model_config)
+    if model_config.provider == "deepseek":
+        return _call_deepseek(request, model_config=model_config)
+    raise ValueError(f"Unsupported provider: {model_config.provider}")
 
 
 def run_llm_system(
@@ -163,30 +333,57 @@ def run_llm_system(
     cache_dir: Path | None = None,
     allow_external: bool = False,
     model: str = "gpt-4.1-mini",
+    model_config: LLMModelConfig | None = None,
+    run_label: str | None = None,
 ) -> SystemOutput:
     if system_name not in LLM_SYSTEMS:
         raise ValueError(f"Unknown LLM system: {system_name}")
-    request = build_llm_request(card, system_name)
+    model_config = model_config or default_openai_config(model)
+    request = build_llm_request(card, system_name, model_config=model_config)
     path = _cache_path(cache_dir, request) if cache_dir is not None else None
-    stable_path = _stable_task_cache_path(cache_dir, request) if cache_dir is not None else None
-    for candidate_path in [stable_path, path]:
+    stable_paths = _stable_task_cache_paths(cache_dir, request) if cache_dir is not None else []
+    for candidate_path in [*stable_paths, path]:
         if candidate_path is not None and candidate_path.exists():
             payload = read_json(candidate_path)
             response = payload.get("response", payload)
-            return SystemOutput.model_validate(response)
+            output = SystemOutput.model_validate(response)
+            metadata = {
+                **output.metadata,
+                **_metadata_for_request(request, model_config),
+                "cache_path": str(candidate_path),
+            }
+            if run_label is not None:
+                metadata["base_system_name"] = system_name
+                output = output.model_copy(update={"system_name": run_label, "metadata": metadata})
+            else:
+                output = output.model_copy(update={"metadata": metadata})
+            return output
     if not allow_external:
-        return _empty_offline_output(card, system_name, path)
+        return _empty_offline_output(
+            card,
+            system_name,
+            path,
+            request=request,
+            model_config=model_config,
+            run_label=run_label,
+        )
 
-    response_payload = _call_openai(request, model=model)
+    response_payload = _call_provider(request, model_config=model_config)
+    response_metadata = {
+        **dict(response_payload.get("metadata") or {}),
+        **_metadata_for_request(request, model_config),
+    }
+    if run_label is not None:
+        response_metadata["base_system_name"] = system_name
     output = SystemOutput(
         task_id=str(response_payload.get("task_id", card.task_id)),
-        system_name=system_name,
+        system_name=run_label or system_name,
         selections=[
             SelectionItem.model_validate(item)
             for item in response_payload.get("selections", [])
             if isinstance(item, dict)
         ],
-        metadata=dict(response_payload.get("metadata") or {}),
+        metadata=response_metadata,
     )
     if path is not None:
         ensure_parent(path)
@@ -197,19 +394,27 @@ def run_llm_system(
 def export_llm_requests(
     cards: list[DecisionCard],
     system_names: list[str],
+    *,
+    model_configs: list[LLMModelConfig] | None = None,
 ) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
+    configs = model_configs or [default_openai_config("gpt-4.1-mini")]
     for card in cards:
         for system_name in system_names:
             if system_name not in LLM_SYSTEMS:
                 raise ValueError(f"Unknown LLM system: {system_name}")
-            request = build_llm_request(card, system_name)
-            rows.append(
-                {
-                    "task_id": card.task_id,
-                    "system_name": system_name,
-                    "request": request,
-                    "messages": build_llm_messages(request),
-                }
-            )
+            for model_config in configs:
+                request = build_llm_request(card, system_name, model_config=model_config)
+                rows.append(
+                    {
+                        "task_id": card.task_id,
+                        "system_name": system_name,
+                        "model_config_id": model_config.id,
+                        "provider": model_config.provider,
+                        "model": model_config.model,
+                        "request_sha256": _request_hash(request),
+                        "request": request,
+                        "messages": build_llm_messages(request),
+                    }
+                )
     return rows

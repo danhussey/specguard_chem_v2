@@ -4,7 +4,6 @@ from typer.testing import CliRunner
 
 from specguard_chem_v2.cli import app
 
-
 FIXTURES = Path(__file__).parent / "fixtures"
 
 
@@ -54,6 +53,30 @@ def test_cli_fixture_smoke(tmp_path: Path) -> None:
     )
     assert result.exit_code == 0, result.output
     assert (tmp_path / "llm_requests.jsonl").exists()
+
+    result = runner.invoke(app, ["list-model-matrix", "configs/model_matrix.toml"])
+    assert result.exit_code == 0, result.output
+    assert "openai_fast" in result.output
+
+    matrix_dir = tmp_path / "llm_matrix"
+    result = runner.invoke(
+        app,
+        [
+            "run-llm-matrix",
+            str(cards),
+            "--systems",
+            "llm_tools_validator",
+            "--model-conditions",
+            "openai_fast,deepseek_fast",
+            "--out",
+            str(matrix_dir),
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    assert (matrix_dir / "openai_fast" / "llm_tools_validator" / "trace.jsonl").exists()
+    assert (
+        matrix_dir / "deepseek_fast" / "llm_tools_validator" / "scores" / "summary.json"
+    ).exists()
 
     result = runner.invoke(
         app,

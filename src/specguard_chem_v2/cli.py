@@ -18,6 +18,7 @@ from .schemas import DecisionCard
 from .scoring import score_run
 from .systems import DETERMINISTIC_SYSTEMS, LLM_SYSTEMS
 from .systems.llm import export_llm_requests as export_llm_request_rows
+from .systems.providers import load_model_matrix, select_model_configs
 from .validation import validate_card_semantics
 
 app = typer.Typer(help="SpecGuard-Chem v2 constrained prioritisation harness.")
@@ -203,14 +204,94 @@ def export_llm_requests(
         help="Comma-separated LLM system names.",
     ),
     out: Path = typer.Option(Path("runs/llm_requests.jsonl"), "--out", "-o"),
+    model_matrix: Optional[Path] = typer.Option(None, "--model-matrix"),
+    model_conditions: str = typer.Option("all", "--model-conditions"),
 ) -> None:
     from .io import write_jsonl
 
     loaded = load_models(cards, DecisionCard)
     names = [name.strip() for name in systems.split(",") if name.strip()]
-    rows = export_llm_request_rows(loaded, names)
+    configs = None
+    if model_matrix is not None:
+        configs = select_model_configs(load_model_matrix(model_matrix), model_conditions)
+    rows = export_llm_request_rows(loaded, names, model_configs=configs)
     write_jsonl(out, rows)
     console.print(f"Exported [green]{len(rows)}[/green] LLM requests -> {out}")
+
+
+@app.command("list-model-matrix")
+def list_model_matrix(
+    model_matrix: Path = typer.Argument(Path("configs/model_matrix.toml")),
+) -> None:
+    configs = load_model_matrix(model_matrix)
+    for config in configs.values():
+        console.print(
+            f"[bold]{config.id}[/bold] provider={config.provider} "
+            f"model={config.model} tier={config.tier}"
+        )
+
+
+@app.command("run-llm-matrix")
+def run_llm_matrix(
+    cards: Path = typer.Argument(..., help="Decision-card JSONL path."),
+    systems: str = typer.Option(
+        "bare_llm,llm_validator,llm_tools,llm_tools_validator",
+        "--systems",
+        help="Comma-separated LLM system names.",
+    ),
+    model_matrix: Path = typer.Option(Path("configs/model_matrix.toml"), "--model-matrix"),
+    model_conditions: str = typer.Option("all", "--model-conditions"),
+    out: Path = typer.Option(Path("runs/llm_matrix"), "--out", "-o"),
+    seed: int = typer.Option(7, "--seed"),
+    cache_dir: Optional[Path] = typer.Option(None, "--cache-dir"),
+    allow_external: bool = typer.Option(False, "--allow-external"),
+) -> None:
+    names = [name.strip() for name in systems.split(",") if name.strip()]
+    unknown = [name for name in names if name not in LLM_SYSTEMS]
+    if unknown:
+        raise typer.BadParameter(f"Unknown LLM systems: {', '.join(unknown)}")
+    configs = select_model_configs(load_model_matrix(model_matrix), model_conditions)
+    effective_cache_dir = cache_dir or (out / "cache")
+    manifest = {
+        "cards": str(cards),
+        "systems": names,
+        "model_matrix": str(model_matrix),
+        "model_conditions": [config.id for config in configs],
+        "seed": seed,
+        "allow_external": allow_external,
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "runs": [],
+    }
+    for config in configs:
+        for system_name in names:
+            run_label = f"{system_name}__{config.id}"
+            run_path = out / config.id / system_name / "trace.jsonl"
+            run_system_file(
+                cards,
+                system_name,
+                run_path,
+                seed=seed,
+                cache_dir=effective_cache_dir / config.id / system_name,
+                allow_external=allow_external,
+                model_config=config,
+                run_label=run_label,
+            )
+            scores_dir = out / config.id / system_name / "scores"
+            score_run(cards, run_path, scores_dir)
+            manifest["runs"].append(
+                {
+                    "system_name": system_name,
+                    "run_label": run_label,
+                    "model_config_id": config.id,
+                    "provider": config.provider,
+                    "model": config.model,
+                    "trace": str(run_path),
+                    "scores": str(scores_dir),
+                }
+            )
+            console.print(f"Completed [green]{run_label}[/green]")
+    write_json(out / "manifest.json", manifest)
+    console.print(f"Matrix manifest written to [green]{out / 'manifest.json'}[/green]")
 
 
 @app.command("score-run")

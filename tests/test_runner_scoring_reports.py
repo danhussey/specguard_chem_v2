@@ -1,12 +1,16 @@
 from pathlib import Path
 
 from specguard_chem_v2.io import load_models
-from specguard_chem_v2.reports import compare_run_summaries, make_frontier_plot, write_results_summary
+from specguard_chem_v2.reports import (
+    compare_run_summaries,
+    make_frontier_plot,
+    write_results_summary,
+)
 from specguard_chem_v2.runner import run_system_file, run_system_on_card
 from specguard_chem_v2.schemas import DecisionCard
 from specguard_chem_v2.scoring import score_record, score_run
 from specguard_chem_v2.systems.llm import build_llm_request, export_llm_requests
-
+from specguard_chem_v2.systems.providers import load_model_matrix, select_model_configs
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -65,6 +69,33 @@ def test_llm_request_export_distinguishes_tool_condition() -> None:
     assert rows[0]["messages"][0]["role"] == "system"
 
 
+def test_model_matrix_requests_and_offline_run(tmp_path: Path) -> None:
+    cards_path = FIXTURES / "cards.jsonl"
+    cards = load_models(cards_path, DecisionCard)
+    configs = select_model_configs(
+        load_model_matrix(Path("configs/model_matrix.toml")),
+        "openai_fast,deepseek_fast",
+    )
+    rows = export_llm_requests(cards[:1], ["llm_tools"], model_configs=configs)
+    assert len(rows) == 2
+    assert {row["model_config_id"] for row in rows} == {"openai_fast", "deepseek_fast"}
+    assert all("activity_value" not in row["request"]["candidate_pool"][0] for row in rows)
+
+    records = run_system_file(
+        cards_path,
+        "llm_tools_validator",
+        tmp_path / "trace.jsonl",
+        cache_dir=tmp_path / "cache",
+        model_config=configs[0],
+        run_label="llm_tools_validator__openai_fast",
+    )
+    assert records[0].system_name == "llm_tools_validator__openai_fast"
+    assert records[0].metadata["llm_model_config_id"] == "openai_fast"
+    assert records[0].repaired is True
+    summary_scores = score_run(cards_path, tmp_path / "trace.jsonl", tmp_path / "scores")
+    assert summary_scores[0].system_name == "llm_tools_validator__openai_fast"
+
+
 def test_compare_and_frontier_plot(tmp_path: Path) -> None:
     cards_path = FIXTURES / "cards.jsonl"
     summary_paths = []
@@ -83,6 +114,32 @@ def test_compare_and_frontier_plot(tmp_path: Path) -> None:
     assert (tmp_path / "compare" / "ablation_deltas.csv").exists()
     plot = make_frontier_plot(tmp_path / "compare" / "system_comparison.csv", tmp_path / "figures")
     assert plot.exists()
-    summary = write_results_summary(tmp_path / "compare" / "system_comparison.csv", tmp_path / "paper")
+    summary = write_results_summary(
+        tmp_path / "compare" / "system_comparison.csv",
+        tmp_path / "paper",
+    )
     assert summary.exists()
     assert "Primary Systems" in summary.read_text(encoding="utf-8")
+
+
+def test_compare_variant_ablation_rows(tmp_path: Path) -> None:
+    cards_path = FIXTURES / "cards.jsonl"
+    summary_paths = []
+    config = load_model_matrix(Path("configs/model_matrix.toml"))["openai_fast"]
+    for system_name in ["bare_llm", "llm_validator"]:
+        run_label = f"{system_name}__openai_fast"
+        trace_path = tmp_path / system_name / "trace.jsonl"
+        run_system_file(
+            cards_path,
+            system_name,
+            trace_path,
+            cache_dir=FIXTURES / "llm_cache",
+            model_config=config,
+            run_label=run_label,
+        )
+        score_run(cards_path, trace_path, tmp_path / system_name / "scores")
+        summary_paths.append(tmp_path / system_name / "scores" / "summary.json")
+
+    compare_run_summaries(summary_paths, tmp_path / "compare")
+    ablations = (tmp_path / "compare" / "ablation_deltas.csv").read_text(encoding="utf-8")
+    assert "validator_delta__openai_fast" in ablations
