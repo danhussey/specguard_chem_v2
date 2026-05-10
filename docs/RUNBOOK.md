@@ -36,6 +36,7 @@ range requests when possible, checks the server `Content-Length` or
 uv run sgchem run-suite data/cards/cara_lo_cards.jsonl --systems all-with-oracle --out runs/cara_lo
 uv run sgchem compare-runs runs/cara_lo/*/scores/summary.json --out paper/tables
 uv run sgchem make-figures paper/tables/system_comparison.csv --out paper/figures
+uv run sgchem make-report paper/tables/system_comparison.csv --out paper
 ```
 
 ## LLM Request Review

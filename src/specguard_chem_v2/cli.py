@@ -12,7 +12,7 @@ from .data.cara import inspect_cara_layout
 from .data.cara import summarize_cards as summarize_card_models
 from .data.cara import write_imported_records
 from .io import load_models, write_json
-from .reports import compare_run_summaries, make_frontier_plot
+from .reports import compare_run_summaries, make_frontier_plot, write_results_summary
 from .runner import run_system_file
 from .schemas import DecisionCard
 from .scoring import score_run
@@ -249,6 +249,16 @@ def make_figures(
 ) -> None:
     output = make_frontier_plot(comparison_csv, out)
     console.print(f"Wrote frontier plot to [green]{output}[/green]")
+
+
+@app.command("make-report")
+def make_report(
+    comparison_csv: Path = typer.Argument(..., help="system_comparison.csv path."),
+    out: Path = typer.Option(Path("paper"), "--out", "-o"),
+    title: str = typer.Option("SpecGuard-Chem v2 Results Summary", "--title"),
+) -> None:
+    output = write_results_summary(comparison_csv, out, title=title)
+    console.print(f"Wrote results summary to [green]{output}[/green]")
 
 
 if __name__ == "__main__":

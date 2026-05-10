@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
@@ -130,4 +131,75 @@ def make_frontier_plot(comparison_csv: Path, out_dir: Path) -> Path:
     output = out_dir / "compliance_utility_frontier.png"
     fig.savefig(output, dpi=200)
     plt.close(fig)
+    return output
+
+
+def _format_float(value: object) -> str:
+    if pd.isna(value):
+        return ""
+    try:
+        return f"{float(value):.3f}"
+    except (TypeError, ValueError):
+        return str(value)
+
+
+def _markdown_table(frame: pd.DataFrame, columns: list[str]) -> str:
+    available = [column for column in columns if column in frame.columns]
+    if frame.empty or not available:
+        return "_No rows._\n"
+    header = "| " + " | ".join(available) + " |"
+    separator = "| " + " | ".join(["---"] * len(available)) + " |"
+    rows = []
+    for _, row in frame.iterrows():
+        cells = []
+        for column in available:
+            value = row[column]
+            cells.append(_format_float(value) if column != "system_name" else str(value))
+        rows.append("| " + " | ".join(cells) + " |")
+    return "\n".join([header, separator, *rows]) + "\n"
+
+
+def write_results_summary(comparison_csv: Path, out_dir: Path, *, title: str = "SpecGuard-Chem v2 Results Summary") -> Path:
+    frame = pd.read_csv(comparison_csv)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    if not frame.empty and "system_name" in frame.columns:
+        frame = frame.sort_values(["feasible_utility", "compliance_rate"], ascending=[False, False])
+        oracle = frame[frame["system_name"].map(_is_oracle_system)]
+        primary = frame[~frame["system_name"].map(_is_oracle_system)]
+    else:
+        oracle = frame
+        primary = frame
+
+    columns = [
+        "system_name",
+        "feasible_utility",
+        "ndcg_at_k",
+        "constrained_regret",
+        "compliance_rate",
+        "schema_error_rate",
+    ]
+    generated_at = datetime.now(timezone.utc).isoformat()
+    content = [
+        f"# {title}",
+        "",
+        f"Generated at: `{generated_at}`",
+        "",
+        f"Source comparison CSV: `{comparison_csv}`",
+        "",
+        "This report is a computational audit artifact. It ranks provided candidate IDs only and does not claim synthesis feasibility, safety, selectivity, clinical utility, or therapeutic value.",
+        "",
+        "## Primary Systems",
+        "",
+        _markdown_table(primary, columns),
+        "## Oracle Controls",
+        "",
+        _markdown_table(oracle, columns),
+        "## Reading Guide",
+        "",
+        "- Higher feasible utility and NDCG@k are better.",
+        "- Lower constrained regret and schema error rate are better.",
+        "- Oracle controls are sanity checks and must not be mixed into primary system claims.",
+    ]
+    output = out_dir / "RESULTS_SUMMARY.md"
+    output.write_text("\n".join(content) + "\n", encoding="utf-8")
     return output

@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from specguard_chem_v2.io import load_models
-from specguard_chem_v2.reports import compare_run_summaries, make_frontier_plot
+from specguard_chem_v2.reports import compare_run_summaries, make_frontier_plot, write_results_summary
 from specguard_chem_v2.runner import run_system_file, run_system_on_card
 from specguard_chem_v2.schemas import DecisionCard
 from specguard_chem_v2.scoring import score_record, score_run
@@ -83,3 +83,6 @@ def test_compare_and_frontier_plot(tmp_path: Path) -> None:
     assert (tmp_path / "compare" / "ablation_deltas.csv").exists()
     plot = make_frontier_plot(tmp_path / "compare" / "system_comparison.csv", tmp_path / "figures")
     assert plot.exists()
+    summary = write_results_summary(tmp_path / "compare" / "system_comparison.csv", tmp_path / "paper")
+    assert summary.exists()
+    assert "Primary Systems" in summary.read_text(encoding="utf-8")

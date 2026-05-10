@@ -6,6 +6,7 @@ Expected subdirectories:
 
 - `tables/`: comparison tables, metric winners, and ablation deltas.
 - `figures/`: compliance-utility frontier plots.
+- `RESULTS_SUMMARY.md`: generated paper-facing audit summary.
 
 Generated paper artifacts are ignored by default. Commit only stable manuscript
 assets intentionally.

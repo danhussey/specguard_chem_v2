@@ -20,6 +20,7 @@ sgchem run-suite tests/fixtures/cards.jsonl --systems all --out runs/fixture
 sgchem score-run tests/fixtures/cards.jsonl runs/fixture/random_valid/trace.jsonl --out runs/fixture/random_valid/scores
 sgchem compare-runs runs/fixture/*/scores/summary.json --out runs/fixture/compare
 sgchem make-figures runs/fixture/compare/system_comparison.csv --out paper/figures
+sgchem make-report runs/fixture/compare/system_comparison.csv --out paper
 ```
 
 ## Repository Map

@@ -67,3 +67,15 @@ def test_cli_fixture_smoke(tmp_path: Path) -> None:
     )
     assert result.exit_code == 0, result.output
     assert (tmp_path / "compare" / "system_comparison.csv").exists()
+
+    result = runner.invoke(
+        app,
+        [
+            "make-report",
+            str(tmp_path / "compare" / "system_comparison.csv"),
+            "--out",
+            str(tmp_path / "paper"),
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "paper" / "RESULTS_SUMMARY.md").exists()
