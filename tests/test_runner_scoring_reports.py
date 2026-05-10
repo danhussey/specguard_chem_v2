@@ -9,7 +9,11 @@ from specguard_chem_v2.reports import (
 from specguard_chem_v2.runner import run_system_file, run_system_on_card
 from specguard_chem_v2.schemas import DecisionCard
 from specguard_chem_v2.scoring import score_record, score_run
-from specguard_chem_v2.systems.llm import build_llm_request, export_llm_requests
+from specguard_chem_v2.systems.llm import (
+    _selection_items_from_payload,
+    build_llm_request,
+    export_llm_requests,
+)
 from specguard_chem_v2.systems.providers import load_model_matrix, select_model_configs
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -94,6 +98,20 @@ def test_model_matrix_requests_and_offline_run(tmp_path: Path) -> None:
     assert records[0].repaired is True
     summary_scores = score_run(cards_path, tmp_path / "trace.jsonl", tmp_path / "scores")
     assert summary_scores[0].system_name == "llm_tools_validator__openai_fast"
+
+
+def test_live_payload_selection_normalization_clamps_confidence() -> None:
+    selections = _selection_items_from_payload(
+        {
+            "selections": [
+                {"rank": "1", "candidate_id": "C001", "confidence": 7.0},
+                {"rank": "bad", "candidate_id": "C002", "confidence": "not-a-number"},
+            ]
+        }
+    )
+    assert selections[0].confidence == 1.0
+    assert selections[1].rank == 2
+    assert selections[1].confidence is None
 
 
 def test_compare_and_frontier_plot(tmp_path: Path) -> None:

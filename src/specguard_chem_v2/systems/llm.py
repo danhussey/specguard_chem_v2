@@ -326,6 +326,40 @@ def _call_provider(request: dict[str, Any], *, model_config: LLMModelConfig) -> 
     raise ValueError(f"Unsupported provider: {model_config.provider}")
 
 
+def _selection_items_from_payload(payload: dict[str, Any]) -> list[SelectionItem]:
+    selections: list[SelectionItem] = []
+    raw_items = payload.get("selections", [])
+    if not isinstance(raw_items, list):
+        return selections
+    for index, item in enumerate(raw_items, start=1):
+        if not isinstance(item, dict):
+            continue
+        candidate_id = item.get("candidate_id")
+        if candidate_id is None:
+            continue
+        try:
+            rank = int(item.get("rank", index))
+        except (TypeError, ValueError):
+            rank = index
+        confidence = item.get("confidence")
+        try:
+            normalized_confidence = None if confidence is None else float(confidence)
+        except (TypeError, ValueError):
+            normalized_confidence = None
+        if normalized_confidence is not None:
+            normalized_confidence = max(0.0, min(1.0, normalized_confidence))
+        rationale = item.get("rationale")
+        selections.append(
+            SelectionItem(
+                rank=max(1, rank),
+                candidate_id=str(candidate_id),
+                confidence=normalized_confidence,
+                rationale=str(rationale) if rationale is not None else None,
+            )
+        )
+    return selections
+
+
 def run_llm_system(
     card: DecisionCard,
     system_name: str,
@@ -378,11 +412,7 @@ def run_llm_system(
     output = SystemOutput(
         task_id=str(response_payload.get("task_id", card.task_id)),
         system_name=run_label or system_name,
-        selections=[
-            SelectionItem.model_validate(item)
-            for item in response_payload.get("selections", [])
-            if isinstance(item, dict)
-        ],
+        selections=_selection_items_from_payload(response_payload),
         metadata=response_metadata,
     )
     if path is not None:
