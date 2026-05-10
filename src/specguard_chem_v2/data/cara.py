@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 import urllib.request
 import zipfile
@@ -242,6 +243,123 @@ def _candidate_record_from_row(
     }
 
 
+def _find_official_cara_root(raw_dir: Path) -> Path | None:
+    candidates = [
+        raw_dir / "CARA",
+        raw_dir / "extracted" / "CARA",
+    ]
+    for candidate in candidates:
+        if (candidate / "Task").exists() and (candidate / "Split").exists():
+            return candidate
+    for candidate in raw_dir.rglob("CARA"):
+        if (candidate / "Task").exists() and (candidate / "Split").exists():
+            return candidate
+    return None
+
+
+def _official_task_table(root: Path, split_name: str) -> Path | None:
+    path = root / "Task" / f"{split_name}.tsv"
+    return path if path.exists() else None
+
+
+def _official_split_file(root: Path, split_name: str, role: str) -> Path | None:
+    suffix = "support" if role == "support" else "query"
+    path = root / "Split" / f"{split_name}_{suffix}.json"
+    return path if path.exists() else None
+
+
+def _load_split_indices(path: Path) -> dict[str, list[int]]:
+    with path.open("r", encoding="utf-8") as handle:
+        payload = json.load(handle)
+    result: dict[str, list[int]] = {}
+    for task_id, indices in payload.items():
+        if not isinstance(indices, list):
+            continue
+        result[str(task_id)] = [int(index) for index in indices]
+    return result
+
+
+def _row_lookup(frame: pd.DataFrame) -> pd.DataFrame:
+    if "Unnamed: 0" not in frame.columns:
+        return frame
+    indexed = frame.set_index("Unnamed: 0", drop=False)
+    indexed.index = indexed.index.astype(int)
+    return indexed
+
+
+def _record_from_official_row(
+    *,
+    row: pd.Series,
+    assay_id: str,
+    role: str,
+    source_file: Path,
+    row_index: int,
+    split_name: str,
+) -> dict[str, Any] | None:
+    smiles = row.get("Smiles")
+    activity = row.get("pChEMBL Value")
+    if pd.isna(smiles) or pd.isna(activity):
+        return None
+    try:
+        activity_value = float(activity)
+    except (TypeError, ValueError):
+        return None
+    molecule_id = row.get("Molecule ChEMBL ID")
+    compound_id = str(molecule_id) if not pd.isna(molecule_id) else f"{assay_id}_{row_index}"
+    return {
+        "assay_id": assay_id,
+        "compound_id": compound_id,
+        "smiles": str(smiles),
+        "activity_value": activity_value,
+        "role": role,
+        "target": str(row.get("Target ChEMBL ID")) if not pd.isna(row.get("Target ChEMBL ID")) else None,
+        "task_kind": str(row.get("Task Type")) if not pd.isna(row.get("Task Type")) else None,
+        "assay_chembl_id": str(row.get("Assay ChEMBL ID"))
+        if not pd.isna(row.get("Assay ChEMBL ID"))
+        else None,
+        "value_type": str(row.get("Value Type")) if not pd.isna(row.get("Value Type")) else None,
+        "target_type": str(row.get("Target Type")) if not pd.isna(row.get("Target Type")) else None,
+        "source_file": str(source_file),
+        "source_split": split_name,
+        "row_index": row_index,
+    }
+
+
+def import_official_cara_records(raw_dir: Path, *, split_name: str = "LO_All") -> list[dict[str, Any]]:
+    root = _find_official_cara_root(raw_dir)
+    if root is None:
+        return []
+    task_path = _official_task_table(root, split_name)
+    support_path = _official_split_file(root, split_name, "support")
+    query_path = _official_split_file(root, split_name, "candidate")
+    if task_path is None or support_path is None or query_path is None:
+        return []
+
+    frame = _row_lookup(pd.read_csv(task_path, sep="\t"))
+    role_files = {
+        "support": support_path,
+        "candidate": query_path,
+    }
+    records: list[dict[str, Any]] = []
+    for role, split_path in role_files.items():
+        split_indices = _load_split_indices(split_path)
+        for assay_id, indices in sorted(split_indices.items()):
+            for row_index in indices:
+                if row_index not in frame.index:
+                    continue
+                record = _record_from_official_row(
+                    row=frame.loc[row_index],
+                    assay_id=assay_id,
+                    role=role,
+                    source_file=task_path,
+                    row_index=row_index,
+                    split_name=split_name,
+                )
+                if record is not None:
+                    records.append(record)
+    return records
+
+
 def inspect_cara_layout(raw_dir: Path) -> dict[str, Any]:
     roots = [raw_dir]
     extracted = raw_dir / "extracted"
@@ -259,7 +377,24 @@ def inspect_cara_layout(raw_dir: Path) -> dict[str, Any]:
                 continue
             frame = _read_table(path)
             if frame is None:
-                table_summaries.append({"path": str(path), "readable": False})
+                json_keys = None
+                if path.suffix.lower() == ".json":
+                    try:
+                        with path.open("r", encoding="utf-8") as handle:
+                            payload = json.load(handle)
+                        if isinstance(payload, dict):
+                            json_keys = list(payload.keys())[:40]
+                    except Exception:
+                        json_keys = None
+                table_summaries.append(
+                    {
+                        "path": str(path),
+                        "readable": False,
+                        "json_keys": json_keys,
+                        "role_hint": _role_from_path(path),
+                        "task_kind_hint": _task_kind_from_path(path),
+                    }
+                )
                 continue
             table_summaries.append(
                 {
@@ -280,6 +415,10 @@ def inspect_cara_layout(raw_dir: Path) -> dict[str, Any]:
 
 
 def import_cara_records(raw_dir: Path) -> list[dict[str, Any]]:
+    official_records = import_official_cara_records(raw_dir)
+    if official_records:
+        return official_records
+
     roots = [raw_dir]
     extracted = raw_dir / "extracted"
     if extracted.exists():
@@ -356,8 +495,11 @@ def import_cara_records(raw_dir: Path) -> list[dict[str, Any]]:
     return rows
 
 
-def write_imported_records(raw_dir: Path, out: Path) -> list[dict[str, Any]]:
-    records = import_cara_records(raw_dir)
+def write_imported_records(raw_dir: Path, out: Path, *, split_name: str = "LO_All") -> list[dict[str, Any]]:
+    records = import_official_cara_records(raw_dir, split_name=split_name)
+    importer = "official_cara_split" if records else "generic_tables"
+    if not records:
+        records = import_cara_records(raw_dir)
     write_jsonl(out, records)
     source_files = sorted({str(record.get("source_file")) for record in records if record.get("source_file")})
     metadata = {
@@ -367,6 +509,8 @@ def write_imported_records(raw_dir: Path, out: Path) -> list[dict[str, Any]]:
         "num_assays": len({record.get("assay_id") for record in records}),
         "source_files": source_files,
         "layout_summary_path": str(out.with_suffix(".layout.json")),
+        "importer": importer,
+        "split_name": split_name if importer == "official_cara_split" else None,
     }
     write_json(out.with_suffix(".meta.json"), metadata)
     write_json(out.with_suffix(".layout.json"), inspect_cara_layout(raw_dir))

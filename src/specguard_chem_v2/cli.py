@@ -59,8 +59,9 @@ def download_cara(
 def import_cara(
     raw_dir: Path = typer.Argument(..., help="Directory containing CARA files or downloaded archive."),
     out: Path = typer.Option(Path("data/interim/cara_records.jsonl"), "--out", "-o"),
+    split_name: str = typer.Option("LO_All", "--split-name", help="Official CARA split name."),
 ) -> None:
-    records = write_imported_records(raw_dir, out)
+    records = write_imported_records(raw_dir, out, split_name=split_name)
     console.print(f"Imported [green]{len(records)}[/green] normalized records to [green]{out}[/green]")
 
 

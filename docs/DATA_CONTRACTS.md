@@ -39,7 +39,10 @@ Imported CARA artifacts must record source URL, local path, SHA256, import time,
 and transform configuration. Frozen decision cards should be reproducible from
 those provenance fields.
 
-`import-cara` also writes a layout summary next to the normalized JSONL. The
-summary records table-like files, detected columns, role hints, and task-kind
-hints so later chats can harden source-specific import logic without reopening
-large archives blindly.
+`import-cara` detects the official CARA layout when `Task/{split}.tsv` and
+`Split/{split}_support/query.json` are present. In that case, support/query JSON
+row indices are resolved against the task TSV and written as normalized records.
+It also writes a layout summary next to the normalized JSONL. The summary records
+table-like files, detected columns, role hints, and task-kind hints so later
+chats can harden source-specific import logic without reopening large archives
+blindly.

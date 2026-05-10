@@ -25,6 +25,12 @@ Commit only small fixtures or deliberately frozen public samples.
 - `target`
 - `task_kind`
 - `source_file`
+- `source_split`
+- `row_index`
+
+For official CARA imports, split JSON files map assay task IDs to row indices in
+`Task/{split}.tsv`. The default split is `LO_All`, matching the project’s
+lead-optimisation focus.
 
 ## Decision-Card Inclusion
 
@@ -41,3 +47,5 @@ The downloader validates the server `Content-Length` or `Content-Range` when
 available and rejects invalid zip archives. A failed download may leave
 `CARA.zip.part`; it is ignored by Git and can be resumed by rerunning
 `download-cara`.
+
+The first local CARA audit is recorded in `docs/CARA_LOCAL_AUDIT.md`.

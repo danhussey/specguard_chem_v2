@@ -8,9 +8,10 @@ Use the linked docs as the system of record.
 1. `PROJECT_BRIEF.md`
 2. `ARCHITECTURE.md`
 3. `BENCHMARK_CARD.md` and `DATA_CARD.md`
-4. `plans/README.md`
-5. latest plan in `plans/active/`
-6. latest log in `plans/logs/`
+4. `docs/CARA_LOCAL_AUDIT.md`
+5. `plans/README.md`
+6. latest plan in `plans/active/`
+7. latest log in `plans/logs/`
 
 ## Core Rules
 
