@@ -40,6 +40,8 @@ files are for tests and review packets only.
 `run-suite --systems all` expands to non-oracle deterministic systems plus LLM
 systems. `all-with-oracle` additionally includes `oracle_valid_topk`.
 
+See `docs/LLM_SYSTEMS.md` for condition definitions and request-export workflow.
+
 ## Main Comparisons
 
 - LLM-only vs LLM + validator.

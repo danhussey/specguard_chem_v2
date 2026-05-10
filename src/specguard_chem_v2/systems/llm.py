@@ -45,6 +45,11 @@ def build_llm_request(card: DecisionCard, system_name: str) -> dict[str, Any]:
     return {
         "task_id": card.task_id,
         "system_name": system_name,
+        "condition": {
+            "uses_tools": system_name in {"llm_tools", "llm_tools_validator"},
+            "uses_validator": system_name in {"llm_validator", "llm_tools_validator"},
+            "live_provider_optional": True,
+        },
         "budget_k": card.budget_k,
         "assay_context": card.assay_context.model_dump(mode="json"),
         "support_set": [
@@ -65,6 +70,37 @@ def build_llm_request(card: DecisionCard, system_name: str) -> dict[str, Any]:
             ],
         },
     }
+
+
+def build_llm_messages(request: dict[str, Any]) -> list[dict[str, str]]:
+    system_name = str(request["system_name"])
+    uses_tools = bool(request.get("condition", {}).get("uses_tools"))
+    uses_validator = bool(request.get("condition", {}).get("uses_validator"))
+    system_prompt = (
+        "You are selecting candidate IDs for a retrospective medicinal-chemistry "
+        "prioritisation audit. Return only valid JSON. Do not invent molecules or "
+        "candidate IDs. Do not make synthesis, safety, selectivity, or clinical claims."
+    )
+    if uses_tools:
+        system_prompt += (
+            " Use the supplied descriptor/tool-summary fields as computed evidence. "
+            "Prefer candidates that balance predicted utility signals with hard constraints."
+        )
+    if uses_validator:
+        system_prompt += (
+            " Your output will be checked by a deterministic validator; malformed or "
+            "invalid selections will be repaired or penalized."
+        )
+    user_prompt = (
+        f"Condition: {system_name}\n"
+        "Return JSON matching response_contract exactly. Select exactly budget_k "
+        "candidate IDs from candidate_pool, ranked from best to worst.\n\n"
+        f"{json.dumps(request, sort_keys=True)}"
+    )
+    return [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt},
+    ]
 
 
 def _cache_path(cache_dir: Path, request: dict[str, Any]) -> Path:
@@ -106,15 +142,9 @@ def _call_openai(request: dict[str, Any], *, model: str) -> dict[str, Any]:
     if not os.environ.get("OPENAI_API_KEY"):
         raise RuntimeError("OPENAI_API_KEY is required for live OpenAI calls")
     client = OpenAI()
-    prompt = (
-        "Return only JSON matching the response_contract. "
-        "Choose exactly budget_k candidate IDs from candidate_pool. "
-        "Do not invent candidate IDs.\n\n"
-        f"{json.dumps(request, sort_keys=True)}"
-    )
     response = client.chat.completions.create(
         model=model,
-        messages=[{"role": "user", "content": prompt}],
+        messages=build_llm_messages(request),
         temperature=0,
         response_format={"type": "json_object"},
     )
@@ -162,3 +192,24 @@ def run_llm_system(
         ensure_parent(path)
         write_json(path, {"request": request, "response": output.model_dump(mode="json")})
     return output
+
+
+def export_llm_requests(
+    cards: list[DecisionCard],
+    system_names: list[str],
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for card in cards:
+        for system_name in system_names:
+            if system_name not in LLM_SYSTEMS:
+                raise ValueError(f"Unknown LLM system: {system_name}")
+            request = build_llm_request(card, system_name)
+            rows.append(
+                {
+                    "task_id": card.task_id,
+                    "system_name": system_name,
+                    "request": request,
+                    "messages": build_llm_messages(request),
+                }
+            )
+    return rows

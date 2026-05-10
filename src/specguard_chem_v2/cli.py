@@ -17,6 +17,7 @@ from .runner import run_system_file
 from .schemas import DecisionCard
 from .scoring import score_run
 from .systems import DETERMINISTIC_SYSTEMS, LLM_SYSTEMS
+from .systems.llm import export_llm_requests as export_llm_request_rows
 from .validation import validate_card_semantics
 
 app = typer.Typer(help="SpecGuard-Chem v2 constrained prioritisation harness.")
@@ -191,6 +192,25 @@ def run_suite(
         console.print(f"Completed [green]{name}[/green]")
     write_json(out / "manifest.json", manifest)
     console.print(f"Suite manifest written to [green]{out / 'manifest.json'}[/green]")
+
+
+@app.command("export-llm-requests")
+def export_llm_requests(
+    cards: Path = typer.Argument(..., help="Decision-card JSONL path."),
+    systems: str = typer.Option(
+        "bare_llm,llm_validator,llm_tools,llm_tools_validator",
+        "--systems",
+        help="Comma-separated LLM system names.",
+    ),
+    out: Path = typer.Option(Path("runs/llm_requests.jsonl"), "--out", "-o"),
+) -> None:
+    from .io import write_jsonl
+
+    loaded = load_models(cards, DecisionCard)
+    names = [name.strip() for name in systems.split(",") if name.strip()]
+    rows = export_llm_request_rows(loaded, names)
+    write_jsonl(out, rows)
+    console.print(f"Exported [green]{len(rows)}[/green] LLM requests -> {out}")
 
 
 @app.command("score-run")

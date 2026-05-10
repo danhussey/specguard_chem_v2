@@ -37,3 +37,9 @@ uv run sgchem run-suite data/cards/cara_lo_cards.jsonl --systems all-with-oracle
 uv run sgchem compare-runs runs/cara_lo/*/scores/summary.json --out paper/tables
 uv run sgchem make-figures paper/tables/system_comparison.csv --out paper/figures
 ```
+
+## LLM Request Review
+
+```bash
+uv run sgchem export-llm-requests data/cards/cara_lo_cards.jsonl --systems bare_llm,llm_tools --out runs/llm_requests.jsonl
+```

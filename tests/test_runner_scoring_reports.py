@@ -5,6 +5,7 @@ from specguard_chem_v2.reports import compare_run_summaries, make_frontier_plot
 from specguard_chem_v2.runner import run_system_file, run_system_on_card
 from specguard_chem_v2.schemas import DecisionCard
 from specguard_chem_v2.scoring import score_record, score_run
+from specguard_chem_v2.systems.llm import build_llm_request, export_llm_requests
 
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -49,6 +50,19 @@ def test_cached_llm_replay_variants() -> None:
     validator_record = run_system_on_card(card, "llm_validator", cache_dir=FIXTURES / "llm_cache")
     assert validator_record.repaired is True
     assert not validator_record.issues
+
+
+def test_llm_request_export_distinguishes_tool_condition() -> None:
+    card = load_models(FIXTURES / "cards.jsonl", DecisionCard)[0]
+    bare = build_llm_request(card, "bare_llm")
+    tools = build_llm_request(card, "llm_tools")
+    assert bare["condition"]["uses_tools"] is False
+    assert tools["condition"]["uses_tools"] is True
+    assert "tpsa" not in bare["candidate_pool"][0]
+    assert "tpsa" in tools["candidate_pool"][0]
+    rows = export_llm_requests([card], ["bare_llm", "llm_tools"])
+    assert len(rows) == 2
+    assert rows[0]["messages"][0]["role"] == "system"
 
 
 def test_compare_and_frontier_plot(tmp_path: Path) -> None:

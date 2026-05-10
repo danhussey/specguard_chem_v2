@@ -44,6 +44,20 @@ def test_cli_fixture_smoke(tmp_path: Path) -> None:
     result = runner.invoke(
         app,
         [
+            "export-llm-requests",
+            str(cards),
+            "--systems",
+            "bare_llm,llm_tools",
+            "--out",
+            str(tmp_path / "llm_requests.jsonl"),
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "llm_requests.jsonl").exists()
+
+    result = runner.invoke(
+        app,
+        [
             "compare-runs",
             str(suite_dir / "random_valid" / "scores" / "summary.json"),
             str(suite_dir / "rules_only" / "scores" / "summary.json"),
