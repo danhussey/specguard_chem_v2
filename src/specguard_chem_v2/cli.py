@@ -9,6 +9,7 @@ from rich.console import Console
 
 from .data.cara import build_cards_from_jsonl, download_cara as download_cara_data
 from .data.cara import inspect_cara_layout
+from .data.cara import summarize_cards as summarize_card_models
 from .data.cara import write_imported_records
 from .io import load_models, write_json
 from .reports import compare_run_summaries, make_frontier_plot
@@ -83,6 +84,7 @@ def build_cards(
     budget_k: int = typer.Option(10, "--budget-k"),
     support_size: int = typer.Option(50, "--support-size"),
     constraints: Optional[Path] = typer.Option(None, "--constraints"),
+    selection_policy: str = typer.Option("first", "--selection-policy"),
 ) -> None:
     cards = build_cards_from_jsonl(
         records,
@@ -91,8 +93,23 @@ def build_cards(
         budget_k=budget_k,
         support_size=support_size,
         constraints_path=constraints,
+        selection_policy=selection_policy,
     )
     console.print(f"Built [green]{len(cards)}[/green] decision cards at [green]{out}[/green]")
+
+
+@app.command("summarize-cards")
+def summarize_cards(
+    cards: Path = typer.Argument(..., help="Decision-card JSONL path."),
+    out: Optional[Path] = typer.Option(None, "--out", "-o"),
+) -> None:
+    loaded = load_models(cards, DecisionCard)
+    summary = summarize_card_models(loaded)
+    if out is not None:
+        write_json(out, summary)
+        console.print(f"Wrote card summary to [green]{out}[/green]")
+    else:
+        console.print_json(data=summary)
 
 
 @app.command("validate-cards")

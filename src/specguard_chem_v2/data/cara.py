@@ -562,6 +562,7 @@ def build_decision_cards(
     min_candidates: int | None = None,
     seed: int = 7,
     constraints_path: Path | None = None,
+    selection_policy: str = "first",
 ) -> list[DecisionCard]:
     # Deterministic grouping/sorting is used; seed is retained in metadata for reproducibility.
     min_candidates = min_candidates or budget_k
@@ -571,7 +572,22 @@ def build_decision_cards(
         grouped[str(record.get("assay_id") or "unknown")].append(record)
 
     cards: list[DecisionCard] = []
-    for assay_id, assay_records in sorted(grouped.items()):
+    def _group_sort_key(item: tuple[str, list[dict[str, Any]]]) -> tuple[Any, ...]:
+        assay_id, assay_records = item
+        candidate_count = sum(1 for row in assay_records if row.get("role") == "candidate")
+        activities = [float(row["activity_value"]) for row in assay_records if row.get("role") == "candidate"]
+        spread = (max(activities) - min(activities)) if activities else 0.0
+        if selection_policy == "largest_candidate_pool":
+            return (-candidate_count, assay_id)
+        if selection_policy == "activity_spread":
+            return (-spread, -candidate_count, assay_id)
+        if selection_policy != "first":
+            raise ValueError(
+                "selection_policy must be one of first, largest_candidate_pool, activity_spread"
+            )
+        return (assay_id,)
+
+    for assay_id, assay_records in sorted(grouped.items(), key=_group_sort_key):
         sorted_records = sorted(
             assay_records,
             key=lambda row: (str(row.get("role") or ""), str(row.get("compound_id") or "")),
@@ -628,6 +644,7 @@ def build_decision_cards(
                 "support_size": len(support),
                 "candidate_pool_size": len(candidates),
                 "seed": seed,
+                "selection_policy": selection_policy,
             },
         )
         feasible_count = len(feasible_candidates(card))
@@ -648,6 +665,7 @@ def build_cards_from_jsonl(
     budget_k: int = 10,
     support_size: int = 50,
     constraints_path: Path | None = None,
+    selection_policy: str = "first",
 ) -> list[DecisionCard]:
     cards = build_decision_cards(
         read_jsonl(records_path),
@@ -655,6 +673,7 @@ def build_cards_from_jsonl(
         budget_k=budget_k,
         support_size=support_size,
         constraints_path=constraints_path,
+        selection_policy=selection_policy,
     )
     ensure_parent(out)
     write_jsonl(out, cards)
@@ -668,6 +687,40 @@ def build_cards_from_jsonl(
             "budget_k": budget_k,
             "support_size": support_size,
             "constraints_path": str(constraints_path) if constraints_path else None,
+            "selection_policy": selection_policy,
+            "task_ids": [card.task_id for card in cards],
         },
     )
     return cards
+
+
+def summarize_cards(cards: list[DecisionCard]) -> dict[str, Any]:
+    feasible_counts = [len(feasible_candidates(card)) for card in cards]
+    candidate_counts = [len(card.candidate_pool) for card in cards]
+    support_counts = [len(card.support_set) for card in cards]
+
+    def _summary(values: list[int]) -> dict[str, float | int | None]:
+        if not values:
+            return {"min": None, "max": None, "mean": None}
+        return {
+            "min": min(values),
+            "max": max(values),
+            "mean": sum(values) / len(values),
+        }
+
+    return {
+        "num_cards": len(cards),
+        "budget_k_values": sorted({card.budget_k for card in cards}),
+        "candidate_pool_size": _summary(candidate_counts),
+        "support_size": _summary(support_counts),
+        "feasible_candidate_count": _summary(feasible_counts),
+        "task_ids": [card.task_id for card in cards],
+        "assay_ids": [card.assay_context.assay_id for card in cards],
+        "selection_policies": sorted(
+            {
+                str(card.metadata.get("selection_policy"))
+                for card in cards
+                if card.metadata.get("selection_policy") is not None
+            }
+        ),
+    }

@@ -48,8 +48,9 @@ Result:
 Command:
 
 ```bash
-uv run sgchem build-cards data/interim/cara_lo_all_records.jsonl --out data/cards/cara_lo_all_cards.jsonl --target-cards 20 --budget-k 10 --support-size 50
+uv run sgchem build-cards data/interim/cara_lo_all_records.jsonl --out data/cards/cara_lo_all_cards.jsonl --target-cards 20 --budget-k 10 --support-size 50 --selection-policy first
 uv run sgchem validate-cards data/cards/cara_lo_all_cards.jsonl
+uv run sgchem summarize-cards data/cards/cara_lo_all_cards.jsonl --out data/cards/cara_lo_all_cards.summary.json
 ```
 
 Result:
@@ -57,6 +58,7 @@ Result:
 - cards built: `20`
 - budget: `10`
 - support size: `50`
+- selection policy: `first`
 - validation: passed
 
 ## Deterministic Smoke

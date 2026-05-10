@@ -22,7 +22,8 @@ uv run sgchem score-run tests/fixtures/cards.jsonl runs/fixture/qsar_rf/trace.js
 uv run sgchem download-cara --out data/raw/cara
 uv run sgchem inspect-cara data/raw/cara --out data/interim/cara_layout.json
 uv run sgchem import-cara data/raw/cara --split-name LO_All --out data/interim/cara_records.jsonl
-uv run sgchem build-cards data/interim/cara_records.jsonl --out data/cards/cara_lo_cards.jsonl --target-cards 50
+uv run sgchem build-cards data/interim/cara_records.jsonl --out data/cards/cara_lo_cards.jsonl --target-cards 50 --selection-policy first
+uv run sgchem summarize-cards data/cards/cara_lo_cards.jsonl --out data/cards/cara_lo_cards.summary.json
 ```
 
 `download-cara` writes to `CARA.zip.part` first, resumes partial files with HTTP

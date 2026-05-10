@@ -38,6 +38,8 @@ bootstrap intervals over decision cards, not over candidate rows.
 - `failure_taxonomy.csv`
 
 `compare-runs` writes system comparison, metric winner, and ablation-delta tables.
+It also writes `primary_leaderboard.csv` and `oracle_controls.csv` so oracle rows
+are not accidentally mixed into the main leaderboard.
 
 Oracle rows such as `oracle_valid_topk` are sanity controls. They should be kept
 out of primary system leaderboards unless explicitly labelled as oracle-assisted.

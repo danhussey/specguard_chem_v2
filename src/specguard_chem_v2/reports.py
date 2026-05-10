@@ -22,9 +22,24 @@ def compare_run_summaries(summary_paths: list[Path], out_dir: Path) -> pd.DataFr
     out_dir.mkdir(parents=True, exist_ok=True)
     frame.to_csv(out_dir / "system_comparison.csv", index=False)
     frame.to_json(out_dir / "system_comparison.json", orient="records", indent=2)
+    _write_leaderboard_slices(frame, out_dir)
     _write_metric_winners(frame, out_dir)
     _write_ablation_table(frame, out_dir)
     return frame
+
+
+def _is_oracle_system(system_name: object) -> bool:
+    return str(system_name).startswith("oracle_")
+
+
+def _write_leaderboard_slices(frame: pd.DataFrame, out_dir: Path) -> None:
+    if frame.empty or "system_name" not in frame.columns:
+        frame.to_csv(out_dir / "primary_leaderboard.csv", index=False)
+        frame.to_csv(out_dir / "oracle_controls.csv", index=False)
+        return
+    oracle_mask = frame["system_name"].map(_is_oracle_system)
+    frame.loc[~oracle_mask].to_csv(out_dir / "primary_leaderboard.csv", index=False)
+    frame.loc[oracle_mask].to_csv(out_dir / "oracle_controls.csv", index=False)
 
 
 def _write_metric_winners(frame: pd.DataFrame, out_dir: Path) -> None:
@@ -35,26 +50,35 @@ def _write_metric_winners(frame: pd.DataFrame, out_dir: Path) -> None:
         ("constrained_regret", True),
         ("schema_error_rate", True),
     ]
-    rows: list[dict[str, object]] = []
-    if frame.empty or "system_name" not in frame.columns:
-        pd.DataFrame(rows).to_csv(out_dir / "metric_winners.csv", index=False)
-        return
-    for metric, lower_is_better in metrics:
-        if metric not in frame.columns:
-            continue
-        metric_frame = frame[["system_name", metric]].dropna()
-        if metric_frame.empty:
-            continue
-        selected = metric_frame.sort_values(metric, ascending=lower_is_better).iloc[0]
-        rows.append(
-            {
-                "metric": metric,
-                "winner": selected["system_name"],
-                "value": selected[metric],
-                "lower_is_better": lower_is_better,
-            }
-        )
+
+    def _winner_rows(source: pd.DataFrame) -> list[dict[str, object]]:
+        local_rows: list[dict[str, object]] = []
+        if source.empty or "system_name" not in source.columns:
+            return local_rows
+        for metric, lower_is_better in metrics:
+            if metric not in source.columns:
+                continue
+            metric_frame = source[["system_name", metric]].dropna()
+            if metric_frame.empty:
+                continue
+            selected = metric_frame.sort_values(metric, ascending=lower_is_better).iloc[0]
+            local_rows.append(
+                {
+                    "metric": metric,
+                    "winner": selected["system_name"],
+                    "value": selected[metric],
+                    "lower_is_better": lower_is_better,
+                }
+            )
+        return local_rows
+
+    rows = _winner_rows(frame)
     pd.DataFrame(rows).to_csv(out_dir / "metric_winners.csv", index=False)
+    if frame.empty or "system_name" not in frame.columns:
+        pd.DataFrame([]).to_csv(out_dir / "metric_winners_primary.csv", index=False)
+        return
+    primary = frame.loc[~frame["system_name"].map(_is_oracle_system)]
+    pd.DataFrame(_winner_rows(primary)).to_csv(out_dir / "metric_winners_primary.csv", index=False)
 
 
 def _write_ablation_table(frame: pd.DataFrame, out_dir: Path) -> None:

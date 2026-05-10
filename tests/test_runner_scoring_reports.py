@@ -63,6 +63,9 @@ def test_compare_and_frontier_plot(tmp_path: Path) -> None:
     frame = compare_run_summaries(summary_paths, tmp_path / "compare")
     assert set(frame["system_name"]) == {"random_valid", "rules_only"}
     assert (tmp_path / "compare" / "metric_winners.csv").exists()
+    assert (tmp_path / "compare" / "metric_winners_primary.csv").exists()
+    assert (tmp_path / "compare" / "primary_leaderboard.csv").exists()
+    assert (tmp_path / "compare" / "oracle_controls.csv").exists()
     assert (tmp_path / "compare" / "ablation_deltas.csv").exists()
     plot = make_frontier_plot(tmp_path / "compare" / "system_comparison.csv", tmp_path / "figures")
     assert plot.exists()

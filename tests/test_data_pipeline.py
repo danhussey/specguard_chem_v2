@@ -5,6 +5,7 @@ from specguard_chem_v2.data.cara import (
     build_cards_from_jsonl,
     import_official_cara_records,
     inspect_cara_layout,
+    summarize_cards,
     write_imported_records,
 )
 from specguard_chem_v2.io import load_models
@@ -50,6 +51,9 @@ def test_import_support_query_split_layout(tmp_path: Path) -> None:
     cards = build_cards_from_jsonl(records_path, cards_path, target_cards=1, budget_k=3, support_size=3)
     assert len(cards) == 1
     assert cards[0].metadata["feasible_candidate_count"] >= 3
+    summary = summarize_cards(cards)
+    assert summary["num_cards"] == 1
+    assert summary["feasible_candidate_count"]["min"] >= 3
 
 
 def test_import_official_cara_split_layout(tmp_path: Path) -> None:

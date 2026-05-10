@@ -18,6 +18,13 @@ def test_cli_fixture_smoke(tmp_path: Path) -> None:
     assert result.exit_code == 0, result.output
     assert "qsar_rf" in result.output
 
+    result = runner.invoke(
+        app,
+        ["summarize-cards", str(cards), "--out", str(tmp_path / "card_summary.json")],
+    )
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "card_summary.json").exists()
+
     suite_dir = tmp_path / "suite"
     result = runner.invoke(
         app,

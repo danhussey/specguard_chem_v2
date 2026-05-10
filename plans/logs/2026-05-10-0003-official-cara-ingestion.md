@@ -14,7 +14,7 @@ uv run --extra dev pytest
 uv run sgchem download-cara --out data/raw/cara --max-attempts 4
 uv run sgchem inspect-cara data/raw/cara --out data/interim/cara_layout.json
 uv run sgchem import-cara data/raw/cara --split-name LO_All --out data/interim/cara_lo_all_records.jsonl
-uv run sgchem build-cards data/interim/cara_lo_all_records.jsonl --out data/cards/cara_lo_all_cards.jsonl --target-cards 20 --budget-k 10 --support-size 50
+uv run sgchem build-cards data/interim/cara_lo_all_records.jsonl --out data/cards/cara_lo_all_cards.jsonl --target-cards 20 --budget-k 10 --support-size 50 --selection-policy first
 uv run sgchem validate-cards data/cards/cara_lo_all_cards.jsonl
 uv run sgchem run-suite data/cards/cara_lo_all_cards.jsonl --systems oracle_valid_topk,random_valid,rules_only,similarity_to_best_active,qsar_rf,qsar_gbt,qsar_svm --out runs/cara_lo_all_local
 uv run sgchem compare-runs runs/cara_lo_all_local/oracle_valid_topk/scores/summary.json runs/cara_lo_all_local/random_valid/scores/summary.json runs/cara_lo_all_local/rules_only/scores/summary.json runs/cara_lo_all_local/similarity_to_best_active/scores/summary.json runs/cara_lo_all_local/qsar_rf/scores/summary.json runs/cara_lo_all_local/qsar_gbt/scores/summary.json runs/cara_lo_all_local/qsar_svm/scores/summary.json --out runs/cara_lo_all_local/compare
