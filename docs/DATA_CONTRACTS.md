@@ -3,15 +3,16 @@
 ## Decision Card
 
 A decision card is the canonical task object. It contains public support
-compounds, a candidate pool, hard constraints, a budget, and hidden activity for
-offline scoring.
+compounds, a candidate pool, hard constraints, a budget, and scorer-only
+candidate activity values for offline evaluation.
 
 Required fields:
 
 - `task_id`: stable unique ID.
 - `assay_context`: target and assay metadata when available.
 - `support_set`: known compounds with measured activity.
-- `candidate_pool`: candidate IDs, SMILES, descriptors, and hidden activity.
+- `candidate_pool`: candidate IDs, SMILES, descriptors, and scorer-only activity
+  values. Non-oracle systems must not use candidate activity values as features.
 - `budget_k`: number of candidate IDs to return.
 - `hard_constraints`: typed machine-checkable constraints.
 - `metadata`: source, transform config, and provenance.
