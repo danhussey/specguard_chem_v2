@@ -1,0 +1,44 @@
+[
+  {
+    "id": "exact_budget",
+    "type": "output",
+    "check": "exactly_k",
+    "params": {}
+  },
+  {
+    "id": "candidate_pool_only",
+    "type": "output",
+    "check": "in_candidate_pool",
+    "params": {}
+  },
+  {
+    "id": "no_duplicates",
+    "type": "output",
+    "check": "no_duplicates",
+    "params": {}
+  },
+  {
+    "id": "exclude_support",
+    "type": "output",
+    "check": "exclude_support",
+    "params": {}
+  },
+  {
+    "id": "mw_max_500",
+    "type": "candidate",
+    "check": "descriptor_max",
+    "params": {"descriptor": "mw", "max": 500}
+  },
+  {
+    "id": "clogp_max_4_5",
+    "type": "candidate",
+    "check": "descriptor_max",
+    "params": {"descriptor": "clogp", "max": 4.5}
+  },
+  {
+    "id": "forbidden_substructures",
+    "type": "candidate",
+    "check": "forbidden_smarts",
+    "params": {"smarts": []}
+  }
+]

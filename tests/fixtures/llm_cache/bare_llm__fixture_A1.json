@@ -1,0 +1,12 @@
+{
+  "response": {
+    "task_id": "fixture_A1",
+    "system_name": "bare_llm",
+    "selections": [
+      {"rank": 1, "candidate_id": "A1_C2", "confidence": 0.72},
+      {"rank": 2, "candidate_id": "A1_C1", "confidence": 0.68},
+      {"rank": 3, "candidate_id": "A1_C5", "confidence": 0.61}
+    ],
+    "metadata": {"cache_fixture": true}
+  }
+}

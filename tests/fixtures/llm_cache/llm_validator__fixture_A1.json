@@ -1,0 +1,12 @@
+{
+  "response": {
+    "task_id": "fixture_A1",
+    "system_name": "llm_validator",
+    "selections": [
+      {"rank": 1, "candidate_id": "A1_C1", "confidence": 0.82},
+      {"rank": 2, "candidate_id": "A1_C1", "confidence": 0.64},
+      {"rank": 3, "candidate_id": "NOT_IN_POOL", "confidence": 0.20}
+    ],
+    "metadata": {"cache_fixture": true, "intentionally_invalid": true}
+  }
+}

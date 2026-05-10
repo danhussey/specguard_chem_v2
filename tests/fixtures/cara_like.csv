@@ -1,0 +1,17 @@
+assay_id,compound_id,role,smiles,pchembl_value
+A1,S1,support,CCO,5.1
+A1,S2,support,c1ccccc1,6.2
+A1,S3,support,CC(=O)NC1=CC=CC=C1,6.9
+A1,C1,candidate,CC(=O)NC1=CC=CC=C1O,7.5
+A1,C2,candidate,c1ccccc1O,6.8
+A1,C3,candidate,CCN(CC)CC,5.8
+A1,C4,candidate,CC(=O)O,4.5
+A1,C5,candidate,CCOC(=O)c1ccccc1,6.1
+A2,S1,support,c1ccncc1,5.5
+A2,S2,support,CCOC(=O)N,6.0
+A2,S3,support,CC(C)NCC(O)CO,6.4
+A2,C1,candidate,CC(C)NCC(O)c1ccccc1,7.1
+A2,C2,candidate,c1ccncc1O,6.5
+A2,C3,candidate,CCOC(=O)Nc1ccccc1,6.9
+A2,C4,candidate,CC(C)(C)OC(=O)N,5.4
+A2,C5,candidate,CCN(CC)C(=O)c1ccccc1,6.2
