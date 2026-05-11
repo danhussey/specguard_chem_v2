@@ -65,4 +65,9 @@ uv run sgchem export-llm-requests tests/fixtures/cards.jsonl --systems llm_tools
 
 ## Handoff Notes
 
-After implementation, run the selector matrix as a separate artifact under `runs/cara_lo_paper_50_selector_matrix` and keep historical high-reasoning failures unchanged.
+Code/config/reporting implementation is complete. The selector matrix has partial
+live results under `runs/cara_lo_paper_50_selector_matrix`: DeepSeek selector
+completed all four systems, OpenAI selector completed `bare_llm` and
+`llm_validator`, OpenAI then hit `insufficient_quota`, and Anthropic hit API
+credit limits after one overload retry. The reasoning-budget pilot has not been
+started because the selector matrix is not yet complete.
