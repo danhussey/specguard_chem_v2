@@ -8,9 +8,7 @@
   partial traces, not only provider caches.
 - Add candidate-summary compression or candidate prefiltering before another
   full frontier-model matrix; current full candidate-pool prompts are very large.
-- Retry incomplete frontier conditions after provider quota/billing is resolved:
-  OpenAI frontier `llm_tools_validator` and DeepSeek frontier with a revised
-  reasoning/output strategy.
+- Retry DeepSeek frontier only with a revised reasoning/output strategy.
 - Add provider-specific controls for reasoning-token budgets. OpenAI frontier
   and DeepSeek frontier both consumed large reasoning budgets without final JSON
   under the current full-pool interface.

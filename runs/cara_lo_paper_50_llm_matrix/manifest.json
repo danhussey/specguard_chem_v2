@@ -2,33 +2,23 @@
   "allow_external": true,
   "cards": "data/cards/cara_lo_paper_50.jsonl",
   "model_conditions": [
-    "anthropic_frontier"
+    "openai_frontier"
   ],
   "model_matrix": "configs/model_matrix.toml",
   "runs": [
     {
-      "model": "claude-opus-4-7",
-      "model_config_id": "anthropic_frontier",
-      "provider": "anthropic",
-      "run_label": "llm_tools__anthropic_frontier",
-      "scores": "runs/cara_lo_paper_50_llm_matrix/anthropic_frontier/llm_tools/scores",
-      "system_name": "llm_tools",
-      "trace": "runs/cara_lo_paper_50_llm_matrix/anthropic_frontier/llm_tools/trace.jsonl"
-    },
-    {
-      "model": "claude-opus-4-7",
-      "model_config_id": "anthropic_frontier",
-      "provider": "anthropic",
-      "run_label": "llm_tools_validator__anthropic_frontier",
-      "scores": "runs/cara_lo_paper_50_llm_matrix/anthropic_frontier/llm_tools_validator/scores",
+      "model": "gpt-5.5",
+      "model_config_id": "openai_frontier",
+      "provider": "openai",
+      "run_label": "llm_tools_validator__openai_frontier",
+      "scores": "runs/cara_lo_paper_50_llm_matrix/openai_frontier/llm_tools_validator/scores",
       "system_name": "llm_tools_validator",
-      "trace": "runs/cara_lo_paper_50_llm_matrix/anthropic_frontier/llm_tools_validator/trace.jsonl"
+      "trace": "runs/cara_lo_paper_50_llm_matrix/openai_frontier/llm_tools_validator/trace.jsonl"
     }
   ],
   "seed": 7,
-  "started_at": "2026-05-11T03:28:16.739154+00:00",
+  "started_at": "2026-05-11T06:45:35.369704+00:00",
   "systems": [
-    "llm_tools",
     "llm_tools_validator"
   ]
 }

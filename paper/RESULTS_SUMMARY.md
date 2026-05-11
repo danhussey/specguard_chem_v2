@@ -1,6 +1,6 @@
-# SpecGuard-Chem v2 CARA LO Paper-50 Frontier Resumption Results
+# SpecGuard-Chem v2 CARA LO Paper-50 OpenAI Frontier Completion Results
 
-Generated at: `2026-05-11T05:27:03.234697+00:00`
+Generated at: `2026-05-11T07:03:10.304445+00:00`
 
 Source comparison CSV: `paper/tables/cara_lo_paper_50_completed/system_comparison.csv`
 
@@ -24,6 +24,7 @@ This report is a computational audit artifact. It ranks provided candidate IDs o
 | llm_validator__anthropic_fast | 66.881 | 0.741 | 22.141 | 1.000 | 0.000 |
 | random_valid | 66.843 | 0.739 | 22.178 | 1.000 | 0.000 |
 | rules_only | 66.043 | 0.731 | 22.979 | 1.000 | 0.000 |
+| llm_tools_validator__openai_frontier | 66.043 | 0.731 | 22.979 | 1.000 | 0.000 |
 | llm_validator__openai_frontier | 66.043 | 0.731 | 22.979 | 1.000 | 0.000 |
 | llm_tools__anthropic_frontier | 59.422 | 0.622 | 29.600 | 0.778 | 0.000 |
 | llm_tools__anthropic_fast | 55.432 | 0.610 | 33.589 | 0.810 | 0.000 |

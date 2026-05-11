@@ -21,8 +21,8 @@ Use the frontier-resumption result set as the broader diagnostic analysis:
 - `paper/tables/cara_lo_paper_50_completed/system_comparison.csv`
 - `paper/figures/cara_lo_paper_50_completed/compliance_utility_frontier.png`
 
-This diagnostic set now includes all Anthropic frontier systems and three
-OpenAI frontier systems, but still has provider/output-budget blockers.
+This diagnostic set now includes all Anthropic and OpenAI frontier systems.
+DeepSeek frontier remains blocked by reasoning/output behavior and is deferred.
 
 ## Card Artifact
 
@@ -48,9 +48,9 @@ gap to QSAR.
 | `qsar_svm` | 81.3823 | 0.9096 | 1.000 |
 | `qsar_gbt` | 80.8879 | 0.9002 | 1.000 |
 | `qsar_rf` | 80.6341 | 0.9006 | 1.000 |
-| `similarity_to_best_active` | 73.6032 | 0.8253 | 1.000 |
 | `llm_tools_validator__anthropic_frontier` | 73.9792 | 0.8323 | 1.000 |
 | `llm_validator__anthropic_frontier` | 73.7389 | 0.8310 | 1.000 |
+| `similarity_to_best_active` | 73.6032 | 0.8253 | 1.000 |
 | `llm_validator__deepseek_fast` | 68.4017 | 0.7626 | 1.000 |
 | `llm_tools_validator__openai_fast` | 67.7022 | 0.7515 | 1.000 |
 
@@ -61,13 +61,11 @@ cross-provider comparison:
 
 - Anthropic frontier completed all four systems. Its best frontier condition was
   `llm_tools_validator__anthropic_frontier` with feasible utility `73.9792`.
-- OpenAI frontier completed `bare_llm`, `llm_validator`, and `llm_tools`, then
-  stopped on `insufficient_quota` during `llm_tools_validator` after 8 cached
-  card responses.
-- OpenAI frontier `bare_llm` and `llm_tools` consumed the full 4096 completion
-  budget as reasoning tokens and produced no final JSON, so they scored as
-  schema failures. `llm_validator` repaired empty outputs using deterministic
-  fallback ranking.
+- OpenAI frontier completed all four systems. `bare_llm` and `llm_tools`
+  consumed the full 4096 completion budget as reasoning tokens and produced no
+  final JSON, so they scored as schema failures. `llm_validator` and
+  `llm_tools_validator` repaired empty outputs using deterministic fallback
+  ranking and therefore matched the rules-only score.
 - DeepSeek frontier `bare_llm` remains the original schema-failure trace. The
   32768-token rerun attempt did not return a first-card result before being
   stopped, so no new DeepSeek frontier trace was written.
@@ -77,7 +75,8 @@ cross-provider comparison:
 - Treat `oracle_valid_topk` as an upper-bound control only.
 - Treat the fast-complete matrix as the credible whole-run result.
 - Treat `paper/tables/cara_lo_paper_50_completed/` as a broader diagnostic set
-  that includes resumed frontier traces and explicitly logged provider blockers.
+  that includes completed Anthropic/OpenAI frontier traces and the explicitly
+  logged DeepSeek blocker.
 - Do not claim that LLMs are intrinsically poor at medicinal chemistry from this
   run alone; a major follow-up is to reduce prompt overload and test compressed
   candidate summaries.
