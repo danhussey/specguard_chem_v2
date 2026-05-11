@@ -1,0 +1,6 @@
+metric,winner,value,lower_is_better
+feasible_utility,oracle_valid_topk,89.0217,False
+ndcg_at_k,oracle_valid_topk,1.0,False
+compliance_rate,oracle_valid_topk,1.0,False
+constrained_regret,oracle_valid_topk,0.0,True
+schema_error_rate,oracle_valid_topk,0.0,True
