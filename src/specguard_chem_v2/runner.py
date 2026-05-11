@@ -151,6 +151,10 @@ def run_system_on_card(
             "llm_model": output.metadata.get("llm_model"),
             "llm_model_config_id": output.metadata.get("llm_model_config_id"),
             "request_sha256": output.metadata.get("request_sha256"),
+            "max_tokens": output.metadata.get("max_tokens"),
+            "temperature": output.metadata.get("temperature"),
+            "reasoning_effort": output.metadata.get("reasoning_effort"),
+            "thinking": output.metadata.get("thinking"),
         },
     )
 

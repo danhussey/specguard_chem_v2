@@ -45,7 +45,7 @@ base_url = "https://api.deepseek.com"
 api_key_env = "DEEPSEEK_API_KEY"
 reasoning_effort = "high"
 thinking = true
-max_tokens = 4096
+max_tokens = 32768
 notes = "DeepSeek pro condition with thinking enabled."
 
 [models.deepseek_fast]

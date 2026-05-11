@@ -10,10 +10,13 @@ from specguard_chem_v2.runner import run_system_file, run_system_on_card
 from specguard_chem_v2.schemas import DecisionCard
 from specguard_chem_v2.scoring import score_record, score_run
 from specguard_chem_v2.systems.llm import (
+    _cache_path,
+    _request_hash,
     _selection_items_from_payload,
     build_llm_request,
     export_llm_requests,
 )
+from specguard_chem_v2.systems.providers import LLMModelConfig
 from specguard_chem_v2.systems.providers import load_model_matrix, select_model_configs
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -66,6 +69,7 @@ def test_llm_request_export_distinguishes_tool_condition() -> None:
     tools = build_llm_request(card, "llm_tools")
     assert bare["condition"]["uses_tools"] is False
     assert tools["condition"]["uses_tools"] is True
+    assert bare["generation"]["max_tokens"] == 4096
     assert "tpsa" not in bare["candidate_pool"][0]
     assert "tpsa" in tools["candidate_pool"][0]
     rows = export_llm_requests([card], ["bare_llm", "llm_tools"])
@@ -95,9 +99,33 @@ def test_model_matrix_requests_and_offline_run(tmp_path: Path) -> None:
     )
     assert records[0].system_name == "llm_tools_validator__openai_fast"
     assert records[0].metadata["llm_model_config_id"] == "openai_fast"
+    assert records[0].metadata["max_tokens"] == 4096
     assert records[0].repaired is True
     summary_scores = score_run(cards_path, tmp_path / "trace.jsonl", tmp_path / "scores")
     assert summary_scores[0].system_name == "llm_tools_validator__openai_fast"
+
+
+def test_llm_request_cache_identity_includes_generation_settings(tmp_path: Path) -> None:
+    card = load_models(FIXTURES / "cards.jsonl", DecisionCard)[0]
+    short_config = LLMModelConfig(
+        id="deepseek_frontier",
+        provider="deepseek",
+        model="deepseek-v4-pro",
+        base_url="https://api.deepseek.com",
+        api_key_env="DEEPSEEK_API_KEY",
+        reasoning_effort="high",
+        thinking=True,
+        max_tokens=4096,
+    )
+    long_config = short_config.model_copy(update={"max_tokens": 32768})
+
+    short_request = build_llm_request(card, "bare_llm", model_config=short_config)
+    long_request = build_llm_request(card, "bare_llm", model_config=long_config)
+
+    assert short_request["generation"]["max_tokens"] == 4096
+    assert long_request["generation"]["max_tokens"] == 32768
+    assert _request_hash(short_request) != _request_hash(long_request)
+    assert _cache_path(tmp_path, short_request) != _cache_path(tmp_path, long_request)
 
 
 def test_live_payload_selection_normalization_clamps_confidence() -> None:

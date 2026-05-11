@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import os
@@ -47,6 +48,15 @@ def _request_hash(request: dict[str, Any]) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
+def _generation_settings(model_config: LLMModelConfig) -> dict[str, Any]:
+    return {
+        "max_tokens": model_config.max_tokens,
+        "temperature": model_config.temperature,
+        "reasoning_effort": model_config.reasoning_effort,
+        "thinking": model_config.thinking,
+    }
+
+
 def build_llm_request(
     card: DecisionCard,
     system_name: str,
@@ -63,6 +73,7 @@ def build_llm_request(
         "model": model_config.model,
         "reasoning_effort": model_config.reasoning_effort,
         "thinking": model_config.thinking,
+        "generation": _generation_settings(model_config),
         "condition": {
             "uses_tools": system_name in {"llm_tools", "llm_tools_validator"},
             "uses_validator": system_name in {"llm_validator", "llm_tools_validator"},
@@ -128,6 +139,16 @@ def _cache_path(cache_dir: Path, request: dict[str, Any]) -> Path:
     return cache_dir / f"{request['system_name']}__{digest}.json"
 
 
+def _legacy_hash_cache_path(cache_dir: Path, request: dict[str, Any]) -> Path | None:
+    generation = dict(request.get("generation") or {})
+    if generation.get("max_tokens") != 4096 or generation.get("temperature") is not None:
+        return None
+    legacy_request = copy.deepcopy(request)
+    legacy_request.pop("generation", None)
+    digest = _request_hash(legacy_request)
+    return cache_dir / f"{request['system_name']}__{digest}.json"
+
+
 def _stable_task_cache_paths(cache_dir: Path, request: dict[str, Any]) -> list[Path]:
     model_config_id = request.get("model_config_id")
     paths = []
@@ -137,6 +158,15 @@ def _stable_task_cache_paths(cache_dir: Path, request: dict[str, Any]) -> list[P
         )
     # Backwards-compatible fixture path used before provider/model matrix support.
     paths.append(cache_dir / f"{request['system_name']}__{request['task_id']}.json")
+    return paths
+
+
+def _cache_candidate_paths(cache_dir: Path, request: dict[str, Any]) -> list[Path]:
+    paths: list[Path] = [_cache_path(cache_dir, request)]
+    legacy_hash = _legacy_hash_cache_path(cache_dir, request)
+    if legacy_hash is not None:
+        paths.append(legacy_hash)
+    paths.extend(_stable_task_cache_paths(cache_dir, request))
     return paths
 
 
@@ -152,11 +182,13 @@ def _extract_json_object(text: str) -> dict[str, Any]:
 
 
 def _metadata_for_request(request: dict[str, Any], model_config: LLMModelConfig) -> dict[str, Any]:
+    generation = _generation_settings(model_config)
     return {
         "llm_provider": model_config.provider,
         "llm_model": model_config.model,
         "llm_model_config_id": model_config.id,
         "request_sha256": _request_hash(request),
+        **generation,
     }
 
 
@@ -375,8 +407,8 @@ def run_llm_system(
     model_config = model_config or default_openai_config(model)
     request = build_llm_request(card, system_name, model_config=model_config)
     path = _cache_path(cache_dir, request) if cache_dir is not None else None
-    stable_paths = _stable_task_cache_paths(cache_dir, request) if cache_dir is not None else []
-    for candidate_path in [*stable_paths, path]:
+    candidate_paths = _cache_candidate_paths(cache_dir, request) if cache_dir is not None else []
+    for candidate_path in candidate_paths:
         if candidate_path is not None and candidate_path.exists():
             payload = read_json(candidate_path)
             response = payload.get("response", payload)
