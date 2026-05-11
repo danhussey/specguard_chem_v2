@@ -25,11 +25,11 @@ notes = "Lower-latency OpenAI condition."
 provider = "openai"
 model = "gpt-5.5"
 tier = "frontier"
-reasoning_effort = "minimal"
+reasoning_effort = "low"
 api_key_env = "OPENAI_API_KEY"
 max_tokens = 4096
 prompt_profile = "json_first"
-notes = "OpenAI frontier direct-selector condition. If API rejects minimal effort, preflight fallback is low."
+notes = "OpenAI frontier direct-selector condition. Minimal effort was rejected in preflight; low is the predefined fallback."
 
 [models.openai_frontier_reasoning_budget]
 provider = "openai"
