@@ -2,52 +2,32 @@
   "allow_external": true,
   "cards": "data/cards/cara_lo_paper_50.jsonl",
   "model_conditions": [
-    "openai_fast"
+    "anthropic_frontier"
   ],
   "model_matrix": "configs/model_matrix.toml",
   "runs": [
     {
-      "model": "gpt-5.4-mini",
-      "model_config_id": "openai_fast",
-      "provider": "openai",
-      "run_label": "bare_llm__openai_fast",
-      "scores": "runs/cara_lo_paper_50_llm_matrix/openai_fast/bare_llm/scores",
-      "system_name": "bare_llm",
-      "trace": "runs/cara_lo_paper_50_llm_matrix/openai_fast/bare_llm/trace.jsonl"
-    },
-    {
-      "model": "gpt-5.4-mini",
-      "model_config_id": "openai_fast",
-      "provider": "openai",
-      "run_label": "llm_validator__openai_fast",
-      "scores": "runs/cara_lo_paper_50_llm_matrix/openai_fast/llm_validator/scores",
-      "system_name": "llm_validator",
-      "trace": "runs/cara_lo_paper_50_llm_matrix/openai_fast/llm_validator/trace.jsonl"
-    },
-    {
-      "model": "gpt-5.4-mini",
-      "model_config_id": "openai_fast",
-      "provider": "openai",
-      "run_label": "llm_tools__openai_fast",
-      "scores": "runs/cara_lo_paper_50_llm_matrix/openai_fast/llm_tools/scores",
+      "model": "claude-opus-4-7",
+      "model_config_id": "anthropic_frontier",
+      "provider": "anthropic",
+      "run_label": "llm_tools__anthropic_frontier",
+      "scores": "runs/cara_lo_paper_50_llm_matrix/anthropic_frontier/llm_tools/scores",
       "system_name": "llm_tools",
-      "trace": "runs/cara_lo_paper_50_llm_matrix/openai_fast/llm_tools/trace.jsonl"
+      "trace": "runs/cara_lo_paper_50_llm_matrix/anthropic_frontier/llm_tools/trace.jsonl"
     },
     {
-      "model": "gpt-5.4-mini",
-      "model_config_id": "openai_fast",
-      "provider": "openai",
-      "run_label": "llm_tools_validator__openai_fast",
-      "scores": "runs/cara_lo_paper_50_llm_matrix/openai_fast/llm_tools_validator/scores",
+      "model": "claude-opus-4-7",
+      "model_config_id": "anthropic_frontier",
+      "provider": "anthropic",
+      "run_label": "llm_tools_validator__anthropic_frontier",
+      "scores": "runs/cara_lo_paper_50_llm_matrix/anthropic_frontier/llm_tools_validator/scores",
       "system_name": "llm_tools_validator",
-      "trace": "runs/cara_lo_paper_50_llm_matrix/openai_fast/llm_tools_validator/trace.jsonl"
+      "trace": "runs/cara_lo_paper_50_llm_matrix/anthropic_frontier/llm_tools_validator/trace.jsonl"
     }
   ],
   "seed": 7,
-  "started_at": "2026-05-10T17:09:13.245450+00:00",
+  "started_at": "2026-05-11T03:28:16.739154+00:00",
   "systems": [
-    "bare_llm",
-    "llm_validator",
     "llm_tools",
     "llm_tools_validator"
   ]

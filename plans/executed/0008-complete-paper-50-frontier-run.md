@@ -67,3 +67,6 @@ uv run sgchem make-report paper/tables/cara_lo_paper_50_completed/system_compari
 
 This plan intentionally defers candidate-summary compression. Treat any
 compression work as a later interface ablation, not part of this run.
+
+Execution completed with provider blockers rather than a fully complete
+frontier matrix. See `plans/logs/2026-05-11-0009-frontier-resumption.md`.

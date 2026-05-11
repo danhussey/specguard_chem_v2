@@ -19,6 +19,9 @@ Live calls are disabled unless `--allow-external` is passed to run commands.
 Replay cache files may be content-addressed files written by live runs or stable
 fixture files named `{system_name}__{task_id}.json`. Model-matrix runs also
 check stable files named `{system_name}__{model_config_id}__{task_id}.json`.
+Generation settings such as token budget, temperature, reasoning effort, and
+thinking mode are included in new request hashes so budget changes do not replay
+stale provider responses.
 
 ## Provider Model Matrix
 
@@ -64,6 +67,10 @@ uv run sgchem run-llm-matrix data/cards/cara_lo_all_cards.jsonl \
   --model-conditions openai_frontier,openai_fast,anthropic_frontier,anthropic_fast,deepseek_frontier,deepseek_fast \
   --out runs/cara_lo_llm_matrix
 ```
+
+Use `--workers N` for bounded card-level concurrency during live matrix runs.
+This changes execution throughput only; it does not alter prompts, cache keys,
+model conditions, or scoring.
 
 Without `--allow-external`, missing replay cache entries produce explicit empty
 offline outputs and validator systems repair them where applicable. Live calls
