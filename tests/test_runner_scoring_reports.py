@@ -47,9 +47,17 @@ def test_qsar_and_llm_validator_paths(tmp_path: Path) -> None:
 
     llm_record = run_system_on_card(card, "llm_tools_validator", cache_dir=tmp_path / "cache")
     assert llm_record.repaired is True
+    assert llm_record.raw_output is not None
+    assert llm_record.raw_output.selections == []
+    assert llm_record.raw_issues
+    assert llm_record.metadata["repaired_from_empty"] is True
     assert not llm_record.issues
     score = score_record(card, llm_record)
     assert score.compliance_rate == 1.0
+    assert score.raw_feasible_utility == 0.0
+    assert score.repaired_rate == 1.0
+    assert score.repaired_from_empty_rate == 1.0
+    assert score.repair_delta_feasible_utility == score.feasible_utility
 
 
 def test_cached_llm_replay_variants() -> None:
@@ -100,9 +108,12 @@ def test_model_matrix_requests_and_offline_run(tmp_path: Path) -> None:
     assert records[0].system_name == "llm_tools_validator__openai_fast"
     assert records[0].metadata["llm_model_config_id"] == "openai_fast"
     assert records[0].metadata["max_tokens"] == 4096
+    assert records[0].metadata["prompt_profile"] == "default"
+    assert records[0].raw_output is not None
     assert records[0].repaired is True
     summary_scores = score_run(cards_path, tmp_path / "trace.jsonl", tmp_path / "scores")
     assert summary_scores[0].system_name == "llm_tools_validator__openai_fast"
+    assert summary_scores[0].raw_feasible_utility is not None
 
 
 def test_llm_request_cache_identity_includes_generation_settings(tmp_path: Path) -> None:
@@ -118,14 +129,71 @@ def test_llm_request_cache_identity_includes_generation_settings(tmp_path: Path)
         max_tokens=4096,
     )
     long_config = short_config.model_copy(update={"max_tokens": 32768})
+    selector_config = short_config.model_copy(
+        update={"id": "deepseek_frontier_selector", "thinking": False, "prompt_profile": "json_first"}
+    )
 
     short_request = build_llm_request(card, "bare_llm", model_config=short_config)
     long_request = build_llm_request(card, "bare_llm", model_config=long_config)
+    selector_request = build_llm_request(card, "bare_llm", model_config=selector_config)
 
     assert short_request["generation"]["max_tokens"] == 4096
     assert long_request["generation"]["max_tokens"] == 32768
+    assert selector_request["generation"]["prompt_profile"] == "json_first"
     assert _request_hash(short_request) != _request_hash(long_request)
+    assert _request_hash(short_request) != _request_hash(selector_request)
     assert _cache_path(tmp_path, short_request) != _cache_path(tmp_path, long_request)
+    assert _cache_path(tmp_path, short_request) != _cache_path(tmp_path, selector_request)
+
+
+def test_thinking_budget_changes_cache_identity_and_validates() -> None:
+    card = load_models(FIXTURES / "cards.jsonl", DecisionCard)[0]
+    base_config = LLMModelConfig(
+        id="anthropic_frontier_selector",
+        provider="anthropic",
+        model="claude-opus-4-7",
+        api_key_env="ANTHROPIC_API_KEY",
+        max_tokens=4096,
+        prompt_profile="json_first",
+    )
+    thinking_config = base_config.model_copy(
+        update={
+            "id": "anthropic_frontier_thinking_8k",
+            "thinking_budget_tokens": 8192,
+            "max_tokens": 16384,
+        }
+    )
+    base_request = build_llm_request(card, "llm_tools", model_config=base_config)
+    thinking_request = build_llm_request(card, "llm_tools", model_config=thinking_config)
+
+    assert thinking_request["generation"]["thinking_budget_tokens"] == 8192
+    assert _request_hash(base_request) != _request_hash(thinking_request)
+
+    try:
+        LLMModelConfig(
+            id="bad_anthropic",
+            provider="anthropic",
+            model="claude-opus-4-7",
+            thinking_budget_tokens=4096,
+            max_tokens=4096,
+        )
+    except ValueError as exc:
+        assert "thinking_budget_tokens must be less than max_tokens" in str(exc)
+    else:  # pragma: no cover - defensive assertion
+        raise AssertionError("expected invalid Anthropic thinking budget")
+
+    try:
+        LLMModelConfig(
+            id="bad_openai",
+            provider="openai",
+            model="gpt-5.5",
+            thinking_budget_tokens=1024,
+            max_tokens=4096,
+        )
+    except ValueError as exc:
+        assert "supported only for Anthropic" in str(exc)
+    else:  # pragma: no cover - defensive assertion
+        raise AssertionError("expected provider-specific thinking budget validation")
 
 
 def test_live_payload_selection_normalization_clamps_confidence() -> None:
@@ -153,6 +221,7 @@ def test_compare_and_frontier_plot(tmp_path: Path) -> None:
 
     frame = compare_run_summaries(summary_paths, tmp_path / "compare")
     assert set(frame["system_name"]) == {"random_valid", "rules_only"}
+    assert "raw_feasible_utility" in frame.columns
     assert (tmp_path / "compare" / "metric_winners.csv").exists()
     assert (tmp_path / "compare" / "metric_winners_primary.csv").exists()
     assert (tmp_path / "compare" / "primary_leaderboard.csv").exists()
@@ -166,6 +235,7 @@ def test_compare_and_frontier_plot(tmp_path: Path) -> None:
     )
     assert summary.exists()
     assert "Primary Systems" in summary.read_text(encoding="utf-8")
+    assert "raw_feasible_utility" in summary.read_text(encoding="utf-8")
 
 
 def test_compare_variant_ablation_rows(tmp_path: Path) -> None:

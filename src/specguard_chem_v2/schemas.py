@@ -136,6 +136,8 @@ class RunRecord(BaseModel):
     system_name: str
     output: SystemOutput
     issues: list[ValidationIssue] = Field(default_factory=list)
+    raw_output: SystemOutput | None = None
+    raw_issues: list[ValidationIssue] = Field(default_factory=list)
     repaired: bool = False
     metadata: dict[str, Any] = Field(default_factory=dict)
 
@@ -160,5 +162,14 @@ class CardScore(BaseModel):
     support_violation_count: int
     constraint_violation_count: int
     valid_selected_count: int
+    raw_ndcg_at_k: float | None = None
+    raw_feasible_utility: float | None = None
+    raw_compliance_rate: float | None = None
+    raw_schema_error_rate: float | None = None
+    raw_valid_selected_count: int | None = None
+    raw_selection_count: int | None = None
+    repaired_rate: float = 0.0
+    repaired_from_empty_rate: float = 0.0
+    repair_delta_feasible_utility: float | None = None
     hit_threshold: float | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)

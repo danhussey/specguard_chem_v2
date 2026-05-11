@@ -30,6 +30,24 @@ Metrics separate utility from compliance.
 Score each decision card first, then average over cards. Confidence intervals are
 bootstrap intervals over decision cards, not over candidate rows.
 
+## Raw Versus Final Metrics
+
+For LLM systems, traces may contain both raw model output and final output after
+deterministic validator repair. Raw metrics score `raw_output` with `raw_issues`.
+Final metrics score `output` with `issues`.
+
+- `raw_feasible_utility`, `raw_ndcg_at_k`, `raw_compliance_rate`, and
+  `raw_schema_error_rate` measure model behavior before repair.
+- `repaired_rate` is the fraction of cards where validator repair changed an
+  invalid raw output.
+- `repaired_from_empty_rate` is the fraction of cards repaired after the raw
+  model returned no usable selections.
+- `repair_delta_feasible_utility` is final feasible utility minus raw feasible
+  utility.
+
+When raw fields are blank, the trace was produced before raw-output persistence
+was added. Do not infer raw LLM quality from those historical rows.
+
 `score-run` writes:
 
 - `card_scores.jsonl`

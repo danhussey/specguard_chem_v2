@@ -54,6 +54,9 @@ def _generation_settings(model_config: LLMModelConfig) -> dict[str, Any]:
         "temperature": model_config.temperature,
         "reasoning_effort": model_config.reasoning_effort,
         "thinking": model_config.thinking,
+        "thinking_budget_tokens": model_config.thinking_budget_tokens,
+        "prompt_profile": model_config.prompt_profile,
+        "request_timeout_seconds": model_config.request_timeout_seconds,
     }
 
 
@@ -73,6 +76,7 @@ def build_llm_request(
         "model": model_config.model,
         "reasoning_effort": model_config.reasoning_effort,
         "thinking": model_config.thinking,
+        "prompt_profile": model_config.prompt_profile,
         "generation": _generation_settings(model_config),
         "condition": {
             "uses_tools": system_name in {"llm_tools", "llm_tools_validator"},
@@ -107,11 +111,18 @@ def build_llm_messages(request: dict[str, Any]) -> list[dict[str, str]]:
     system_name = str(request["system_name"])
     uses_tools = bool(request.get("condition", {}).get("uses_tools"))
     uses_validator = bool(request.get("condition", {}).get("uses_validator"))
+    generation = request.get("generation") or {}
+    prompt_profile = generation.get("prompt_profile") or request.get("prompt_profile") or "default"
     system_prompt = (
         "You are selecting candidate IDs for a retrospective medicinal-chemistry "
         "prioritisation audit. Return only valid JSON. Do not invent molecules or "
         "candidate IDs. Do not make synthesis, safety, selectivity, or clinical claims."
     )
+    if prompt_profile == "json_first":
+        system_prompt += (
+            " Your entire response must be one JSON object. Do not include markdown, "
+            "prose, analysis, explanation, or chain-of-thought. Start with { and end with }."
+        )
     if uses_tools:
         system_prompt += (
             " Use the supplied descriptor/tool-summary fields as computed evidence. "
@@ -122,8 +133,15 @@ def build_llm_messages(request: dict[str, Any]) -> list[dict[str, str]]:
             " Your output will be checked by a deterministic validator; malformed or "
             "invalid selections will be repaired or penalized."
         )
+    profile_instruction = ""
+    if prompt_profile == "json_first":
+        profile_instruction = (
+            "Return the final JSON object immediately. Do not describe your method. "
+            "Do not emit hidden reasoning or a preamble.\n"
+        )
     user_prompt = (
         f"Condition: {system_name}\n"
+        f"{profile_instruction}"
         "Return JSON matching response_contract exactly. Select exactly budget_k "
         "candidate IDs from candidate_pool, ranked from best to worst.\n\n"
         f"{json.dumps(request, sort_keys=True)}"
@@ -141,7 +159,13 @@ def _cache_path(cache_dir: Path, request: dict[str, Any]) -> Path:
 
 def _legacy_hash_cache_path(cache_dir: Path, request: dict[str, Any]) -> Path | None:
     generation = dict(request.get("generation") or {})
-    if generation.get("max_tokens") != 4096 or generation.get("temperature") is not None:
+    if (
+        generation.get("max_tokens") != 4096
+        or generation.get("temperature") is not None
+        or generation.get("prompt_profile", "default") != "default"
+        or generation.get("thinking_budget_tokens") is not None
+        or generation.get("request_timeout_seconds") is not None
+    ):
         return None
     legacy_request = copy.deepcopy(request)
     legacy_request.pop("generation", None)
@@ -150,6 +174,15 @@ def _legacy_hash_cache_path(cache_dir: Path, request: dict[str, Any]) -> Path | 
 
 
 def _stable_task_cache_paths(cache_dir: Path, request: dict[str, Any]) -> list[Path]:
+    generation = dict(request.get("generation") or {})
+    if (
+        generation.get("max_tokens") != 4096
+        or generation.get("temperature") is not None
+        or generation.get("prompt_profile", "default") != "default"
+        or generation.get("thinking_budget_tokens") is not None
+        or generation.get("request_timeout_seconds") is not None
+    ):
+        return []
     model_config_id = request.get("model_config_id")
     paths = []
     if model_config_id:
@@ -237,7 +270,10 @@ def _call_openai(request: dict[str, Any], *, model_config: LLMModelConfig) -> di
     api_key = os.environ.get(api_key_env)
     if not api_key:
         raise RuntimeError(f"{api_key_env} is required for live OpenAI calls")
-    client = OpenAI(api_key=api_key)
+    client_kwargs: dict[str, Any] = {"api_key": api_key}
+    if model_config.request_timeout_seconds is not None:
+        client_kwargs["timeout"] = model_config.request_timeout_seconds
+    client = OpenAI(**client_kwargs)
     kwargs: dict[str, Any] = {
         "model": model_config.model,
         "messages": build_llm_messages(request),
@@ -285,7 +321,15 @@ def _call_anthropic(request: dict[str, Any], *, model_config: LLMModelConfig) ->
     }
     if model_config.temperature is not None:
         kwargs["temperature"] = model_config.temperature
-    client = Anthropic(api_key=api_key)
+    if model_config.thinking_budget_tokens is not None:
+        kwargs["thinking"] = {
+            "type": "enabled",
+            "budget_tokens": model_config.thinking_budget_tokens,
+        }
+    client_kwargs: dict[str, Any] = {"api_key": api_key}
+    if model_config.request_timeout_seconds is not None:
+        client_kwargs["timeout"] = model_config.request_timeout_seconds
+    client = Anthropic(**client_kwargs)
     started = time.perf_counter()
     response = client.messages.create(**kwargs)
     latency_ms = int((time.perf_counter() - started) * 1000)
@@ -298,6 +342,7 @@ def _call_anthropic(request: dict[str, Any], *, model_config: LLMModelConfig) ->
     payload["metadata"]["provider"] = "anthropic"
     payload["metadata"]["model"] = model_config.model
     payload["metadata"]["model_config_id"] = model_config.id
+    payload["metadata"]["thinking_budget_tokens"] = model_config.thinking_budget_tokens
     payload["metadata"]["response_id"] = getattr(response, "id", None)
     payload["metadata"]["latency_ms"] = latency_ms
     payload["metadata"]["usage"] = _usage_payload(getattr(response, "usage", None))
@@ -315,7 +360,13 @@ def _call_deepseek(request: dict[str, Any], *, model_config: LLMModelConfig) -> 
     api_key = os.environ.get(api_key_env)
     if not api_key:
         raise RuntimeError(f"{api_key_env} is required for live DeepSeek calls")
-    client = OpenAI(api_key=api_key, base_url=model_config.base_url or "https://api.deepseek.com")
+    client_kwargs: dict[str, Any] = {
+        "api_key": api_key,
+        "base_url": model_config.base_url or "https://api.deepseek.com",
+    }
+    if model_config.request_timeout_seconds is not None:
+        client_kwargs["timeout"] = model_config.request_timeout_seconds
+    client = OpenAI(**client_kwargs)
     kwargs: dict[str, Any] = {
         "model": model_config.model,
         "messages": build_llm_messages(request),

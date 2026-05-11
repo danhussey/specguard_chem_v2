@@ -21,6 +21,26 @@ api_key_env = "OPENAI_API_KEY"
 max_tokens = 4096
 notes = "Lower-latency OpenAI condition."
 
+[models.openai_frontier_selector]
+provider = "openai"
+model = "gpt-5.5"
+tier = "frontier"
+reasoning_effort = "minimal"
+api_key_env = "OPENAI_API_KEY"
+max_tokens = 4096
+prompt_profile = "json_first"
+notes = "OpenAI frontier direct-selector condition. If API rejects minimal effort, preflight fallback is low."
+
+[models.openai_frontier_reasoning_budget]
+provider = "openai"
+model = "gpt-5.5"
+tier = "frontier"
+reasoning_effort = "low"
+api_key_env = "OPENAI_API_KEY"
+max_tokens = 32768
+prompt_profile = "json_first"
+notes = "OpenAI frontier reasoning-budget pilot condition."
+
 [models.anthropic_frontier]
 provider = "anthropic"
 model = "claude-opus-4-7"
@@ -36,6 +56,25 @@ tier = "fast"
 api_key_env = "ANTHROPIC_API_KEY"
 max_tokens = 4096
 notes = "Anthropic fastest current model condition."
+
+[models.anthropic_frontier_selector]
+provider = "anthropic"
+model = "claude-opus-4-7"
+tier = "frontier"
+api_key_env = "ANTHROPIC_API_KEY"
+max_tokens = 4096
+prompt_profile = "json_first"
+notes = "Anthropic frontier direct-selector condition without extended thinking."
+
+[models.anthropic_frontier_thinking_8k]
+provider = "anthropic"
+model = "claude-opus-4-7"
+tier = "frontier"
+api_key_env = "ANTHROPIC_API_KEY"
+thinking_budget_tokens = 8192
+max_tokens = 16384
+prompt_profile = "json_first"
+notes = "Anthropic frontier extended-thinking pilot with explicit budget and visible-output headroom."
 
 [models.deepseek_frontier]
 provider = "deepseek"
@@ -57,3 +96,26 @@ api_key_env = "DEEPSEEK_API_KEY"
 thinking = false
 max_tokens = 4096
 notes = "DeepSeek fast condition with thinking disabled."
+
+[models.deepseek_frontier_selector]
+provider = "deepseek"
+model = "deepseek-v4-pro"
+tier = "frontier"
+base_url = "https://api.deepseek.com"
+api_key_env = "DEEPSEEK_API_KEY"
+thinking = false
+max_tokens = 4096
+prompt_profile = "json_first"
+notes = "DeepSeek frontier direct-selector condition with thinking disabled."
+
+[models.deepseek_frontier_thinking_32k]
+provider = "deepseek"
+model = "deepseek-v4-pro"
+tier = "frontier"
+base_url = "https://api.deepseek.com"
+api_key_env = "DEEPSEEK_API_KEY"
+thinking = true
+max_tokens = 32768
+prompt_profile = "json_first"
+request_timeout_seconds = 900
+notes = "DeepSeek frontier thinking pilot with long output budget and explicit timeout."

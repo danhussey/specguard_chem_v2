@@ -57,6 +57,7 @@ def test_cli_fixture_smoke(tmp_path: Path) -> None:
     result = runner.invoke(app, ["list-model-matrix", "configs/model_matrix.toml"])
     assert result.exit_code == 0, result.output
     assert "openai_fast" in result.output
+    assert "openai_frontier_selector" in result.output
 
     matrix_dir = tmp_path / "llm_matrix"
     result = runner.invoke(

@@ -9,6 +9,5 @@
 - Add candidate-summary compression or candidate prefiltering before another
   full frontier-model matrix; current full candidate-pool prompts are very large.
 - Retry DeepSeek frontier only with a revised reasoning/output strategy.
-- Add provider-specific controls for reasoning-token budgets. OpenAI frontier
-  and DeepSeek frontier both consumed large reasoning budgets without final JSON
-  under the current full-pool interface.
+- Candidate-summary compression remains a separate future experiment; do not mix
+  it into the direct-selector frontier comparison.

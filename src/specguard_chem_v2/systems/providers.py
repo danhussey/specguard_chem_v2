@@ -4,10 +4,11 @@ import tomllib
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 ProviderName = Literal["openai", "anthropic", "deepseek"]
 ModelTier = Literal["frontier", "fast", "other"]
+PromptProfile = Literal["default", "json_first"]
 
 
 class LLMModelConfig(BaseModel):
@@ -21,8 +22,11 @@ class LLMModelConfig(BaseModel):
     base_url: str | None = None
     reasoning_effort: str | None = None
     thinking: bool | None = None
+    thinking_budget_tokens: int | None = Field(default=None, gt=0)
     max_tokens: int = Field(default=4096, gt=0)
     temperature: float | None = Field(default=None, ge=0.0, le=2.0)
+    prompt_profile: PromptProfile = "default"
+    request_timeout_seconds: int | None = Field(default=None, gt=0)
     notes: str | None = None
 
     @field_validator("id", "model")
@@ -32,6 +36,15 @@ class LLMModelConfig(BaseModel):
         if not value:
             raise ValueError("must be non-empty")
         return value
+
+    @model_validator(mode="after")
+    def _validate_thinking_budget(self) -> "LLMModelConfig":
+        if self.thinking_budget_tokens is not None:
+            if self.provider != "anthropic":
+                raise ValueError("thinking_budget_tokens is currently supported only for Anthropic")
+            if self.thinking_budget_tokens >= self.max_tokens:
+                raise ValueError("thinking_budget_tokens must be less than max_tokens")
+        return self
 
 
 def default_openai_config(model: str) -> LLMModelConfig:

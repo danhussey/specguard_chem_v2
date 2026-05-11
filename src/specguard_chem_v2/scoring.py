@@ -10,7 +10,7 @@ import pandas as pd
 
 from .chem.constraints import is_candidate_feasible
 from .io import load_models, write_json, write_jsonl
-from .schemas import CardScore, DecisionCard, RunRecord
+from .schemas import CardScore, DecisionCard, RunRecord, SystemOutput, ValidationIssue
 
 
 def _activity_values(card: DecisionCard) -> dict[str, float]:
@@ -47,23 +47,48 @@ def _issue_count(record: RunRecord, code: str) -> int:
     return sum(1 for issue in record.issues if issue.code == code)
 
 
-def score_record(card: DecisionCard, record: RunRecord, *, hit_threshold: float | None = None) -> CardScore:
-    activity_by_id = _activity_values(card)
-    feasible_ids = {
-        candidate.id for candidate in card.candidate_pool if is_candidate_feasible(card, candidate)
-    }
-    feasible_activities = [
-        activity_by_id[candidate_id]
-        for candidate_id in feasible_ids
-        if candidate_id in activity_by_id
-    ]
-    if hit_threshold is None:
-        hit_threshold = _default_hit_threshold(feasible_activities)
+def _issue_code_count(issues: list[ValidationIssue], code: str) -> int:
+    return sum(1 for issue in issues if issue.code == code)
 
+
+def _schema_error_count(issues: list[ValidationIssue]) -> int:
+    return sum(
+        1
+        for issue in issues
+        if issue.code in {"task_id_mismatch", "wrong_k"} or issue.code.startswith("schema")
+    )
+
+
+def _constraint_violation_count(issues: list[ValidationIssue]) -> int:
+    return sum(
+        1
+        for issue in issues
+        if issue.code
+        in {
+            "descriptor_max",
+            "descriptor_min",
+            "descriptor_range",
+            "forbidden_smarts",
+            "invalid_smiles",
+        }
+    )
+
+
+def _score_output_metrics(
+    card: DecisionCard,
+    output: SystemOutput,
+    issues: list[ValidationIssue],
+    *,
+    activity_by_id: dict[str, float],
+    feasible_ids: set[str],
+    feasible_activities: list[float],
+    oracle_utility: float,
+    hit_threshold: float | None,
+) -> dict[str, object]:
     seen: set[str] = set()
     valid_selected_ids: list[str] = []
     selected_relevances: list[float] = []
-    for item in record.output.selections[: card.budget_k]:
+    for item in output.selections[: card.budget_k]:
         candidate_id = item.candidate_id
         valid = (
             candidate_id not in seen
@@ -79,8 +104,6 @@ def score_record(card: DecisionCard, record: RunRecord, *, hit_threshold: float 
 
     valid_activities = [activity_by_id[candidate_id] for candidate_id in valid_selected_ids]
     feasible_utility = float(sum(valid_activities))
-    ideal_activities = sorted(feasible_activities, reverse=True)[: card.budget_k]
-    oracle_utility = float(sum(ideal_activities))
     constrained_regret = max(0.0, oracle_utility - feasible_utility)
 
     hit_recovery = None
@@ -93,42 +116,108 @@ def score_record(card: DecisionCard, record: RunRecord, *, hit_threshold: float 
         pool_rate = len(pool_hits) / len(feasible_activities)
         enrichment = (selected_rate / pool_rate) if pool_rate else 0.0
 
-    constraint_violation_count = sum(
-        1
-        for issue in record.issues
-        if issue.code
-        in {
-            "descriptor_max",
-            "descriptor_min",
-            "descriptor_range",
-            "forbidden_smarts",
-            "invalid_smiles",
-        }
+    schema_error_count = _schema_error_count(issues)
+    return {
+        "ndcg_at_k": ndcg_at_k(selected_relevances, feasible_activities, card.budget_k),
+        "mean_selected_activity": mean(valid_activities) if valid_activities else None,
+        "hit_recovery_at_k": hit_recovery,
+        "enrichment_at_k": enrichment,
+        "feasible_utility": feasible_utility,
+        "constrained_regret": constrained_regret,
+        "compliance_rate": min(1.0, len(valid_selected_ids) / card.budget_k),
+        "schema_error_rate": 1.0 if schema_error_count else 0.0,
+        "wrong_k": bool(_issue_code_count(issues, "wrong_k")),
+        "pool_violation_count": _issue_code_count(issues, "out_of_pool"),
+        "duplicate_count": _issue_code_count(issues, "duplicate"),
+        "support_violation_count": _issue_code_count(issues, "support_selected"),
+        "constraint_violation_count": _constraint_violation_count(issues),
+        "valid_selected_count": len(valid_selected_ids),
+        "selection_count": len(output.selections),
+    }
+
+
+def score_record(card: DecisionCard, record: RunRecord, *, hit_threshold: float | None = None) -> CardScore:
+    activity_by_id = _activity_values(card)
+    feasible_ids = {
+        candidate.id for candidate in card.candidate_pool if is_candidate_feasible(card, candidate)
+    }
+    feasible_activities = [
+        activity_by_id[candidate_id]
+        for candidate_id in feasible_ids
+        if candidate_id in activity_by_id
+    ]
+    if hit_threshold is None:
+        hit_threshold = _default_hit_threshold(feasible_activities)
+
+    ideal_activities = sorted(feasible_activities, reverse=True)[: card.budget_k]
+    oracle_utility = float(sum(ideal_activities))
+    final_metrics = _score_output_metrics(
+        card,
+        record.output,
+        record.issues,
+        activity_by_id=activity_by_id,
+        feasible_ids=feasible_ids,
+        feasible_activities=feasible_activities,
+        oracle_utility=oracle_utility,
+        hit_threshold=hit_threshold,
     )
-    schema_error_count = sum(
-        1
-        for issue in record.issues
-        if issue.code in {"task_id_mismatch", "wrong_k"} or issue.code.startswith("schema")
-    )
-    compliance_rate = min(1.0, len(valid_selected_ids) / card.budget_k)
+    raw_metrics = None
+    if record.raw_output is not None:
+        raw_metrics = _score_output_metrics(
+            card,
+            record.raw_output,
+            record.raw_issues,
+            activity_by_id=activity_by_id,
+            feasible_ids=feasible_ids,
+            feasible_activities=feasible_activities,
+            oracle_utility=oracle_utility,
+            hit_threshold=hit_threshold,
+        )
+    repair_delta = None
+    if raw_metrics is not None:
+        repair_delta = float(final_metrics["feasible_utility"]) - float(raw_metrics["feasible_utility"])
+
     return CardScore(
         task_id=card.task_id,
         system_name=record.system_name,
-        ndcg_at_k=ndcg_at_k(selected_relevances, feasible_activities, card.budget_k),
-        mean_selected_activity=(mean(valid_activities) if valid_activities else None),
-        hit_recovery_at_k=hit_recovery,
-        enrichment_at_k=enrichment,
-        feasible_utility=feasible_utility,
+        ndcg_at_k=float(final_metrics["ndcg_at_k"]),
+        mean_selected_activity=final_metrics["mean_selected_activity"],
+        hit_recovery_at_k=final_metrics["hit_recovery_at_k"],
+        enrichment_at_k=final_metrics["enrichment_at_k"],
+        feasible_utility=float(final_metrics["feasible_utility"]),
         oracle_utility=oracle_utility,
-        constrained_regret=constrained_regret,
-        compliance_rate=compliance_rate,
-        schema_error_rate=1.0 if schema_error_count else 0.0,
-        wrong_k=bool(_issue_count(record, "wrong_k")),
-        pool_violation_count=_issue_count(record, "out_of_pool"),
-        duplicate_count=_issue_count(record, "duplicate"),
-        support_violation_count=_issue_count(record, "support_selected"),
-        constraint_violation_count=constraint_violation_count,
-        valid_selected_count=len(valid_selected_ids),
+        constrained_regret=float(final_metrics["constrained_regret"]),
+        compliance_rate=float(final_metrics["compliance_rate"]),
+        schema_error_rate=float(final_metrics["schema_error_rate"]),
+        wrong_k=bool(final_metrics["wrong_k"]),
+        pool_violation_count=int(final_metrics["pool_violation_count"]),
+        duplicate_count=int(final_metrics["duplicate_count"]),
+        support_violation_count=int(final_metrics["support_violation_count"]),
+        constraint_violation_count=int(final_metrics["constraint_violation_count"]),
+        valid_selected_count=int(final_metrics["valid_selected_count"]),
+        raw_ndcg_at_k=(
+            float(raw_metrics["ndcg_at_k"]) if raw_metrics is not None else None
+        ),
+        raw_feasible_utility=(
+            float(raw_metrics["feasible_utility"]) if raw_metrics is not None else None
+        ),
+        raw_compliance_rate=(
+            float(raw_metrics["compliance_rate"]) if raw_metrics is not None else None
+        ),
+        raw_schema_error_rate=(
+            float(raw_metrics["schema_error_rate"]) if raw_metrics is not None else None
+        ),
+        raw_valid_selected_count=(
+            int(raw_metrics["valid_selected_count"]) if raw_metrics is not None else None
+        ),
+        raw_selection_count=(
+            int(raw_metrics["selection_count"]) if raw_metrics is not None else None
+        ),
+        repaired_rate=1.0 if record.repaired else 0.0,
+        repaired_from_empty_rate=(
+            1.0 if record.metadata.get("repaired_from_empty") is True else 0.0
+        ),
+        repair_delta_feasible_utility=repair_delta,
         hit_threshold=hit_threshold,
         metadata={
             key: value
@@ -141,6 +230,7 @@ def score_record(card: DecisionCard, record: RunRecord, *, hit_threshold: float 
                 "llm_model",
                 "llm_model_config_id",
                 "request_sha256",
+                "prompt_profile",
             }
             and value is not None
         },
@@ -193,6 +283,15 @@ def summarize_scores(
         "support_violation_count",
         "constraint_violation_count",
         "valid_selected_count",
+        "raw_ndcg_at_k",
+        "raw_feasible_utility",
+        "raw_compliance_rate",
+        "raw_schema_error_rate",
+        "raw_valid_selected_count",
+        "raw_selection_count",
+        "repaired_rate",
+        "repaired_from_empty_rate",
+        "repair_delta_feasible_utility",
     ]
     summary: dict[str, object] = {
         "system_name": scores[0].system_name,
@@ -215,6 +314,9 @@ def summarize_scores(
             "feasible_utility",
             "constrained_regret",
             "compliance_rate",
+            "raw_ndcg_at_k",
+            "raw_feasible_utility",
+            "raw_compliance_rate",
         }:
             ci = _bootstrap_ci(filtered, samples=bootstrap_samples, seed=seed)
             if ci is not None:
@@ -277,6 +379,7 @@ def metric_denominators(scores: list[CardScore]) -> dict[str, object]:
         "cards_with_mean_activity": sum(score.mean_selected_activity is not None for score in scores),
         "cards_with_hit_recovery": sum(score.hit_recovery_at_k is not None for score in scores),
         "cards_with_enrichment": sum(score.enrichment_at_k is not None for score in scores),
+        "cards_with_raw_metrics": sum(score.raw_feasible_utility is not None for score in scores),
         "cards_with_nonzero_oracle_utility": sum(score.oracle_utility > 0 for score in scores),
     }
 

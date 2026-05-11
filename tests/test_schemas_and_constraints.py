@@ -2,7 +2,7 @@ from pathlib import Path
 
 from specguard_chem_v2.io import load_models
 from specguard_chem_v2.runner import repair_output, validate_output
-from specguard_chem_v2.schemas import DecisionCard, SelectionItem, SystemOutput
+from specguard_chem_v2.schemas import DecisionCard, RunRecord, SelectionItem, SystemOutput
 from specguard_chem_v2.validation import validate_card_semantics
 
 
@@ -38,3 +38,19 @@ def test_output_validation_and_repair() -> None:
 def test_card_semantic_validation_passes_fixture() -> None:
     cards = load_models(FIXTURES / "cards.jsonl", DecisionCard)
     assert all(validate_card_semantics(card) == [] for card in cards)
+
+
+def test_run_record_loads_without_raw_fields() -> None:
+    output = SystemOutput(task_id="fixture", system_name="rules_only", selections=[])
+    record = RunRecord.model_validate(
+        {
+            "task_id": "fixture",
+            "system_name": "rules_only",
+            "output": output.model_dump(mode="json"),
+            "issues": [],
+            "repaired": False,
+            "metadata": {},
+        }
+    )
+    assert record.raw_output is None
+    assert record.raw_issues == []

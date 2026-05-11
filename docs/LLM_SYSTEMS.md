@@ -19,9 +19,10 @@ Live calls are disabled unless `--allow-external` is passed to run commands.
 Replay cache files may be content-addressed files written by live runs or stable
 fixture files named `{system_name}__{task_id}.json`. Model-matrix runs also
 check stable files named `{system_name}__{model_config_id}__{task_id}.json`.
-Generation settings such as token budget, temperature, reasoning effort, and
-thinking mode are included in new request hashes so budget changes do not replay
-stale provider responses.
+Generation settings such as token budget, temperature, reasoning effort,
+thinking mode, thinking budget, prompt profile, and request timeout are included
+in new request hashes so interface or budget changes do not replay stale
+provider responses.
 
 ## Provider Model Matrix
 
@@ -37,6 +38,12 @@ each supported provider:
 | `anthropic_fast` | Anthropic | `claude-haiku-4-5-20251001` | Anthropic fastest condition. |
 | `deepseek_frontier` | DeepSeek | `deepseek-v4-pro` | DeepSeek pro condition with thinking enabled. |
 | `deepseek_fast` | DeepSeek | `deepseek-v4-flash` | DeepSeek fast condition with thinking disabled. |
+| `openai_frontier_selector` | OpenAI | `gpt-5.5` | Direct-selector frontier condition with `json_first` prompting. |
+| `anthropic_frontier_selector` | Anthropic | `claude-opus-4-7` | Direct-selector frontier condition without extended thinking. |
+| `deepseek_frontier_selector` | DeepSeek | `deepseek-v4-pro` | Direct-selector frontier condition with thinking disabled. |
+| `openai_frontier_reasoning_budget` | OpenAI | `gpt-5.5` | Pilot-only reasoning-budget condition. |
+| `anthropic_frontier_thinking_8k` | Anthropic | `claude-opus-4-7` | Pilot-only extended-thinking condition with explicit budget. |
+| `deepseek_frontier_thinking_32k` | DeepSeek | `deepseek-v4-pro` | Pilot-only thinking condition with long budget and timeout. |
 
 List the configured conditions with:
 
@@ -71,6 +78,27 @@ uv run sgchem run-llm-matrix data/cards/cara_lo_all_cards.jsonl \
 Use `--workers N` for bounded card-level concurrency during live matrix runs.
 This changes execution throughput only; it does not alter prompts, cache keys,
 model conditions, or scoring.
+
+Use the selector conditions for the fair cross-provider frontier comparison:
+
+```bash
+uv run --extra providers sgchem run-llm-matrix data/cards/cara_lo_paper_50.jsonl \
+  --systems bare_llm,llm_validator,llm_tools,llm_tools_validator \
+  --model-conditions openai_frontier_selector,anthropic_frontier_selector,deepseek_frontier_selector \
+  --out runs/cara_lo_paper_50_selector_matrix \
+  --allow-external
+```
+
+Reasoning-budget conditions are exploratory. Run them on a small fixed subset
+first and promote only if raw outputs reliably contain final JSON rather than
+being mostly repaired from empty responses.
+
+## Raw Versus Repaired Outputs
+
+New traces store `raw_output` and `raw_issues` before validator repair. The
+existing `output` and `issues` fields remain the final scored artifact after
+repair. Reports include raw and final metrics so a validator fallback can raise
+final utility without being mistaken for raw LLM decision quality.
 
 Without `--allow-external`, missing replay cache entries produce explicit empty
 offline outputs and validator systems repair them where applicable. Live calls

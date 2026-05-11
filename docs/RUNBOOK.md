@@ -253,6 +253,24 @@ runs/cara_lo_llm_pilot/
       llm_tools/
 ```
 
+For the paper-50 frontier rerun, use the direct-selector conditions first. They
+keep the full candidate pool and candidate JSON unchanged, but use a stricter
+`json_first` output profile and avoid provider-specific hidden reasoning modes
+where possible:
+
+```bash
+uv run --extra providers sgchem run-llm-matrix data/cards/cara_lo_paper_50.jsonl \
+  --systems bare_llm,llm_validator,llm_tools,llm_tools_validator \
+  --model-conditions openai_frontier_selector,anthropic_frontier_selector,deepseek_frontier_selector \
+  --out runs/cara_lo_paper_50_selector_matrix \
+  --allow-external
+```
+
+Reasoning-budget conditions should be treated as a separate pilot. Run them on
+the first 10 frozen cards only, score raw versus final outputs, and continue to a
+full 50-card reasoning run only if raw schema success is high and repairs are not
+mostly from empty outputs.
+
 ## Interpreting Results
 
 Use these rules when reading tables or writing the report:
@@ -267,6 +285,9 @@ Use these rules when reading tables or writing the report:
 - Treat QSAR as the main non-language chemistry baseline: it trains on support
   compounds and predicts candidate activity from molecular fingerprints.
 - Do not treat a valid output schema as medicinal-chemistry utility.
+- For validator systems, report raw metrics alongside final repaired metrics.
+  A repaired fallback can be useful operationally, but it is not raw LLM
+  selection quality.
 - Do not use live LLM outputs in default CI or fixture smoke tests.
 
 ## Common Recovery Checks

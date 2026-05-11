@@ -98,6 +98,7 @@ def repair_output(card: DecisionCard, output: SystemOutput) -> SystemOutput:
     metadata = dict(output.metadata)
     metadata["validator_repaired"] = True
     metadata["original_selection_count"] = len(output.selections)
+    metadata["repaired_from_empty"] = len(output.selections) == 0
     return SystemOutput(
         task_id=card.task_id,
         system_name=output.system_name,
@@ -132,22 +133,31 @@ def run_system_on_card(
     else:
         raise ValueError(f"Unknown system: {system_name}")
 
-    initial_issues = validate_output(card, output)
+    raw_output = output
+    initial_issues = validate_output(card, raw_output)
     repaired = False
     if system_name.endswith("_validator") and initial_issues:
-        output = repair_output(card, output)
+        output = repair_output(card, raw_output)
         repaired = True
     final_issues = validate_output(card, output)
+    repaired_from_empty = repaired and len(raw_output.selections) == 0
     return RunRecord(
         task_id=card.task_id,
         system_name=output.system_name,
         output=output,
         issues=final_issues,
+        raw_output=raw_output,
+        raw_issues=initial_issues,
         repaired=repaired,
         metadata={
             "initial_issue_count": len(initial_issues),
+            "raw_issue_count": len(initial_issues),
+            "final_issue_count": len(final_issues),
             "base_system_name": system_name,
             "run_label": run_label,
+            "validator_repaired": repaired,
+            "original_selection_count": len(raw_output.selections) if repaired else None,
+            "repaired_from_empty": repaired_from_empty,
             "llm_provider": output.metadata.get("llm_provider"),
             "llm_model": output.metadata.get("llm_model"),
             "llm_model_config_id": output.metadata.get("llm_model_config_id"),
@@ -156,6 +166,9 @@ def run_system_on_card(
             "temperature": output.metadata.get("temperature"),
             "reasoning_effort": output.metadata.get("reasoning_effort"),
             "thinking": output.metadata.get("thinking"),
+            "thinking_budget_tokens": output.metadata.get("thinking_budget_tokens"),
+            "prompt_profile": output.metadata.get("prompt_profile"),
+            "request_timeout_seconds": output.metadata.get("request_timeout_seconds"),
         },
     )
 

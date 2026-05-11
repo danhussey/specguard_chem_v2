@@ -46,10 +46,14 @@ def _write_leaderboard_slices(frame: pd.DataFrame, out_dir: Path) -> None:
 def _write_metric_winners(frame: pd.DataFrame, out_dir: Path) -> None:
     metrics = [
         ("feasible_utility", False),
+        ("raw_feasible_utility", False),
         ("ndcg_at_k", False),
+        ("raw_ndcg_at_k", False),
         ("compliance_rate", False),
+        ("raw_compliance_rate", False),
         ("constrained_regret", True),
         ("schema_error_rate", True),
+        ("raw_schema_error_rate", True),
     ]
 
     def _winner_rows(source: pd.DataFrame) -> list[dict[str, object]]:
@@ -88,7 +92,17 @@ def _write_ablation_table(frame: pd.DataFrame, out_dir: Path) -> None:
         pd.DataFrame(rows).to_csv(out_dir / "ablation_deltas.csv", index=False)
         return
     by_system = {str(row["system_name"]): row for _, row in frame.iterrows()}
-    metrics = ["feasible_utility", "compliance_rate", "constrained_regret", "schema_error_rate"]
+    metrics = [
+        "feasible_utility",
+        "raw_feasible_utility",
+        "compliance_rate",
+        "raw_compliance_rate",
+        "constrained_regret",
+        "schema_error_rate",
+        "raw_schema_error_rate",
+        "repaired_rate",
+        "repaired_from_empty_rate",
+    ]
 
     pairs: list[tuple[str, str, str]] = []
     for before, after, label in ABLATION_PAIRS:
@@ -188,10 +202,15 @@ def write_results_summary(comparison_csv: Path, out_dir: Path, *, title: str = "
     columns = [
         "system_name",
         "feasible_utility",
+        "raw_feasible_utility",
         "ndcg_at_k",
+        "raw_ndcg_at_k",
         "constrained_regret",
         "compliance_rate",
+        "raw_compliance_rate",
         "schema_error_rate",
+        "raw_schema_error_rate",
+        "repaired_from_empty_rate",
     ]
     generated_at = datetime.now(timezone.utc).isoformat()
     content = [
@@ -212,6 +231,8 @@ def write_results_summary(comparison_csv: Path, out_dir: Path, *, title: str = "
         "## Reading Guide",
         "",
         "- Higher feasible utility and NDCG@k are better.",
+        "- Raw columns score the model output before deterministic validator repair.",
+        "- Final columns score the selected output after validator repair where applicable.",
         "- Lower constrained regret and schema error rate are better.",
         "- Oracle controls are sanity checks and must not be mixed into primary system claims.",
     ]
