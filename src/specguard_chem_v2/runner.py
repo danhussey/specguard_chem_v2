@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from .chem.constraints import evaluate_candidate, is_candidate_feasible
@@ -169,9 +170,10 @@ def run_system_on_cards(
     model: str = "gpt-4.1-mini",
     model_config: LLMModelConfig | None = None,
     run_label: str | None = None,
+    workers: int = 1,
 ) -> list[RunRecord]:
-    return [
-        run_system_on_card(
+    def run_card(card: DecisionCard) -> RunRecord:
+        return run_system_on_card(
             card,
             system_name,
             seed=seed,
@@ -181,8 +183,11 @@ def run_system_on_cards(
             model_config=model_config,
             run_label=run_label,
         )
-        for card in cards
-    ]
+
+    if workers <= 1:
+        return [run_card(card) for card in cards]
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        return list(executor.map(run_card, cards))
 
 
 def run_system_file(
@@ -196,6 +201,7 @@ def run_system_file(
     model: str = "gpt-4.1-mini",
     model_config: LLMModelConfig | None = None,
     run_label: str | None = None,
+    workers: int = 1,
 ) -> list[RunRecord]:
     cards = load_models(cards_path, DecisionCard)
     records = run_system_on_cards(
@@ -207,6 +213,7 @@ def run_system_file(
         model=model,
         model_config=model_config,
         run_label=run_label,
+        workers=workers,
     )
     write_jsonl(out, records)
     return records

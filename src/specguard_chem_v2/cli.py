@@ -139,6 +139,7 @@ def run_system(
     cache_dir: Optional[Path] = typer.Option(None, "--cache-dir"),
     allow_external: bool = typer.Option(False, "--allow-external"),
     model: str = typer.Option("gpt-4.1-mini", "--model"),
+    workers: int = typer.Option(1, "--workers", min=1, help="Card-level worker count."),
 ) -> None:
     records = run_system_file(
         cards,
@@ -148,6 +149,7 @@ def run_system(
         cache_dir=cache_dir,
         allow_external=allow_external,
         model=model,
+        workers=workers,
     )
     console.print(f"Ran [green]{system}[/green] on [green]{len(records)}[/green] cards -> {out}")
 
@@ -165,6 +167,7 @@ def run_suite(
     cache_dir: Optional[Path] = typer.Option(None, "--cache-dir"),
     allow_external: bool = typer.Option(False, "--allow-external"),
     model: str = typer.Option("gpt-4.1-mini", "--model"),
+    workers: int = typer.Option(1, "--workers", min=1, help="Card-level worker count."),
 ) -> None:
     names = _expand_systems(systems)
     manifest = {
@@ -186,6 +189,7 @@ def run_suite(
             cache_dir=(cache_dir / name if cache_dir else None),
             allow_external=allow_external,
             model=model,
+            workers=workers,
         )
         scores_dir = out / name / "scores"
         score_run(cards, run_path, scores_dir)
@@ -245,6 +249,7 @@ def run_llm_matrix(
     seed: int = typer.Option(7, "--seed"),
     cache_dir: Optional[Path] = typer.Option(None, "--cache-dir"),
     allow_external: bool = typer.Option(False, "--allow-external"),
+    workers: int = typer.Option(1, "--workers", min=1, help="Card-level worker count."),
 ) -> None:
     names = [name.strip() for name in systems.split(",") if name.strip()]
     unknown = [name for name in names if name not in LLM_SYSTEMS]
@@ -275,6 +280,7 @@ def run_llm_matrix(
                 allow_external=allow_external,
                 model_config=config,
                 run_label=run_label,
+                workers=workers,
             )
             scores_dir = out / config.id / system_name / "scores"
             score_run(cards, run_path, scores_dir)

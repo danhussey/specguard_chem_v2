@@ -25,7 +25,7 @@ FIXTURES = Path(__file__).parent / "fixtures"
 def test_baseline_runner_and_scoring(tmp_path: Path) -> None:
     cards_path = FIXTURES / "cards.jsonl"
     trace_path = tmp_path / "runs" / "rules_only" / "trace.jsonl"
-    records = run_system_file(cards_path, "rules_only", trace_path)
+    records = run_system_file(cards_path, "rules_only", trace_path, workers=2)
     assert len(records) == 2
     assert all(not record.issues for record in records)
 
