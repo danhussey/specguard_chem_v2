@@ -11,6 +11,7 @@ from specguard_chem_v2.schemas import DecisionCard
 from specguard_chem_v2.scoring import score_record, score_run
 from specguard_chem_v2.systems.llm import (
     _cache_path,
+    _extract_json_object,
     _request_hash,
     _selection_items_from_payload,
     build_llm_request,
@@ -208,6 +209,13 @@ def test_live_payload_selection_normalization_clamps_confidence() -> None:
     assert selections[0].confidence == 1.0
     assert selections[1].rank == 2
     assert selections[1].confidence is None
+
+
+def test_json_extraction_ignores_prefix_and_extra_json() -> None:
+    payload = _extract_json_object(
+        'prefix {"task_id": "T1", "selections": []} trailing {"ignored": true}'
+    )
+    assert payload == {"task_id": "T1", "selections": []}
 
 
 def test_compare_and_frontier_plot(tmp_path: Path) -> None:

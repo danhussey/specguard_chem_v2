@@ -223,10 +223,44 @@ def _extract_json_object(text: str) -> dict[str, Any]:
         return json.loads(text)
     except json.JSONDecodeError:
         pass
-    match = re.search(r"\{.*\}", text, flags=re.DOTALL)
-    if match is None:
-        raise ValueError("LLM response did not contain a JSON object")
-    return json.loads(match.group(0))
+    decoder = json.JSONDecoder()
+    for match in re.finditer(r"\{", text):
+        try:
+            payload, _ = decoder.raw_decode(text[match.start() :])
+        except json.JSONDecodeError:
+            continue
+        if isinstance(payload, dict):
+            return payload
+    raise ValueError("LLM response did not contain a valid JSON object")
+
+
+def _parse_failure_payload(
+    request: dict[str, Any],
+    *,
+    provider: str,
+    model_config: LLMModelConfig,
+    raw_text: str,
+    error: Exception,
+    response_id: str | None = None,
+    latency_ms: int | None = None,
+    usage: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    return {
+        "task_id": request["task_id"],
+        "system_name": request["system_name"],
+        "selections": [],
+        "metadata": {
+            "provider": provider,
+            "model": model_config.model,
+            "model_config_id": model_config.id,
+            "response_id": response_id,
+            "latency_ms": latency_ms,
+            "usage": usage,
+            "response_parse_error": str(error),
+            "raw_response_excerpt": raw_text[:1000],
+            "raw_response_sha256": hashlib.sha256(raw_text.encode("utf-8")).hexdigest(),
+        },
+    }
 
 
 def _metadata_for_request(request: dict[str, Any], model_config: LLMModelConfig) -> dict[str, Any]:
@@ -299,18 +333,40 @@ def _call_openai(request: dict[str, Any], *, model_config: LLMModelConfig) -> di
         kwargs["reasoning_effort"] = model_config.reasoning_effort
     if model_config.temperature is not None:
         kwargs["temperature"] = model_config.temperature
-    started = time.perf_counter()
-    response = client.chat.completions.create(**kwargs)
-    latency_ms = int((time.perf_counter() - started) * 1000)
-    content = response.choices[0].message.content or "{}"
-    payload = _extract_json_object(content)
+    last_error: Exception | None = None
+    for attempt in range(2):
+        started = time.perf_counter()
+        response = client.chat.completions.create(**kwargs)
+        latency_ms = int((time.perf_counter() - started) * 1000)
+        content = response.choices[0].message.content or "{}"
+        usage = _usage_payload(getattr(response, "usage", None))
+        try:
+            payload = _extract_json_object(content)
+            break
+        except (ValueError, json.JSONDecodeError) as exc:
+            last_error = exc
+            if attempt == 0:
+                continue
+            payload = _parse_failure_payload(
+                request,
+                provider="openai",
+                model_config=model_config,
+                raw_text=content,
+                error=exc,
+                response_id=getattr(response, "id", None),
+                latency_ms=latency_ms,
+                usage=usage,
+            )
+            break
+    else:  # pragma: no cover - loop always breaks
+        raise RuntimeError("unreachable OpenAI parse loop") from last_error
     payload.setdefault("metadata", {})
     payload["metadata"]["provider"] = "openai"
     payload["metadata"]["model"] = model_config.model
     payload["metadata"]["model_config_id"] = model_config.id
     payload["metadata"]["response_id"] = getattr(response, "id", None)
     payload["metadata"]["latency_ms"] = latency_ms
-    payload["metadata"]["usage"] = _usage_payload(getattr(response, "usage", None))
+    payload["metadata"]["usage"] = usage
     return payload
 
 
@@ -345,14 +401,37 @@ def _call_anthropic(request: dict[str, Any], *, model_config: LLMModelConfig) ->
     if model_config.request_timeout_seconds is not None:
         client_kwargs["timeout"] = model_config.request_timeout_seconds
     client = Anthropic(**client_kwargs)
-    started = time.perf_counter()
-    response = client.messages.create(**kwargs)
-    latency_ms = int((time.perf_counter() - started) * 1000)
-    content_parts = []
-    for block in response.content:
-        if getattr(block, "type", None) == "text":
-            content_parts.append(str(getattr(block, "text", "")))
-    payload = _extract_json_object("\n".join(content_parts))
+    last_error = None
+    for attempt in range(2):
+        started = time.perf_counter()
+        response = client.messages.create(**kwargs)
+        latency_ms = int((time.perf_counter() - started) * 1000)
+        content_parts = []
+        for block in response.content:
+            if getattr(block, "type", None) == "text":
+                content_parts.append(str(getattr(block, "text", "")))
+        raw_text = "\n".join(content_parts)
+        usage = _usage_payload(getattr(response, "usage", None))
+        try:
+            payload = _extract_json_object(raw_text)
+            break
+        except (ValueError, json.JSONDecodeError) as exc:
+            last_error = exc
+            if attempt == 0:
+                continue
+            payload = _parse_failure_payload(
+                request,
+                provider="anthropic",
+                model_config=model_config,
+                raw_text=raw_text,
+                error=exc,
+                response_id=getattr(response, "id", None),
+                latency_ms=latency_ms,
+                usage=usage,
+            )
+            break
+    else:  # pragma: no cover - loop always breaks
+        raise RuntimeError("unreachable Anthropic parse loop") from last_error
     payload.setdefault("metadata", {})
     payload["metadata"]["provider"] = "anthropic"
     payload["metadata"]["model"] = model_config.model
@@ -360,7 +439,7 @@ def _call_anthropic(request: dict[str, Any], *, model_config: LLMModelConfig) ->
     payload["metadata"]["thinking_budget_tokens"] = model_config.thinking_budget_tokens
     payload["metadata"]["response_id"] = getattr(response, "id", None)
     payload["metadata"]["latency_ms"] = latency_ms
-    payload["metadata"]["usage"] = _usage_payload(getattr(response, "usage", None))
+    payload["metadata"]["usage"] = usage
     return payload
 
 
@@ -395,11 +474,34 @@ def _call_deepseek(request: dict[str, Any], *, model_config: LLMModelConfig) -> 
         extra_body["thinking"] = {"type": "enabled" if model_config.thinking else "disabled"}
     if extra_body:
         kwargs["extra_body"] = extra_body
-    started = time.perf_counter()
-    response = client.chat.completions.create(**kwargs)
-    latency_ms = int((time.perf_counter() - started) * 1000)
-    message = response.choices[0].message
-    payload = _extract_json_object(message.content or "{}")
+    last_error = None
+    for attempt in range(2):
+        started = time.perf_counter()
+        response = client.chat.completions.create(**kwargs)
+        latency_ms = int((time.perf_counter() - started) * 1000)
+        message = response.choices[0].message
+        content = message.content or "{}"
+        usage = _usage_payload(getattr(response, "usage", None))
+        try:
+            payload = _extract_json_object(content)
+            break
+        except (ValueError, json.JSONDecodeError) as exc:
+            last_error = exc
+            if attempt == 0:
+                continue
+            payload = _parse_failure_payload(
+                request,
+                provider="deepseek",
+                model_config=model_config,
+                raw_text=content,
+                error=exc,
+                response_id=getattr(response, "id", None),
+                latency_ms=latency_ms,
+                usage=usage,
+            )
+            break
+    else:  # pragma: no cover - loop always breaks
+        raise RuntimeError("unreachable DeepSeek parse loop") from last_error
     payload.setdefault("metadata", {})
     payload["metadata"]["provider"] = "deepseek"
     payload["metadata"]["model"] = model_config.model
@@ -407,7 +509,7 @@ def _call_deepseek(request: dict[str, Any], *, model_config: LLMModelConfig) -> 
     payload["metadata"]["thinking_enabled"] = model_config.thinking
     payload["metadata"]["response_id"] = getattr(response, "id", None)
     payload["metadata"]["latency_ms"] = latency_ms
-    payload["metadata"]["usage"] = _usage_payload(getattr(response, "usage", None))
+    payload["metadata"]["usage"] = usage
     payload["metadata"]["reasoning_content_present"] = bool(
         getattr(message, "reasoning_content", None)
     )
