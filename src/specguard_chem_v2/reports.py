@@ -1014,6 +1014,15 @@ def _json_for_html(value: object) -> str:
     return json.dumps(value, sort_keys=True).replace("<", "\\u003c")
 
 
+def _optional_csv_records(path: Path) -> list[dict[str, object]]:
+    if not path.exists():
+        return []
+    frame = pd.read_csv(path)
+    if frame.empty:
+        return []
+    return frame.replace({np.nan: None}).to_dict(orient="records")
+
+
 def write_results_dashboard(
     comparison_csv: Path,
     out_dir: Path,
@@ -1024,6 +1033,11 @@ def write_results_dashboard(
     if not frame.empty and "system_name" in frame.columns:
         frame = frame.sort_values(["feasible_utility", "compliance_rate"], ascending=[False, False])
     rows = _dashboard_rows(frame)
+    table_dir = comparison_csv.parent
+    paired_rows = _optional_csv_records(table_dir / "paired_bootstrap_key_deltas.csv")
+    card_key_rows = _optional_csv_records(table_dir / "card_level_key_systems.csv")
+    card_diagnostic_rows = _optional_csv_records(table_dir / "card_level_diagnostics.csv")
+    failure_rows = _optional_csv_records(table_dir / "failure_taxonomy_summary.csv")
     generated_at = datetime.now(timezone.utc).isoformat()
     out_dir.mkdir(parents=True, exist_ok=True)
     output = out_dir / "RESULTS_DASHBOARD.html"
@@ -1294,6 +1308,68 @@ def write_results_dashboard(
       <div id="hypotheses" class="hypothesis-grid"></div>
     </section>
 
+    <section class="grid plot-grid" style="margin-top:16px" id="pairedBootstrapSection">
+      <div class="panel">
+        <h2><span class="term" tabindex="0" data-tooltip="Paired bootstrap resamples the same decision cards for two systems and estimates the confidence interval for their per-card metric difference.">Paired Card-Level Bootstrap</span></h2>
+        <p class="subtle">Positive bars mean system A outperformed system B on the same cards.</p>
+        <div id="pairedBootstrapBars" class="chart"></div>
+      </div>
+      <div class="panel">
+        <h2>Key Deltas</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Comparison</th>
+                <th>Metric</th>
+                <th>System A</th>
+                <th>System B</th>
+                <th>Delta</th>
+                <th>95% interval</th>
+              </tr>
+            </thead>
+            <tbody id="pairedBootstrapRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid plot-grid" style="margin-top:16px" id="cardDiagnosticsSection">
+      <div class="panel">
+        <h2><span class="term" tabindex="0" data-tooltip="Per-card feasible utility distribution for key systems. This shows whether aggregate results are driven by many cards or a few outliers.">Card-Level Utility Distribution</span></h2>
+        <div id="cardUtilityBoxes" class="chart"></div>
+      </div>
+      <div class="panel">
+        <h2>QSAR Versus LLM By Card</h2>
+        <p class="subtle">Points above the diagonal favor the LLM; points below favor QSAR.</p>
+        <div id="qsarLlmScatter" class="chart"></div>
+      </div>
+    </section>
+
+    <section class="grid plot-grid" style="margin-top:16px" id="failureTaxonomySection">
+      <div class="panel">
+        <h2><span class="term" tabindex="0" data-tooltip="Aggregated validation-failure classes across cards. This summarizes final-output contract and constraint failures; raw/final repair effects are shown separately.">Failure Taxonomy</span></h2>
+        <div id="failureTaxonomyBars" class="chart"></div>
+      </div>
+      <div class="panel">
+        <h2>Top Failure Rows</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>System</th>
+                <th>Failure type</th>
+                <th>Cards</th>
+                <th>Card rate</th>
+                <th>Issues/card</th>
+              </tr>
+            </thead>
+            <tbody id="failureTaxonomyRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
     <section class="grid plot-grid" style="margin-top:16px">
       <div class="panel">
         <h2><span class="term" tabindex="0" data-tooltip="Scatter plot separating specification compliance on the x-axis from medicinal-chemistry decision utility on the y-axis.">Compliance-Utility Frontier</span></h2>
@@ -1405,6 +1481,10 @@ def write_results_dashboard(
   </script>
   <script>
     const rows = {_json_for_html(rows)};
+    const pairedRows = {_json_for_html(paired_rows)};
+    const cardKeyRows = {_json_for_html(card_key_rows)};
+    const cardDiagnosticRows = {_json_for_html(card_diagnostic_rows)};
+    const failureRows = {_json_for_html(failure_rows)};
     const metricHelp = {_json_for_html(METRIC_DESCRIPTIONS)};
     const metricExamples = {_json_for_html(METRIC_EXAMPLES)};
     const colors = {{Oracle: "#111827", QSAR: "#2563eb", Baseline: "#0f766e", LLM: "#b91c1c", Other: "#6b7280"}};
@@ -1821,6 +1901,168 @@ def write_results_dashboard(
       Plotly.react("repairBars", [trace], layout, plotlyConfig);
     }}
 
+    function comparisonLabel(value) {{
+      return String(value || "")
+        .replace(/_/g, " ")
+        .replace(/\\b\\w/g, letter => letter.toUpperCase());
+    }}
+
+    function renderPairedBootstrap() {{
+      const section = document.getElementById("pairedBootstrapSection");
+      if (!pairedRows.length) {{
+        section.style.display = "none";
+        return;
+      }}
+      section.style.display = "";
+      const feasible = pairedRows
+        .filter(row => row.metric === "feasible_utility" && row.mean_delta !== null)
+        .slice(0, 8);
+      if (!feasible.length) {{
+        document.getElementById("pairedBootstrapBars").innerHTML = "<p class='subtle'>No paired feasible-utility deltas available.</p>";
+      }} else {{
+        const plotRows = [...feasible].reverse();
+        const trace = {{
+          type: "bar",
+          orientation: "h",
+          x: plotRows.map(row => row.mean_delta),
+          y: plotRows.map(row => comparisonLabel(row.comparison)),
+          marker: {{color: plotRows.map(row => row.mean_delta >= 0 ? "#2563eb" : "#ca8a04")}},
+          error_x: {{
+            type: "data",
+            array: plotRows.map(row => Math.max(0, row.ci_high - row.mean_delta)),
+            arrayminus: plotRows.map(row => Math.max(0, row.mean_delta - row.ci_low)),
+            visible: true,
+            color: "#64717f"
+          }},
+          customdata: plotRows.map(row => [
+            wrapHoverText(row.system_a_label, 52),
+            wrapHoverText(row.system_b_label, 52),
+            row.ci_low,
+            row.ci_high,
+            row.probability_delta_gt_zero
+          ]),
+          hovertemplate: "<b>%{{y}}</b><br>A: %{{customdata[0]}}<br>B: %{{customdata[1]}}<br>mean delta: %{{x:.3f}}<br>95% interval: %{{customdata[2]:.3f}} to %{{customdata[3]:.3f}}<br>P(delta > 0): %{{customdata[4]:.3f}}<extra></extra>"
+        }};
+        const layout = plotlyLayout("Key paired feasible-utility deltas", "system A - system B", "", 450);
+        layout.margin = {{l: 172, r: 26, t: 42, b: 52}};
+        layout.showlegend = false;
+        layout.xaxis.zeroline = true;
+        layout.xaxis.zerolinewidth = 2;
+        layout.xaxis.zerolinecolor = "#64717f";
+        Plotly.react("pairedBootstrapBars", [trace], layout, plotlyConfig);
+      }}
+      const tableRows = pairedRows
+        .filter(row => ["feasible_utility", "ndcg_at_k", "compliance_rate"].includes(row.metric))
+        .slice(0, 18);
+      document.getElementById("pairedBootstrapRows").innerHTML = tableRows.map(row => `
+        <tr>
+          <td>${{escapeHtml(comparisonLabel(row.comparison))}}</td>
+          <td>${{metricCodeTerm(row.metric)}}</td>
+          <td>${{escapeHtml(row.system_a_label)}}</td>
+          <td>${{escapeHtml(row.system_b_label)}}</td>
+          <td class="num">${{fmt(row.mean_delta)}}</td>
+          <td class="num">${{fmt(row.ci_low)}} to ${{fmt(row.ci_high)}}</td>
+        </tr>`).join("");
+    }}
+
+    function renderCardDiagnostics() {{
+      const section = document.getElementById("cardDiagnosticsSection");
+      if (!cardKeyRows.length || !cardDiagnosticRows.length) {{
+        section.style.display = "none";
+        return;
+      }}
+      section.style.display = "";
+      const order = ["Oracle upper-bound", "Best QSAR", "Best final LLM", "Best raw LLM", "Similarity baseline", "Rules-only baseline"];
+      const boxTraces = order
+        .map(series => {{
+          const values = cardKeyRows
+            .filter(row => row.series === series && row.feasible_utility !== null)
+            .map(row => row.feasible_utility);
+          if (!values.length) return null;
+          return {{
+            type: "box",
+            name: series,
+            y: values,
+            boxpoints: "outliers",
+            marker: {{color: series.includes("QSAR") ? colors.QSAR : series.includes("LLM") ? colors.LLM : series.includes("Oracle") ? colors.Oracle : colors.Baseline}}
+          }};
+        }})
+        .filter(Boolean);
+      if (boxTraces.length) {{
+        const layout = plotlyLayout("Per-card feasible utility", "", "feasible_utility", 450);
+        layout.showlegend = false;
+        layout.xaxis.tickangle = -20;
+        Plotly.react("cardUtilityBoxes", boxTraces, layout, plotlyConfig);
+      }}
+      const scatterRows = cardDiagnosticRows.filter(row => row.best_qsar_utility !== null && row.best_final_llm_utility !== null);
+      if (!scatterRows.length) {{
+        document.getElementById("qsarLlmScatter").innerHTML = "<p class='subtle'>No paired QSAR/LLM card diagnostics available.</p>";
+        return;
+      }}
+      const xValues = scatterRows.map(row => row.best_qsar_utility);
+      const yValues = scatterRows.map(row => row.best_final_llm_utility);
+      const axisMin = Math.min(...xValues, ...yValues);
+      const axisMax = Math.max(...xValues, ...yValues);
+      const trace = {{
+        type: "scatter",
+        mode: "markers",
+        name: "cards",
+        x: xValues,
+        y: yValues,
+        customdata: scatterRows.map(row => [wrapIdentifier(row.task_id), row.best_qsar_minus_best_final_llm, row.best_final_llm_minus_similarity]),
+        hovertemplate: "<b>%{{customdata[0]}}</b><br>QSAR: %{{x:.3f}}<br>best final LLM: %{{y:.3f}}<br>QSAR - LLM: %{{customdata[1]:.3f}}<br>LLM - similarity: %{{customdata[2]:.3f}}<extra></extra>",
+        marker: {{size: 9, color: "#b91c1c", opacity: 0.72, line: {{color: "#ffffff", width: 1}}}}
+      }};
+      const diagonal = {{
+        type: "scatter",
+        mode: "lines",
+        name: "equal utility",
+        x: [axisMin, axisMax],
+        y: [axisMin, axisMax],
+        line: {{color: "#64717f", dash: "dash", width: 1.5}},
+        hoverinfo: "skip"
+      }};
+      const layout = plotlyLayout("Best QSAR versus best final LLM", "Best QSAR feasible utility", "Best final LLM feasible utility", 450);
+      layout.showlegend = false;
+      Plotly.react("qsarLlmScatter", [diagonal, trace], layout, plotlyConfig);
+    }}
+
+    function renderFailureTaxonomy() {{
+      const section = document.getElementById("failureTaxonomySection");
+      const failures = failureRows
+        .filter(row => row.failure_type !== "none" && Number(row.cards_with_type || 0) > 0)
+        .sort((a, b) => Number(b.card_rate || 0) - Number(a.card_rate || 0))
+        .slice(0, 14);
+      if (!failures.length) {{
+        section.style.display = "none";
+        return;
+      }}
+      section.style.display = "";
+      const plotRows = [...failures].reverse();
+      const trace = {{
+        type: "bar",
+        orientation: "h",
+        x: plotRows.map(row => row.card_rate),
+        y: plotRows.map(row => `${{row.failure_type}}<br>${{wrapPlotLabel(row.display_label, 26)}}`),
+        marker: {{color: plotRows.map(row => colors[row.system_group] || colors.Other)}},
+        customdata: plotRows.map(row => [wrapHoverText(row.display_label, 52), row.cards_with_type, row.num_cards, row.total_issue_count, row.mean_issue_count_per_card]),
+        hovertemplate: "<b>%{{customdata[0]}}</b><br>%{{y}}<br>cards with type: %{{customdata[1]}} / %{{customdata[2]}}<br>card rate: %{{x:.3f}}<br>total issues: %{{customdata[3]:.0f}}<br>issues/card: %{{customdata[4]:.3f}}<extra></extra>"
+      }};
+      const layout = plotlyLayout("Most frequent final-output failures", "card rate", "", 500);
+      layout.margin = {{l: 220, r: 24, t: 42, b: 52}};
+      layout.showlegend = false;
+      layout.xaxis.range = [0, Math.min(1, Math.max(...plotRows.map(row => row.card_rate)) * 1.15)];
+      Plotly.react("failureTaxonomyBars", [trace], layout, plotlyConfig);
+      document.getElementById("failureTaxonomyRows").innerHTML = failures.slice(0, 12).map(row => `
+        <tr>
+          <td>${{escapeHtml(row.display_label)}}</td>
+          <td>${{escapeHtml(row.failure_type)}}</td>
+          <td class="num">${{row.cards_with_type}} / ${{row.num_cards}}</td>
+          <td class="num">${{fmt(row.card_rate)}}</td>
+          <td class="num">${{fmt(row.mean_issue_count_per_card)}}</td>
+        </tr>`).join("");
+    }}
+
     function renderTable() {{
       const group = document.getElementById("groupFilter").value;
       const search = document.getElementById("searchBox").value.trim().toLowerCase();
@@ -1932,6 +2174,9 @@ def write_results_dashboard(
     renderScatter();
     renderLeaderboard();
     renderRepairBars();
+    renderPairedBootstrap();
+    renderCardDiagnostics();
+    renderFailureTaxonomy();
     renderTable();
     renderMetricDefinitions();
   </script>

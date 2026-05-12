@@ -282,6 +282,12 @@ def test_compare_and_frontier_plot(tmp_path: Path) -> None:
     assert "Raw + final repair links" in dashboard_text
     assert "raw output" in dashboard_text
     assert "circle-open" in dashboard_text
+    assert "Paired Card-Level Bootstrap" in dashboard_text
+    assert "Card-Level Utility Distribution" in dashboard_text
+    assert "Failure Taxonomy" in dashboard_text
+    assert "pairedRows" in dashboard_text
+    assert "cardKeyRows" in dashboard_text
+    assert "failureRows" in dashboard_text
     assert "Primary Systems" in dashboard_text
     assert "term" in dashboard_text
 
