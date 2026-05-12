@@ -9,11 +9,15 @@ themselves, but they explain why raw and repaired outputs must be separated.
 In this repository, a `*_validator` system is not just a passive validator. It is
 a guarded system with two deterministic stages:
 
-1. Check the raw model output against the task contract.
+1. Check the raw model output against the task contract: schema, candidate-pool
+   membership, duplicates, support-set exclusion, and hard constraints such as
+   RDKit-computed property bounds or alert rules.
 2. If the raw output is invalid, repair it by keeping valid selections and
    filling missing slots with the deterministic fallback ranking.
 
-That repair is harness behavior, not model behavior. For paper claims, report:
+The checker is not an oracle. It does not see hidden activity values and cannot
+know the best compounds. The repair fallback is harness behavior, not model
+behavior. For paper claims, report:
 
 - raw LLM metrics from `raw_output` and `raw_issues`;
 - final guarded-system metrics from `output` and `issues`;

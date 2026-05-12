@@ -11,9 +11,10 @@ Use the linked docs as the system of record.
 4. `docs/CARA_LOCAL_AUDIT.md`
 5. `docs/LLM_SYSTEMS.md`
 6. `docs/LLM_FAILURE_MODES.md`
-7. `plans/README.md`
-8. latest plan in `plans/active/`
-9. latest log in `plans/logs/`
+7. `docs/RUN_LEDGER.md`
+8. `plans/README.md`
+9. latest plan in `plans/active/`
+10. latest log in `plans/logs/`
 
 ## Core Rules
 
@@ -22,6 +23,9 @@ Use the linked docs as the system of record.
 - Do not implement de novo molecule generation in the first version.
 - Live LLM calls require explicit `--allow-external` and must be cacheable.
 - Update execution plans and logs when changing project direction or completing a milestone.
+- After every meaningful run or experiment, append a concise entry to
+  `docs/RUN_LEDGER.md` with artifacts, scope, question, status, headline result,
+  surprise/interpretation, and follow-up.
 
 ## Common Commands
 
