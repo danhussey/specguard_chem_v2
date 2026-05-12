@@ -255,6 +255,8 @@ def test_compare_and_frontier_plot(tmp_path: Path) -> None:
     assert "Compliance-Utility Frontier" in dashboard_text
     assert "QSAR models" in dashboard_text
     assert "xScale" in dashboard_text
+    assert "Plotly.react" in dashboard_text
+    assert "data-tooltip" in dashboard_text
     assert "Primary Systems" in dashboard_text
     assert "term" in dashboard_text
 

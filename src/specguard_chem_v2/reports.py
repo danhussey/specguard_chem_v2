@@ -6,6 +6,7 @@ from html import escape
 from pathlib import Path
 
 import pandas as pd
+from plotly.offline import get_plotlyjs
 
 from .io import read_json
 
@@ -350,6 +351,7 @@ def write_results_dashboard(
     generated_at = datetime.now(timezone.utc).isoformat()
     out_dir.mkdir(parents=True, exist_ok=True)
     output = out_dir / "RESULTS_DASHBOARD.html"
+    plotly_js = get_plotlyjs()
     html = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -427,7 +429,52 @@ def write_results_dashboard(
       border-bottom: 1px dotted var(--muted);
       cursor: help;
       text-decoration: none;
+      position: relative;
     }}
+    .term::after {{
+      background: #17202a;
+      border-radius: 6px;
+      box-shadow: 0 8px 24px rgba(31, 41, 51, 0.22);
+      color: #ffffff;
+      content: attr(data-tooltip);
+      font-size: 12px;
+      font-weight: 500;
+      left: 0;
+      line-height: 1.35;
+      max-width: min(320px, 80vw);
+      opacity: 0;
+      padding: 8px 10px;
+      pointer-events: none;
+      position: absolute;
+      text-transform: none;
+      top: calc(100% + 8px);
+      transform: translateY(-4px);
+      transition: opacity 120ms ease, transform 120ms ease;
+      white-space: normal;
+      width: max-content;
+      z-index: 10;
+    }}
+    .term::before {{
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-bottom: 6px solid #17202a;
+      content: "";
+      left: 16px;
+      opacity: 0;
+      pointer-events: none;
+      position: absolute;
+      top: calc(100% + 2px);
+      transform: translateY(-4px);
+      transition: opacity 120ms ease, transform 120ms ease;
+      z-index: 11;
+    }}
+    .term:hover::after, .term:focus::after,
+    .term:hover::before, .term:focus::before {{
+      opacity: 1;
+      transform: translateY(0);
+    }}
+    .chart {{ min-height: 420px; }}
+    .side-chart {{ min-height: 520px; }}
     .table-wrap {{ overflow-x: auto; }}
     table {{ width: 100%; border-collapse: collapse; font-size: 13px; }}
     th, td {{ border-bottom: 1px solid var(--line); padding: 8px; text-align: left; vertical-align: top; }}
@@ -458,19 +505,19 @@ def write_results_dashboard(
     <section class="grid summary-grid" id="summaryCards"></section>
 
     <section class="panel" style="margin-top:16px">
-      <h2><span class="term" title="The reproducible path from frozen decision cards to scored result artifacts.">Run Pipeline</span></h2>
+      <h2><span class="term" tabindex="0" data-tooltip="The reproducible path from frozen decision cards to scored result artifacts.">Run Pipeline</span></h2>
       <div class="flow">
-        <div class="flow-step"><strong><span class="term" title="One benchmark instance: support compounds, candidate pool, hard constraints, budget k, and hidden scorer-only activity values.">1. Decision cards</span></strong><small>Support set, candidate pool, hard constraints, and budget k.</small></div>
+        <div class="flow-step"><strong><span class="term" tabindex="0" data-tooltip="One benchmark instance: support compounds, candidate pool, hard constraints, budget k, and hidden scorer-only activity values.">1. Decision cards</span></strong><small>Support set, candidate pool, hard constraints, and budget k.</small></div>
         <div class="flow-step"><strong>2. System output</strong><small>Baselines or LLMs return ranked candidate IDs.</small></div>
-        <div class="flow-step"><strong><span class="term" title="Scores the model output before deterministic validator repair, so repaired behavior is not mistaken for raw model behavior.">3. Raw audit</span></strong><small>Raw LLM selections are scored before repair where available.</small></div>
-        <div class="flow-step"><strong><span class="term" title="Deterministic harness logic for schema, candidate IDs, duplicates, support-set exclusion, and RDKit/property constraints. It does not use hidden activity.">4. Validator</span></strong><small>Deterministic schema, ID, duplicate, support-exclusion, and RDKit/property checks.</small></div>
+        <div class="flow-step"><strong><span class="term" tabindex="0" data-tooltip="Scores the model output before deterministic validator repair, so repaired behavior is not mistaken for raw model behavior.">3. Raw audit</span></strong><small>Raw LLM selections are scored before repair where available.</small></div>
+        <div class="flow-step"><strong><span class="term" tabindex="0" data-tooltip="Deterministic harness logic for schema, candidate IDs, duplicates, support-set exclusion, and RDKit/property constraints. It does not use hidden activity.">4. Validator</span></strong><small>Deterministic schema, ID, duplicate, support-exclusion, and RDKit/property checks.</small></div>
         <div class="flow-step"><strong>5. Scoring</strong><small>Utility, compliance, regret, repair rate, and frontier plots.</small></div>
       </div>
     </section>
 
     <section class="grid plot-grid" style="margin-top:16px">
       <div class="panel">
-        <h2><span class="term" title="Scatter plot separating specification compliance on the x-axis from medicinal-chemistry decision utility on the y-axis.">Compliance-Utility Frontier</span></h2>
+        <h2><span class="term" tabindex="0" data-tooltip="Scatter plot separating specification compliance on the x-axis from medicinal-chemistry decision utility on the y-axis.">Compliance-Utility Frontier</span></h2>
         <div class="controls">
           <label>Y metric
             <select id="yMetric">
@@ -497,12 +544,12 @@ def write_results_dashboard(
             </select>
           </label>
         </div>
-        <div id="scatter"></div>
+        <div id="scatter" class="chart"></div>
         <div class="legend" id="legend"></div>
       </div>
       <div class="panel">
-        <h2>Top <span class="term" title="Primary systems exclude oracle controls. They are the deployable or prospectively runnable systems used for main comparisons.">Primary Systems</span></h2>
-        <div id="leaderboard"></div>
+        <h2>Top <span class="term" tabindex="0" data-tooltip="Primary systems exclude oracle controls. They are the deployable or prospectively runnable systems used for main comparisons.">Primary Systems</span></h2>
+        <div id="leaderboard" class="side-chart"></div>
       </div>
     </section>
 
@@ -510,15 +557,15 @@ def write_results_dashboard(
       <div class="panel">
         <h2>Raw-to-Final Repair Delta</h2>
         <p class="subtle">Positive bars mean deterministic repair increased final feasible utility relative to raw model output.</p>
-        <div id="repairBars"></div>
+        <div id="repairBars" class="chart"></div>
       </div>
       <div class="panel">
         <h2>Label Guide</h2>
-        <p><strong><span class="term" title="Quantitative structure-activity relationship models: conventional molecular ML regressors, not language models.">QSAR models:</span></strong> all three train on support-set Morgan fingerprints and measured activity, then rank feasible candidates by predicted activity.</p>
+        <p><strong><span class="term" tabindex="0" data-tooltip="Quantitative structure-activity relationship models: conventional molecular ML regressors, not language models.">QSAR models:</span></strong> all three train on support-set Morgan fingerprints and measured activity, then rank feasible candidates by predicted activity.</p>
         <p><code>qsar_rf</code> is a random forest regressor; <code>qsar_gbt</code> is a gradient-boosting regressor; <code>qsar_svm</code> is a sparse-scaled linear-kernel support-vector regressor.</p>
-        <p><strong><span class="term" title="Deterministic harness logic, not a model and not an activity oracle.">Validator:</span></strong> deterministic harness checks and repair. It does not inspect hidden activity values.</p>
-        <p><strong><span class="term" title="A non-deployable control that uses hidden candidate activity values.">Oracle:</span></strong> hidden-activity upper bound used only to show remaining decision headroom.</p>
-        <p><strong><span class="term" title="The current prompt profile: final answer JSON only, without relying on visible chain-of-thought text.">Direct JSON:</span></strong> final-answer JSON prompting designed to avoid visible-output budget failures.</p>
+        <p><strong><span class="term" tabindex="0" data-tooltip="Deterministic harness logic, not a model and not an activity oracle.">Validator:</span></strong> deterministic harness checks and repair. It does not inspect hidden activity values.</p>
+        <p><strong><span class="term" tabindex="0" data-tooltip="A non-deployable control that uses hidden candidate activity values.">Oracle:</span></strong> hidden-activity upper bound used only to show remaining decision headroom.</p>
+        <p><strong><span class="term" tabindex="0" data-tooltip="The current prompt profile: final answer JSON only, without relying on visible chain-of-thought text.">Direct JSON:</span></strong> final-answer JSON prompting designed to avoid visible-output budget failures.</p>
       </div>
     </section>
 
@@ -544,12 +591,12 @@ def write_results_dashboard(
             <tr>
               <th>System</th>
               <th>Group</th>
-              <th><span class="term" title="{escape(METRIC_DESCRIPTIONS['feasible_utility'])}">Utility</span></th>
-              <th><span class="term" title="{escape(METRIC_DESCRIPTIONS['raw_feasible_utility'])}">Raw utility</span></th>
-              <th><span class="term" title="{escape(METRIC_DESCRIPTIONS['ndcg_at_k'])}">NDCG</span></th>
-              <th><span class="term" title="{escape(METRIC_DESCRIPTIONS['compliance_rate'])}">Compliance</span></th>
-              <th><span class="term" title="{escape(METRIC_DESCRIPTIONS['raw_compliance_rate'])}">Raw compliance</span></th>
-              <th><span class="term" title="{escape(METRIC_DESCRIPTIONS['repaired_rate'])}">Repaired</span></th>
+              <th><span class="term" tabindex="0" data-tooltip="{escape(METRIC_DESCRIPTIONS['feasible_utility'])}">Utility</span></th>
+              <th><span class="term" tabindex="0" data-tooltip="{escape(METRIC_DESCRIPTIONS['raw_feasible_utility'])}">Raw utility</span></th>
+              <th><span class="term" tabindex="0" data-tooltip="{escape(METRIC_DESCRIPTIONS['ndcg_at_k'])}">NDCG</span></th>
+              <th><span class="term" tabindex="0" data-tooltip="{escape(METRIC_DESCRIPTIONS['compliance_rate'])}">Compliance</span></th>
+              <th><span class="term" tabindex="0" data-tooltip="{escape(METRIC_DESCRIPTIONS['raw_compliance_rate'])}">Raw compliance</span></th>
+              <th><span class="term" tabindex="0" data-tooltip="{escape(METRIC_DESCRIPTIONS['repaired_rate'])}">Repaired</span></th>
               <th>Description</th>
             </tr>
           </thead>
@@ -563,6 +610,9 @@ def write_results_dashboard(
       <dl id="metricDefinitions"></dl>
     </details>
   </main>
+  <script>
+{plotly_js}
+  </script>
   <script>
     const rows = {_json_for_html(rows)};
     const metricHelp = {_json_for_html(METRIC_DESCRIPTIONS)};
@@ -595,11 +645,6 @@ def write_results_dashboard(
         </div>`).join("");
     }}
 
-    function scale(value, inMin, inMax, outMin, outMax) {{
-      if (inMax === inMin) return (outMin + outMax) / 2;
-      return outMin + ((value - inMin) / (inMax - inMin)) * (outMax - outMin);
-    }}
-
     function effectiveXScale(metric, requested) {{
       if (requested !== "auto") return requested;
       if (metric.includes("compliance")) return "log_gap";
@@ -615,7 +660,7 @@ def write_results_dashboard(
     }}
 
     function xTickValues(metric, mode) {{
-      if (mode === "log_gap") return [0, 0.5, 0.9, 0.99, 0.999, 1.0];
+      if (mode === "log_gap") return [0, 0.9, 0.99, 0.999, 1.0];
       if (mode === "log_value") return [0, 0.001, 0.01, 0.1, 1.0];
       return [0, 0.25, 0.5, 0.75, 1.0];
     }}
@@ -632,60 +677,84 @@ def write_results_dashboard(
       return metric;
     }}
 
+    function plotlyLayout(title, xTitle, yTitle, height = 460) {{
+      return {{
+        title: {{text: title, font: {{size: 15}}, x: 0}},
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "#fbfcfa",
+        margin: {{l: 72, r: 24, t: 42, b: 68}},
+        height,
+        hovermode: "closest",
+        legend: {{orientation: "h", y: -0.22}},
+        font: {{family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", color: "#1f2933"}},
+        xaxis: {{title: xTitle, gridcolor: "#e4e8e4", zerolinecolor: "#cbd5d0"}},
+        yaxis: {{title: yTitle, gridcolor: "#e4e8e4", zerolinecolor: "#cbd5d0"}}
+      }};
+    }}
+
+    const plotlyConfig = {{responsive: true, displaylogo: false, modeBarButtonsToRemove: ["lasso2d", "select2d"]}};
+
     function renderScatter() {{
       const xMetric = document.getElementById("xMetric").value;
       const yMetric = document.getElementById("yMetric").value;
       const xMode = effectiveXScale(xMetric, document.getElementById("xScale").value);
       const data = rows.filter(row => row[xMetric] !== null && row[yMetric] !== null);
-      const width = 860, height = 500, margin = {{left: 74, right: 24, top: 20, bottom: 58}};
-      const xVals = data.map(row => transformX(row[xMetric], xMetric, xMode));
-      const yVals = data.map(row => row[yMetric]);
-      const xMin = Math.min(...xVals), xMax = Math.max(...xVals);
-      const yMin = Math.min(0, ...yVals), yMax = Math.max(...yVals) * 1.06;
-      const x = value => scale(value, xMin, xMax, margin.left, width - margin.right);
-      const y = value => scale(value, yMin, yMax, height - margin.bottom, margin.top);
-      const ticks = xTickValues(xMetric, xMode)
-        .map(value => ({{value, position: transformX(value, xMetric, xMode)}}))
-        .filter(tick => tick.position >= xMin - 1e-9 && tick.position <= xMax + 1e-9);
-      const yTicks = [0, 0.25, 0.5, 0.75, 1.0].includes(yMax) ? [0, 0.5, 1.0] : [0, yMax / 4, yMax / 2, yMax * 0.75, yMax];
-      const point = row => {{
-        const title = `${{row.system_name}}\\n${{row.description}}\\n${{xMetric}}: ${{fmt(row[xMetric])}}\\n${{yMetric}}: ${{fmt(row[yMetric])}}\\nx scale: ${{xMode}}`;
-        return `<circle cx="${{x(transformX(row[xMetric], xMetric, xMode))}}" cy="${{y(row[yMetric])}}" r="${{row.group === "Oracle" ? 6 : 5}}" fill="${{colors[row.group] || colors.Other}}" opacity="0.9"><title>${{title}}</title></circle>`;
-      }};
-      const rawLinks = rows.filter(row => row.raw_feasible_utility !== null && row.raw_compliance_rate !== null && yMetric === "feasible_utility" && xMetric === "compliance_rate")
-        .map(row => `<line x1="${{x(transformX(row.raw_compliance_rate, xMetric, xMode))}}" y1="${{y(row.raw_feasible_utility)}}" x2="${{x(transformX(row.compliance_rate, xMetric, xMode))}}" y2="${{y(row.feasible_utility)}}" stroke="#9aa5a1" stroke-width="1.5" opacity="0.55"><title>Raw-to-final shift: ${{row.system_name}}</title></line>`)
-        .join("");
-      const labels = byMetricDesc(yMetric).slice(0, 8).filter(row => row[xMetric] !== null && row[yMetric] !== null)
-        .map(row => `<text x="${{x(transformX(row[xMetric], xMetric, xMode)) + 7}}" y="${{y(row[yMetric]) - 5}}" font-size="10" fill="#3b4650">${{row.base_system}}</text>`)
-        .join("");
-      document.getElementById("scatter").innerHTML = `
-        <svg viewBox="0 0 ${{width}} ${{height}}" role="img" aria-label="Compliance utility frontier">
-          <g class="axis">
-            <line x1="${{margin.left}}" y1="${{height - margin.bottom}}" x2="${{width - margin.right}}" y2="${{height - margin.bottom}}"></line>
-            <line x1="${{margin.left}}" y1="${{margin.top}}" x2="${{margin.left}}" y2="${{height - margin.bottom}}"></line>
-            ${{ticks.map(tick => `<g><line x1="${{x(tick.position)}}" y1="${{height - margin.bottom}}" x2="${{x(tick.position)}}" y2="${{height - margin.bottom + 5}}"></line><text x="${{x(tick.position)}}" y="${{height - margin.bottom + 22}}" text-anchor="middle">${{xTickLabel(tick.value, xMode)}}</text></g>`).join("")}}
-            ${{yTicks.map(tick => `<g><line x1="${{margin.left - 5}}" y1="${{y(tick)}}" x2="${{margin.left}}" y2="${{y(tick)}}"></line><text x="${{margin.left - 9}}" y="${{y(tick) + 4}}" text-anchor="end">${{fmt(tick)}}</text></g>`).join("")}}
-            <text x="${{width / 2}}" y="${{height - 14}}" text-anchor="middle">${{xAxisLabel(xMetric, xMode)}}</text>
-            <text transform="translate(18 ${{height / 2}}) rotate(-90)" text-anchor="middle">${{yMetric}}</text>
-          </g>
-          ${{rawLinks}}
-          ${{data.map(point).join("")}}
-          ${{labels}}
-        </svg>`;
-      document.getElementById("legend").innerHTML = Object.keys(colors).map(group => `<span><i class="swatch" style="background:${{colors[group]}}"></i>${{group}}</span>`).join("");
+      const traces = [];
+      if (yMetric === "feasible_utility" && xMetric === "compliance_rate") {{
+        rows
+          .filter(row => row.raw_feasible_utility !== null && row.raw_compliance_rate !== null)
+          .forEach(row => traces.push({{
+            type: "scatter",
+            mode: "lines",
+            name: "raw -> final",
+            showlegend: false,
+            hoverinfo: "text",
+            line: {{color: "#9aa5a1", width: 1.5}},
+            opacity: 0.45,
+            x: [transformX(row.raw_compliance_rate, xMetric, xMode), transformX(row.compliance_rate, xMetric, xMode)],
+            y: [row.raw_feasible_utility, row.feasible_utility],
+            text: [`${{row.system_name}}<br>raw ${{xMetric}}: ${{fmt(row.raw_compliance_rate)}}<br>raw utility: ${{fmt(row.raw_feasible_utility)}}`, `${{row.system_name}}<br>final ${{xMetric}}: ${{fmt(row.compliance_rate)}}<br>final utility: ${{fmt(row.feasible_utility)}}`]
+          }}));
+      }}
+      for (const group of ["Oracle", "QSAR", "Baseline", "LLM", "Other"]) {{
+        const groupRows = data.filter(row => row.group === group);
+        if (!groupRows.length) continue;
+        traces.push({{
+          type: "scatter",
+          mode: "markers",
+          name: group,
+          x: groupRows.map(row => transformX(row[xMetric], xMetric, xMode)),
+          y: groupRows.map(row => row[yMetric]),
+          customdata: groupRows.map(row => [row.system_name, row.description, row[xMetric], row[yMetric], row.condition || "none"]),
+          hovertemplate: "<b>%{{customdata[0]}}</b><br>%{{customdata[1]}}<br>" + xMetric + ": %{{customdata[2]:.3f}}<br>" + yMetric + ": %{{customdata[3]:.3f}}<br>condition: %{{customdata[4]}}<extra></extra>",
+          marker: {{size: group === "Oracle" ? 15 : 11, color: colors[group] || colors.Other, opacity: 0.88, line: {{color: "#ffffff", width: 1}}}}
+        }});
+      }}
+      const tickValues = xTickValues(xMetric, xMode);
+      const layout = plotlyLayout("Compliance versus utility", xAxisLabel(xMetric, xMode), yMetric, 500);
+      layout.xaxis.tickmode = "array";
+      layout.xaxis.tickvals = tickValues.map(value => transformX(value, xMetric, xMode));
+      layout.xaxis.ticktext = tickValues.map(value => xTickLabel(value, xMode));
+      Plotly.react("scatter", traces, layout, plotlyConfig);
+      document.getElementById("legend").innerHTML = "";
     }}
 
     function renderLeaderboard() {{
       const data = primaryRows().filter(row => row.feasible_utility !== null).sort((a, b) => b.feasible_utility - a.feasible_utility).slice(0, 16);
-      const maxValue = Math.max(...data.map(row => row.feasible_utility), 1);
-      document.getElementById("leaderboard").innerHTML = data.map(row => `
-        <div class="bar-row" title="${{row.description}}">
-          <div>
-            <div class="bar-label">${{row.system_name}}</div>
-            <div class="bar-track"><div class="bar-fill" style="width:${{100 * row.feasible_utility / maxValue}}%; background:${{colors[row.group] || colors.Other}}"></div></div>
-          </div>
-          <div class="bar-value">${{fmt(row.feasible_utility)}}</div>
-        </div>`).join("");
+      const plotRows = [...data].reverse();
+      const trace = {{
+        type: "bar",
+        orientation: "h",
+        x: plotRows.map(row => row.feasible_utility),
+        y: plotRows.map(row => row.system_name),
+        marker: {{color: plotRows.map(row => colors[row.group] || colors.Other)}},
+        customdata: plotRows.map(row => [row.description, row.ndcg_at_k, row.compliance_rate]),
+        hovertemplate: "<b>%{{y}}</b><br>%{{customdata[0]}}<br>utility: %{{x:.3f}}<br>NDCG@k: %{{customdata[1]:.3f}}<br>compliance: %{{customdata[2]:.3f}}<extra></extra>"
+      }};
+      const layout = plotlyLayout("Primary-system leaderboard", "feasible_utility", "", 560);
+      layout.margin = {{l: 250, r: 24, t: 42, b: 52}};
+      layout.showlegend = false;
+      Plotly.react("leaderboard", [trace], layout, plotlyConfig);
     }}
 
     function renderRepairBars() {{
@@ -699,15 +768,23 @@ def write_results_dashboard(
         document.getElementById("repairBars").innerHTML = "<p class='subtle'>No raw-to-final repair deltas were available.</p>";
         return;
       }}
-      const maxAbs = Math.max(...data.map(row => Math.abs(row.delta)), 1);
-      document.getElementById("repairBars").innerHTML = data.map(row => `
-        <div class="bar-row" title="${{row.description}}">
-          <div>
-            <div class="bar-label">${{row.system_name}}</div>
-            <div class="bar-track"><div class="bar-fill" style="width:${{100 * Math.abs(row.delta) / maxAbs}}%; background:${{row.delta >= 0 ? "#7c3aed" : "#ca8a04"}}"></div></div>
-          </div>
-          <div class="bar-value">${{row.delta >= 0 ? "+" : ""}}${{fmt(row.delta)}}</div>
-        </div>`).join("");
+      const plotRows = [...data].reverse();
+      const trace = {{
+        type: "bar",
+        orientation: "h",
+        x: plotRows.map(row => row.delta),
+        y: plotRows.map(row => row.system_name),
+        marker: {{color: plotRows.map(row => row.delta >= 0 ? "#7c3aed" : "#ca8a04")}},
+        customdata: plotRows.map(row => [row.raw_feasible_utility, row.feasible_utility, row.repaired_rate, row.description]),
+        hovertemplate: "<b>%{{y}}</b><br>%{{customdata[3]}}<br>raw utility: %{{customdata[0]:.3f}}<br>final utility: %{{customdata[1]:.3f}}<br>delta: %{{x:+.3f}}<br>repaired rate: %{{customdata[2]:.3f}}<extra></extra>"
+      }};
+      const layout = plotlyLayout("Validator repair effect", "final - raw feasible utility", "", 500);
+      layout.margin = {{l: 250, r: 24, t: 42, b: 52}};
+      layout.showlegend = false;
+      layout.xaxis.zeroline = true;
+      layout.xaxis.zerolinewidth = 2;
+      layout.xaxis.zerolinecolor = "#64717f";
+      Plotly.react("repairBars", [trace], layout, plotlyConfig);
     }}
 
     function renderTable() {{
