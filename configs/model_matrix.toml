@@ -29,7 +29,7 @@ reasoning_effort = "low"
 api_key_env = "OPENAI_API_KEY"
 max_tokens = 4096
 prompt_profile = "json_first"
-notes = "OpenAI frontier direct-selector condition. Minimal effort was rejected in preflight; low is the predefined fallback."
+notes = "OpenAI direct-JSON condition. Minimal effort was rejected in preflight; low is the predefined fallback."
 
 [models.openai_frontier_reasoning_budget]
 provider = "openai"
@@ -64,7 +64,7 @@ tier = "frontier"
 api_key_env = "ANTHROPIC_API_KEY"
 max_tokens = 4096
 prompt_profile = "json_first"
-notes = "Anthropic frontier direct-selector condition without extended thinking."
+notes = "Anthropic direct-JSON condition without extended thinking."
 
 [models.anthropic_frontier_thinking_8k]
 provider = "anthropic"
@@ -106,7 +106,7 @@ api_key_env = "DEEPSEEK_API_KEY"
 thinking = false
 max_tokens = 4096
 prompt_profile = "json_first"
-notes = "DeepSeek frontier direct-selector condition with thinking disabled."
+notes = "DeepSeek direct-JSON condition with thinking disabled."
 
 [models.deepseek_frontier_thinking_32k]
 provider = "deepseek"

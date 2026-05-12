@@ -271,10 +271,12 @@ runs/cara_lo_llm_pilot/
       llm_tools/
 ```
 
-For the paper-50 frontier rerun, use the direct-selector conditions first. They
-keep the full candidate pool and candidate JSON unchanged, but use a stricter
+For the paper-50 frontier rerun, use the direct-JSON conditions first. They keep
+the full candidate pool and candidate JSON unchanged, but use a stricter
 `json_first` output profile and avoid provider-specific hidden reasoning modes
-where possible:
+where possible. The condition IDs still contain `frontier_selector` for cache
+and run reproducibility; reader-facing reports should label them by provider,
+exact model, reasoning/thinking setting, and Direct JSON profile:
 
 ```bash
 uv run --extra providers sgchem run-llm-matrix data/cards/cara_lo_paper_50.jsonl \

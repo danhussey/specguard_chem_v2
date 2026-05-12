@@ -97,6 +97,26 @@ was run, what happened, and what to do next.
 - Follow-up: rename selector artifacts/configs to direct-JSON terminology and
   design a compressed/staged interface before any high-reasoning full run.
 
+## 2026-05-12 LO paper-50 result consolidation
+
+- Artifacts: `paper/tables/cara_lo_paper_50_direct_json_completed/`,
+  `paper/figures/cara_lo_paper_50_direct_json_completed/`,
+  `paper/RESULTS_SUMMARY.md`, `paper/RESULTS_DASHBOARD.html`,
+  `paper/CARA_LO_PAPER_50_RESULTS.md`.
+- Scope: no new experiment. Reused the completed LO paper-50 baselines,
+  historical LLM matrix, and direct-JSON matrix summaries.
+- Question: make the current LO evidence paper-readable without scope creep and
+  without ambiguous `frontier` / `selector` labels in reader-facing outputs.
+- Status: complete consolidation artifact.
+- Headline: paper-facing labels now show provider, exact model name, and
+  reasoning/thinking profile. QSAR is described as per-card support-set training
+  and remains the strongest deployable system family in the consolidated table.
+- Surprise / interpretation: the paper story is cleaner when framed as
+  compliance-plus-utility evaluation rather than as an LLM leaderboard. The
+  strongest LLM rows are useful but still below all three QSAR variants.
+- Follow-up: keep VS, compressed inputs, and high-reasoning-compatible
+  interfaces as separate future work rather than mixing them into the LO result.
+
 ## Current Standing Interpretation
 
 - Raw metrics measure model behavior.

@@ -16,6 +16,11 @@ uv run sgchem estimate-llm-cost data/cards/cara_lo_paper_50.jsonl \
   --out runs/cara_lo_paper_50_selector_matrix/cost_estimate.json
 ```
 
+The `*_frontier_selector` condition IDs are legacy internal names for the
+direct-JSON run profile. Keep those IDs stable for cache and run reproducibility,
+but use provider/model labels such as `OpenAI gpt-5.5, low reasoning, Direct
+JSON` in paper-facing reports.
+
 The estimate reports:
 
 - total planned requests;

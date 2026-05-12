@@ -1,28 +1,21 @@
 # CARA LO Paper-50 Results Snapshot
 
-Generated on 2026-05-11 from the paper-scale SpecGuard-Chem v2 run and
-frontier resumption attempt.
+Generated on 2026-05-12 after consolidating the completed direct-JSON
+paper-50 result set.
 
 ## Primary Result Set
 
-Use the completed fast-model result set for the clean cross-provider primary
-analysis:
+Use the direct-JSON completed result set as the current paper-facing LO result:
 
-- `paper/tables/cara_lo_paper_50_fast_complete/primary_leaderboard.csv`
-- `paper/tables/cara_lo_paper_50_fast_complete/system_comparison.csv`
-- `paper/figures/cara_lo_paper_50_fast_complete/compliance_utility_frontier.png`
+- `paper/tables/cara_lo_paper_50_direct_json_completed/primary_leaderboard.csv`
+- `paper/tables/cara_lo_paper_50_direct_json_completed/system_comparison.csv`
+- `paper/figures/cara_lo_paper_50_direct_json_completed/compliance_utility_frontier.png`
+- `paper/RESULTS_SUMMARY.md`
+- `paper/RESULTS_DASHBOARD.html`
 
-This set includes deterministic baselines plus complete fast-model LLM runs for
-OpenAI, Anthropic, and DeepSeek across all four LLM system variants.
-
-Use the frontier-resumption result set as the broader diagnostic analysis:
-
-- `paper/tables/cara_lo_paper_50_completed/primary_leaderboard.csv`
-- `paper/tables/cara_lo_paper_50_completed/system_comparison.csv`
-- `paper/figures/cara_lo_paper_50_completed/compliance_utility_frontier.png`
-
-This diagnostic set now includes all Anthropic and OpenAI frontier systems.
-DeepSeek frontier remains blocked by reasoning/output behavior and is deferred.
+The legacy `selector_completed` artifacts contain the same direct-JSON
+experiment under the older internal naming. The `fast_complete` and
+`completed` frontier artifacts remain historical diagnostic comparisons.
 
 ## Card Artifact
 
@@ -37,46 +30,87 @@ mean_candidate_pool_size: 292.16
 mean_feasible_candidate_count: 162.4
 ```
 
-## Headline Finding
+## Methods Framing
 
-QSAR baselines outperformed completed LLM-agent conditions on feasible utility.
-Validators improved LLM compliance and feasible utility, but did not close the
-gap to QSAR.
+Each LO decision card represents a constrained next-assay prioritisation
+problem. Systems receive already-tested support compounds, a candidate pool,
+hard medicinal-chemistry constraints, and a finite budget `k`. They return
+ranked candidate IDs, not newly generated molecules.
 
-| System | Feasible utility | NDCG@k | Compliance |
-| --- | ---: | ---: | ---: |
-| `qsar_svm` | 81.3823 | 0.9096 | 1.000 |
-| `qsar_gbt` | 80.8879 | 0.9002 | 1.000 |
-| `qsar_rf` | 80.6341 | 0.9006 | 1.000 |
-| `llm_tools_validator__anthropic_frontier` | 73.9792 | 0.8323 | 1.000 |
-| `llm_validator__anthropic_frontier` | 73.7389 | 0.8310 | 1.000 |
-| `similarity_to_best_active` | 73.6032 | 0.8253 | 1.000 |
-| `llm_validator__deepseek_fast` | 68.4017 | 0.7626 | 1.000 |
-| `llm_tools_validator__openai_fast` | 67.7022 | 0.7515 | 1.000 |
+The central evaluation separates:
 
-## Frontier Status
+- utility: did the selected valid candidates have high hidden activity?
+- compliance: did the output satisfy schema, candidate-pool, duplicate,
+  support-exclusion, and molecular constraint requirements?
+- raw model behavior: what the model returned before deterministic repair.
+- final guarded-system behavior: what was scored after validator repair, where
+  applicable.
 
-Frontier conditions were resumed but are not yet a complete clean
-cross-provider comparison:
+This is the core paper contention: activity alone can ignore constraints, while
+compliance alone can be nearly trivial. The relevant question is whether systems
+can achieve both useful prioritisation and specification compliance.
 
-- Anthropic frontier completed all four systems. Its best frontier condition was
-  `llm_tools_validator__anthropic_frontier` with feasible utility `73.9792`.
-- OpenAI frontier completed all four systems. `bare_llm` and `llm_tools`
-  consumed the full 4096 completion budget as reasoning tokens and produced no
-  final JSON, so they scored as schema failures. `llm_validator` and
-  `llm_tools_validator` repaired empty outputs using deterministic fallback
-  ranking and therefore matched the rules-only score.
-- DeepSeek frontier `bare_llm` remains the original schema-failure trace. The
-  32768-token rerun attempt did not return a first-card result before being
-  stopped, so no new DeepSeek frontier trace was written.
+## QSAR Baseline
+
+QSAR means quantitative structure-activity relationship modelling. In this run,
+each QSAR model is trained separately per decision card using only support-set
+Morgan fingerprints and measured support activity. The trained model predicts
+candidate activity and ranks feasible candidates. QSAR does not see hidden
+candidate activity, so it is a deployable non-language baseline rather than an
+oracle.
+
+The three QSAR variants are:
+
+- `qsar_rf`: random forest regressor.
+- `qsar_gbt`: gradient-boosting regressor.
+- `qsar_svm`: sparse-scaled linear-kernel support-vector regressor.
+
+The fact that all three QSAR variants are strong here means LLM systems should
+be compared against QSAR, not only against other LLMs. It does not mean QSAR is
+ground truth or a universal activity predictor.
+
+## Headline Results
+
+| System | Feasible utility | 95% CI | NDCG@k | Compliance |
+| --- | ---: | ---: | ---: | ---: |
+| Oracle upper-bound | 89.022 | 87.394-90.604 | 1.000 | 1.000 |
+| QSAR linear SVR | 81.382 | 79.532-83.271 | 0.910 | 1.000 |
+| QSAR gradient boosting | 80.888 | 78.778-82.956 | 0.900 | 1.000 |
+| QSAR random forest | 80.634 | 78.652-82.548 | 0.901 | 1.000 |
+| LLM + validator, OpenAI gpt-5.5 low reasoning Direct JSON | 78.188 | 76.316-80.093 | 0.881 | 1.000 |
+| LLM + tools + validator, OpenAI gpt-5.5 low reasoning Direct JSON | 77.688 | 75.702-79.794 | 0.873 | 1.000 |
+| LLM + tools, OpenAI gpt-5.5 low reasoning Direct JSON | 77.173 | 75.115-79.295 | 0.870 | 0.990 |
+| Similarity-to-best-active baseline | 73.603 | 70.825-76.490 | 0.825 | 1.000 |
+
+The best direct-JSON LLM rows were useful and substantially better than the
+rules-only/random region, but they remained below all three QSAR baselines. The
+best raw LLM utility was `77.209` for OpenAI gpt-5.5 low-reasoning
+Direct-JSON with tools and validator instrumentation, before final repair.
+
+## Hypothesis Readout
+
+- H1, validators improve compliance more reliably than utility: supported as a
+  reporting distinction. Validator-assisted final scores can improve, but raw
+  metrics are needed to avoid attributing deterministic repair to the model.
+- H2, QSAR and similarity baselines are competitive: supported. QSAR is the
+  strongest deployable family in this LO run; similarity remains a serious
+  simple comparator.
+- H3, useful LLM systems are likely hybrid rather than naked LLMs: partially
+  supported. Tool-summary and validator rows can improve over bare LLM rows, but
+  this is not yet the broader agent design where QSAR, RDKit, similarity, and
+  retrieval are callable tools.
+- H4, compliance and utility are imperfectly correlated: supported. Several
+  rows reach near-perfect compliance while differing substantially in feasible
+  utility.
 
 ## Interpretation Notes
 
 - Treat `oracle_valid_topk` as an upper-bound control only.
-- Treat the fast-complete matrix as the credible whole-run result.
-- Treat `paper/tables/cara_lo_paper_50_completed/` as a broader diagnostic set
-  that includes completed Anthropic/OpenAI frontier traces and the explicitly
-  logged DeepSeek blocker.
+- Treat direct-JSON rows as the cleanest current cross-provider LLM comparison.
+- Treat original high-reasoning frontier failures as interface/output-budget
+  diagnostics unless rerun under a high-reasoning-compatible input design.
 - Do not claim that LLMs are intrinsically poor at medicinal chemistry from this
-  run alone; a major follow-up is to reduce prompt overload and test compressed
-  candidate summaries.
+  run alone. The more defensible claim is that, under the current full-pool
+  interface, strong conventional QSAR baselines remain difficult to beat.
+- Do not scope-creep this result into VS, de novo generation, docking, ADMET, or
+  a broader autonomous agent benchmark.

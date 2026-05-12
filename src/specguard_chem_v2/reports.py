@@ -23,6 +23,7 @@ def compare_run_summaries(summary_paths: list[Path], out_dir: Path) -> pd.DataFr
     frame = pd.DataFrame(rows)
     if not frame.empty and "system_name" in frame.columns:
         frame = frame.sort_values(["feasible_utility", "compliance_rate"], ascending=[False, False])
+        frame = _add_display_columns(frame)
     out_dir.mkdir(parents=True, exist_ok=True)
     frame.to_csv(out_dir / "system_comparison.csv", index=False)
     frame.to_json(out_dir / "system_comparison.json", orient="records", indent=2)
@@ -145,10 +146,12 @@ def make_frontier_plot(comparison_csv: Path, out_dir: Path) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
     fig, ax = plt.subplots(figsize=(7, 5))
     if not frame.empty:
+        frame = _add_display_columns(frame)
+        label_column = "display_label" if "display_label" in frame.columns else "system_name"
         ax.scatter(frame["compliance_rate"], frame["feasible_utility"], s=70)
         for _, row in frame.iterrows():
             ax.annotate(
-                str(row.get("system_name", "")),
+                str(row.get(label_column, row.get("system_name", ""))),
                 (float(row["compliance_rate"]), float(row["feasible_utility"])),
                 xytext=(5, 4),
                 textcoords="offset points",
@@ -211,9 +214,9 @@ SYSTEM_DESCRIPTIONS = {
     "random_valid": "Samples valid candidates at random after deterministic feasibility filtering.",
     "rules_only": "Applies deterministic constraints, then ranks by simple molecular-property desirability around MW 350, cLogP 2.5, and TPSA 75.",
     "similarity_to_best_active": "Ranks feasible candidates by Morgan-fingerprint Tanimoto similarity to the most active support compound.",
-    "qsar_rf": "Trains a random forest regressor on support-set Morgan fingerprints and measured activity, then ranks feasible candidates by predicted activity.",
-    "qsar_gbt": "Trains a gradient-boosting regressor on support-set Morgan fingerprints and measured activity, then ranks feasible candidates by predicted activity.",
-    "qsar_svm": "Trains a sparse-scaled linear-kernel support-vector regressor on support-set Morgan fingerprints and measured activity, then ranks feasible candidates by predicted activity.",
+    "qsar_rf": "Trains a random forest QSAR regressor separately on each card's support-set Morgan fingerprints and measured activity, then ranks feasible candidates by predicted activity. It does not see hidden candidate activity.",
+    "qsar_gbt": "Trains a gradient-boosting QSAR regressor separately on each card's support-set Morgan fingerprints and measured activity, then ranks feasible candidates by predicted activity. It does not see hidden candidate activity.",
+    "qsar_svm": "Trains a sparse-scaled linear-kernel QSAR support-vector regressor separately on each card's support-set Morgan fingerprints and measured activity, then ranks feasible candidates by predicted activity. It does not see hidden candidate activity.",
     "bare_llm": "Prompts the model to return ranked candidate IDs directly, with no deterministic repair.",
     "llm_tools": "Adds computed tool-summary fields to the candidate rows before prompting the model.",
     "llm_validator": "Checks raw model output and deterministically repairs invalid or missing slots where possible, without hidden activity.",
@@ -221,10 +224,79 @@ SYSTEM_DESCRIPTIONS = {
 }
 
 
-CONDITION_DESCRIPTIONS = {
-    "frontier_selector": "Direct-JSON frontier condition: final-answer JSON prompting with no explicit extended-thinking mode where avoidable.",
-    "frontier": "Original frontier/high-reasoning or provider-default frontier condition.",
-    "fast": "Lower-latency/lower-cost provider condition.",
+CONDITION_METADATA = {
+    "openai_frontier_selector": {
+        "provider": "openai",
+        "model": "gpt-5.5",
+        "profile": "low reasoning, Direct JSON",
+        "description": "Direct JSON prompt profile. OpenAI minimal reasoning was rejected in preflight, so this condition uses the predefined low-reasoning fallback.",
+    },
+    "anthropic_frontier_selector": {
+        "provider": "anthropic",
+        "model": "claude-opus-4-7",
+        "profile": "no extended thinking, Direct JSON",
+        "description": "Direct JSON prompt profile without Anthropic extended thinking.",
+    },
+    "deepseek_frontier_selector": {
+        "provider": "deepseek",
+        "model": "deepseek-v4-pro",
+        "profile": "thinking off, Direct JSON",
+        "description": "Direct JSON prompt profile with DeepSeek thinking disabled.",
+    },
+    "openai_frontier": {
+        "provider": "openai",
+        "model": "gpt-5.5",
+        "profile": "high reasoning, original full-pool prompt",
+        "description": "Original full-pool prompt condition with OpenAI high reasoning. Some rows are diagnostic interface failures where reasoning consumed the visible output budget.",
+    },
+    "anthropic_frontier": {
+        "provider": "anthropic",
+        "model": "claude-opus-4-7",
+        "profile": "original full-pool prompt, no explicit thinking budget",
+        "description": "Original full-pool prompt condition using the configured Anthropic frontier model without an explicit extended-thinking budget.",
+    },
+    "deepseek_frontier": {
+        "provider": "deepseek",
+        "model": "deepseek-v4-pro",
+        "profile": "high reasoning, thinking on, original full-pool prompt",
+        "description": "Original full-pool prompt condition with DeepSeek thinking enabled. Some rows are diagnostic interface or provider-output failures.",
+    },
+    "openai_fast": {
+        "provider": "openai",
+        "model": "gpt-5.4-mini",
+        "profile": "low reasoning, fast model",
+        "description": "Lower-cost/lower-latency OpenAI condition used for fast matrix comparison.",
+    },
+    "anthropic_fast": {
+        "provider": "anthropic",
+        "model": "claude-haiku-4-5-20251001",
+        "profile": "fast model",
+        "description": "Lower-cost/lower-latency Anthropic condition used for fast matrix comparison.",
+    },
+    "deepseek_fast": {
+        "provider": "deepseek",
+        "model": "deepseek-v4-flash",
+        "profile": "thinking off, fast model",
+        "description": "Lower-cost/lower-latency DeepSeek condition with thinking disabled.",
+    },
+    "openai_frontier_reasoning_budget": {
+        "provider": "openai",
+        "model": "gpt-5.5",
+        "profile": "low reasoning, long output budget pilot, Direct JSON",
+        "description": "Pilot-only reasoning-budget condition, not part of the consolidated LO result.",
+    },
+    "anthropic_frontier_thinking_8k": {
+        "provider": "anthropic",
+        "model": "claude-opus-4-7",
+        "profile": "8k extended thinking budget pilot, Direct JSON",
+        "description": "Pilot-only extended-thinking condition, not part of the consolidated LO result.",
+    },
+    "deepseek_frontier_thinking_32k": {
+        "provider": "deepseek",
+        "model": "deepseek-v4-pro",
+        "profile": "thinking on, long output budget pilot, Direct JSON",
+        "description": "Pilot-only thinking-budget condition, not part of the consolidated LO result.",
+    },
 }
 
 
@@ -302,22 +374,76 @@ def _system_provider(system_name: str) -> str:
     return ""
 
 
+def _title_provider(provider: object) -> str:
+    provider_name = str(provider or "")
+    return {
+        "openai": "OpenAI",
+        "anthropic": "Anthropic",
+        "deepseek": "DeepSeek",
+    }.get(provider_name, provider_name.title() if provider_name else "")
+
+
+def _condition_metadata(condition: str) -> dict[str, str]:
+    return CONDITION_METADATA.get(condition, {})
+
+
+def _condition_label_from_row(row: pd.Series | dict[str, object]) -> str:
+    system_name = str(row.get("system_name", ""))
+    condition = _condition_name(system_name)
+    if not condition:
+        return ""
+    metadata = _condition_metadata(condition)
+    provider = row.get("llm_provider") or metadata.get("provider") or _system_provider(system_name)
+    model = row.get("llm_model") or metadata.get("model") or condition
+    provider_label = _title_provider(provider)
+    profile = metadata.get("profile")
+    if provider_label and model and profile:
+        return f"{provider_label} {model}, {profile}"
+    if provider_label and model:
+        return f"{provider_label} {model}"
+    return condition
+
+
 def _condition_description(condition: str) -> str:
     if not condition:
         return ""
-    for suffix, description in CONDITION_DESCRIPTIONS.items():
-        if condition.endswith(suffix):
-            return description
+    metadata = _condition_metadata(condition)
+    if metadata:
+        return metadata["description"]
     return f"Model/run condition: {condition}."
 
 
-def _system_description(system_name: str) -> str:
+def _system_display_label_from_row(row: pd.Series | dict[str, object]) -> str:
+    system_name = str(row.get("system_name", ""))
+    base = _base_system_name(system_name)
+    base_label = SYSTEM_LABELS.get(base, system_name)
+    condition_label = _condition_label_from_row(row)
+    if condition_label:
+        return f"{base_label} - {condition_label}"
+    return base_label
+
+
+def _system_description_from_row(row: pd.Series | dict[str, object]) -> str:
+    system_name = str(row.get("system_name", ""))
     base = _base_system_name(system_name)
     description = SYSTEM_DESCRIPTIONS.get(base, "System row from the comparison table.")
     condition = _condition_description(_condition_name(system_name))
     if condition:
-        return f"{description} {condition}"
+        return f"{description} Model condition: {_condition_label_from_row(row)}. {condition} Raw run ID: {system_name}."
     return description
+
+
+def _add_display_columns(frame: pd.DataFrame) -> pd.DataFrame:
+    if frame.empty or "system_name" not in frame.columns:
+        return frame
+    enriched = frame.copy()
+    enriched["system_group"] = [str(_system_group(str(row.get("system_name", "")))) for _, row in enriched.iterrows()]
+    enriched["display_label"] = [_system_display_label_from_row(row) for _, row in enriched.iterrows()]
+    enriched["condition_label"] = [_condition_label_from_row(row) for _, row in enriched.iterrows()]
+    enriched["condition_description"] = [
+        _condition_description(_condition_name(str(row.get("system_name", "")))) for _, row in enriched.iterrows()
+    ]
+    return enriched
 
 
 def _safe_float(value: object) -> float | None:
@@ -331,6 +457,7 @@ def _safe_float(value: object) -> float | None:
 
 def _dashboard_rows(frame: pd.DataFrame) -> list[dict[str, object]]:
     rows: list[dict[str, object]] = []
+    frame = _add_display_columns(frame)
     numeric_columns = [
         "feasible_utility",
         "raw_feasible_utility",
@@ -350,11 +477,12 @@ def _dashboard_rows(frame: pd.DataFrame) -> list[dict[str, object]]:
         output: dict[str, object] = {
             "system_name": system_name,
             "base_system": base,
-            "display_name": SYSTEM_LABELS.get(base, system_name),
+            "display_name": str(row.get("display_label") or _system_display_label_from_row(row)),
             "condition": _condition_name(system_name),
+            "condition_label": str(row.get("condition_label") or _condition_label_from_row(row)),
             "provider": _system_provider(system_name),
             "group": _system_group(system_name),
-            "description": _system_description(system_name),
+            "description": _system_description_from_row(row),
         }
         for column in numeric_columns:
             output[column] = _safe_float(row.get(column)) if column in frame.columns else None
@@ -702,8 +830,8 @@ def write_results_dashboard(
       </div>
       <div class="panel">
         <h2>Label Guide</h2>
-        <p><strong><span class="term" tabindex="0" data-tooltip="Quantitative structure-activity relationship models: conventional molecular ML regressors, not language models.">QSAR models:</span></strong> all three train on support-set Morgan fingerprints and measured activity, then rank feasible candidates by predicted activity.</p>
-        <p><code>qsar_rf</code> is a random forest regressor; <code>qsar_gbt</code> is a gradient-boosting regressor; <code>qsar_svm</code> is a sparse-scaled linear-kernel support-vector regressor.</p>
+        <p><strong><span class="term" tabindex="0" data-tooltip="Quantitative structure-activity relationship models: conventional molecular ML regressors, not language models. In this run they are trained independently for each decision card using only support-set compounds and measured support activity.">QSAR models:</span></strong> deployable non-language baselines trained separately per decision card on support-set Morgan fingerprints and measured activity. They predict candidate activity and rank feasible candidates; they do not see hidden candidate activity.</p>
+        <p><code>qsar_rf</code> is a random forest regressor; <code>qsar_gbt</code> is a gradient-boosting regressor; <code>qsar_svm</code> is a sparse-scaled linear-kernel support-vector regressor. Their strength here supports QSAR as a serious comparator, not as ground truth or a universal activity model.</p>
         <p><strong><span class="term" tabindex="0" data-tooltip="Deterministic harness logic, not a model and not an activity oracle.">Validator:</span></strong> deterministic harness checks and repair. It does not inspect hidden activity values.</p>
         <p><strong><span class="term" tabindex="0" data-tooltip="A non-deployable control that uses hidden candidate activity values.">Oracle:</span></strong> hidden-activity upper bound used only to show remaining decision headroom.</p>
         <p><strong><span class="term" tabindex="0" data-tooltip="The current prompt profile: final answer JSON only, without relying on visible chain-of-thought text.">Direct JSON:</span></strong> final-answer JSON prompting designed to avoid visible-output budget failures.</p>
@@ -764,6 +892,7 @@ def write_results_dashboard(
     const fmt = (value, digits = 3) => value === null || value === undefined || Number.isNaN(value) ? "" : Number(value).toFixed(digits);
     const primaryRows = () => rows.filter(row => row.group !== "Oracle");
     const byMetricDesc = metric => [...rows].filter(row => row[metric] !== null).sort((a, b) => b[metric] - a[metric]);
+    const labelFor = row => row?.display_name || row?.system_name || "n/a";
 
     function bestBy(metric, filterFn = () => true) {{
       return rows.filter(row => filterFn(row) && row[metric] !== null).sort((a, b) => b[metric] - a[metric])[0] || null;
@@ -775,9 +904,9 @@ def write_results_dashboard(
       const rawLlm = bestBy("raw_feasible_utility", row => row.group === "LLM");
       const repairSensitive = rows.filter(row => row.repaired_rate !== null && row.repaired_rate >= 0.1).length;
       const cards = [
-        [metricTerm("feasible_utility", "Best primary utility"), primary ? fmt(primary.feasible_utility) : "", primary ? escapeHtml(primary.system_name) : ""],
+        [metricTerm("feasible_utility", "Best primary utility"), primary ? fmt(primary.feasible_utility) : "", primary ? escapeHtml(labelFor(primary)) : ""],
         [metricTerm("feasible_utility", "Oracle utility"), oracle ? fmt(oracle.feasible_utility) : "", "Upper bound, not deployable"],
-        [metricTerm("raw_feasible_utility", "Best raw LLM utility"), rawLlm ? fmt(rawLlm.raw_feasible_utility) : "", rawLlm ? escapeHtml(rawLlm.system_name) : ""],
+        [metricTerm("raw_feasible_utility", "Best raw LLM utility"), rawLlm ? fmt(rawLlm.raw_feasible_utility) : "", rawLlm ? escapeHtml(labelFor(rawLlm)) : ""],
         [metricTerm("repaired_rate", "Repair-sensitive rows"), String(repairSensitive), "Rows with repaired_rate >= 0.10"]
       ];
       document.getElementById("summaryCards").innerHTML = cards.map(card => `
@@ -825,7 +954,7 @@ def write_results_dashboard(
           statusClass: "status-supported",
           title: "Validators raise compliance more reliably than utility.",
           evidence: biggestRepair
-            ? `Largest observed raw-to-final ${{metricTerm("feasible_utility", "utility")}} shift is ${{escapeHtml(biggestRepair.system_name)}}: +${{fmt(biggestRepair.delta)}} feasible utility, with ${{metricTerm("repaired_rate", "repaired_rate")}} ${{fmt(biggestRepair.repaired_rate)}}. These final scores are guarded-system behavior, not raw model behavior.`
+            ? `Largest observed raw-to-final ${{metricTerm("feasible_utility", "utility")}} shift is ${{escapeHtml(labelFor(biggestRepair))}}: +${{fmt(biggestRepair.delta)}} feasible utility, with ${{metricTerm("repaired_rate", "repaired_rate")}} ${{fmt(biggestRepair.repaired_rate)}}. These final scores are guarded-system behavior, not raw model behavior.`
             : "Raw-to-final repair data were not available for this table."
         }},
         {{
@@ -833,7 +962,7 @@ def write_results_dashboard(
           status: "Supported",
           statusClass: "status-supported",
           title: "Simple QSAR and similarity baselines are competitive.",
-          evidence: `Best QSAR is ${{escapeHtml(bestQsar?.system_name || "n/a")}} at ${{fmt(bestQsar?.feasible_utility)}} ${{metricTerm("feasible_utility", "feasible utility")}}; best LLM final is ${{escapeHtml(bestLlmFinal?.system_name || "n/a")}} at ${{fmt(bestLlmFinal?.feasible_utility)}}; similarity-to-best-active is ${{fmt(similarity?.feasible_utility)}}.`
+          evidence: `Best QSAR is ${{escapeHtml(labelFor(bestQsar))}} at ${{fmt(bestQsar?.feasible_utility)}} ${{metricTerm("feasible_utility", "feasible utility")}}; best LLM final is ${{escapeHtml(labelFor(bestLlmFinal))}} at ${{fmt(bestLlmFinal?.feasible_utility)}}; similarity-to-best-active is ${{fmt(similarity?.feasible_utility)}}.`
         }},
         {{
           label: "H3",
@@ -1069,7 +1198,7 @@ def write_results_dashboard(
             opacity: 0.55,
             x: [transformX(row[rawXMetric], xMetric, xMode), transformX(row[xMetric], xMetric, xMode)],
             y: [row[rawYMetric], row[yMetric]],
-            text: [`<b>${{wrapIdentifier(row.system_name)}}</b><br>raw ${{escapeHtml(xMetric)}}: ${{fmt(row[rawXMetric])}}<br>raw ${{escapeHtml(yMetric)}}: ${{fmt(row[rawYMetric])}}`, `<b>${{wrapIdentifier(row.system_name)}}</b><br>final ${{escapeHtml(xMetric)}}: ${{fmt(row[xMetric])}}<br>final ${{escapeHtml(yMetric)}}: ${{fmt(row[yMetric])}}`]
+            text: [`<b>${{wrapHoverText(labelFor(row), 44)}}</b><br>raw ${{escapeHtml(xMetric)}}: ${{fmt(row[rawXMetric])}}<br>raw ${{escapeHtml(yMetric)}}: ${{fmt(row[rawYMetric])}}<br>raw run ID: ${{wrapIdentifier(row.system_name)}}`, `<b>${{wrapHoverText(labelFor(row), 44)}}</b><br>final ${{escapeHtml(xMetric)}}: ${{fmt(row[xMetric])}}<br>final ${{escapeHtml(yMetric)}}: ${{fmt(row[yMetric])}}<br>raw run ID: ${{wrapIdentifier(row.system_name)}}`]
         }}));
         traces.push({{
           type: "scatter",
@@ -1078,8 +1207,8 @@ def write_results_dashboard(
           legendgroup: "repair_links",
           x: linkRows.map(row => transformX(row[rawXMetric], xMetric, xMode)),
           y: linkRows.map(row => row[rawYMetric]),
-          customdata: linkRows.map(row => [wrapIdentifier(row.system_name), row[rawXMetric], row[rawYMetric], row[xMetric], row[yMetric]]),
-          hovertemplate: "<b>%{{customdata[0]}}</b><br>raw output<br>raw x: %{{customdata[1]:.3f}}<br>raw y: %{{customdata[2]:.3f}}<br>final x: %{{customdata[3]:.3f}}<br>final y: %{{customdata[4]:.3f}}<extra></extra>",
+          customdata: linkRows.map(row => [wrapHoverText(labelFor(row), 44), row[rawXMetric], row[rawYMetric], row[xMetric], row[yMetric], wrapIdentifier(row.system_name)]),
+          hovertemplate: "<b>%{{customdata[0]}}</b><br>raw output<br>raw x: %{{customdata[1]:.3f}}<br>raw y: %{{customdata[2]:.3f}}<br>final x: %{{customdata[3]:.3f}}<br>final y: %{{customdata[4]:.3f}}<br>raw run ID: %{{customdata[5]}}<extra></extra>",
           marker: {{symbol: "circle-open", size: 11, color: "#64717f", line: {{color: "#64717f", width: 2}}}}
         }});
       }}
@@ -1092,8 +1221,8 @@ def write_results_dashboard(
           name: group,
           x: groupRows.map(row => transformX(row.plot_x, xMetric, xMode)),
           y: groupRows.map(row => row.plot_y),
-          customdata: groupRows.map(row => [wrapIdentifier(row.system_name), wrapHoverText(row.description), row.plot_x, row.plot_y, wrapIdentifier(row.condition || "none"), row.point_kind]),
-          hovertemplate: "<b>%{{customdata[0]}}</b><br>%{{customdata[5]}}<br>%{{customdata[1]}}<br>" + xMetric + ": %{{customdata[2]:.3f}}<br>" + yMetric + ": %{{customdata[3]:.3f}}<br>condition: %{{customdata[4]}}<extra></extra>",
+          customdata: groupRows.map(row => [wrapHoverText(labelFor(row), 44), wrapHoverText(row.description), row.plot_x, row.plot_y, wrapHoverText(row.condition_label || row.condition || "none", 44), row.point_kind, wrapIdentifier(row.system_name)]),
+          hovertemplate: "<b>%{{customdata[0]}}</b><br>%{{customdata[5]}}<br>%{{customdata[1]}}<br>" + xMetric + ": %{{customdata[2]:.3f}}<br>" + yMetric + ": %{{customdata[3]:.3f}}<br>condition: %{{customdata[4]}}<br>raw run ID: %{{customdata[6]}}<extra></extra>",
           marker: {{size: group === "Oracle" ? 15 : 11, color: colors[group] || colors.Other, symbol: groupRows.map(row => row.marker_symbol), opacity: 0.88, line: {{color: "#ffffff", width: 1}}}}
         }});
       }}
@@ -1123,17 +1252,17 @@ def write_results_dashboard(
         type: "bar",
         orientation: "h",
         x: plotRows.map(row => row.feasible_utility),
-        y: plotRows.map(row => row.system_name),
+        y: plotRows.map(row => labelFor(row)),
         marker: {{color: plotRows.map(row => colors[row.group] || colors.Other)}},
-        customdata: plotRows.map(row => [wrapHoverText(row.description), row.ndcg_at_k, row.compliance_rate, wrapIdentifier(row.system_name)]),
-        hovertemplate: "<b>%{{customdata[3]}}</b><br>%{{customdata[0]}}<br>utility: %{{x:.3f}}<br>NDCG@k: %{{customdata[1]:.3f}}<br>compliance: %{{customdata[2]:.3f}}<extra></extra>"
+        customdata: plotRows.map(row => [wrapHoverText(row.description), row.ndcg_at_k, row.compliance_rate, wrapHoverText(labelFor(row), 44), wrapIdentifier(row.system_name)]),
+        hovertemplate: "<b>%{{customdata[3]}}</b><br>%{{customdata[0]}}<br>utility: %{{x:.3f}}<br>NDCG@k: %{{customdata[1]:.3f}}<br>compliance: %{{customdata[2]:.3f}}<br>raw run ID: %{{customdata[4]}}<extra></extra>"
       }};
       const layout = plotlyLayout("Primary-system leaderboard", "feasible_utility", "", 560);
       layout.margin = {{l: 138, r: 24, t: 42, b: 52}};
       layout.showlegend = false;
       layout.yaxis.tickmode = "array";
-      layout.yaxis.tickvals = plotRows.map(row => row.system_name);
-      layout.yaxis.ticktext = plotRows.map(row => wrapPlotLabel(row.system_name, 22));
+      layout.yaxis.tickvals = plotRows.map(row => labelFor(row));
+      layout.yaxis.ticktext = plotRows.map(row => wrapPlotLabel(labelFor(row), 26));
       layout.yaxis.tickfont = {{size: 11}};
       Plotly.react("leaderboard", [trace], layout, plotlyConfig);
     }}
@@ -1154,17 +1283,17 @@ def write_results_dashboard(
         type: "bar",
         orientation: "h",
         x: plotRows.map(row => row.delta),
-        y: plotRows.map(row => row.system_name),
+        y: plotRows.map(row => labelFor(row)),
         marker: {{color: plotRows.map(row => row.delta >= 0 ? "#7c3aed" : "#ca8a04")}},
-        customdata: plotRows.map(row => [row.raw_feasible_utility, row.feasible_utility, row.repaired_rate, wrapHoverText(row.description), wrapIdentifier(row.system_name)]),
-        hovertemplate: "<b>%{{customdata[4]}}</b><br>%{{customdata[3]}}<br>raw utility: %{{customdata[0]:.3f}}<br>final utility: %{{customdata[1]:.3f}}<br>delta: %{{x:+.3f}}<br>repaired rate: %{{customdata[2]:.3f}}<extra></extra>"
+        customdata: plotRows.map(row => [row.raw_feasible_utility, row.feasible_utility, row.repaired_rate, wrapHoverText(row.description), wrapHoverText(labelFor(row), 44), wrapIdentifier(row.system_name)]),
+        hovertemplate: "<b>%{{customdata[4]}}</b><br>%{{customdata[3]}}<br>raw utility: %{{customdata[0]:.3f}}<br>final utility: %{{customdata[1]:.3f}}<br>delta: %{{x:+.3f}}<br>repaired rate: %{{customdata[2]:.3f}}<br>raw run ID: %{{customdata[5]}}<extra></extra>"
       }};
       const layout = plotlyLayout("Validator repair effect", "final - raw feasible utility", "", 500);
       layout.margin = {{l: 138, r: 24, t: 42, b: 52}};
       layout.showlegend = false;
       layout.yaxis.tickmode = "array";
-      layout.yaxis.tickvals = plotRows.map(row => row.system_name);
-      layout.yaxis.ticktext = plotRows.map(row => wrapPlotLabel(row.system_name, 22));
+      layout.yaxis.tickvals = plotRows.map(row => labelFor(row));
+      layout.yaxis.ticktext = plotRows.map(row => wrapPlotLabel(labelFor(row), 26));
       layout.yaxis.tickfont = {{size: 11}};
       layout.xaxis.zeroline = true;
       layout.xaxis.zerolinewidth = 2;
@@ -1177,12 +1306,12 @@ def write_results_dashboard(
       const search = document.getElementById("searchBox").value.trim().toLowerCase();
       const filtered = rows.filter(row => {{
         const groupOk = group === "all" || row.group === group;
-        const text = `${{row.system_name}} ${{row.display_name}} ${{row.provider}} ${{row.description}}`.toLowerCase();
+        const text = `${{row.system_name}} ${{row.display_name}} ${{row.condition_label}} ${{row.provider}} ${{row.description}}`.toLowerCase();
         return groupOk && (!search || text.includes(search));
       }});
       document.getElementById("systemRows").innerHTML = filtered.map(row => `
         <tr>
-          <td><code>${{row.system_name}}</code></td>
+          <td><span class="term" tabindex="0" data-tooltip="Raw run ID: ${{escapeAttr(row.system_name)}}">${{escapeHtml(labelFor(row))}}</span></td>
           <td><span class="pill ${{row.group}}">${{row.group}}</span></td>
           <td class="num">${{fmt(row.feasible_utility)}}</td>
           <td class="num">${{fmt(row.raw_feasible_utility)}}</td>
@@ -1305,7 +1434,7 @@ def _results_glossary() -> list[str]:
         "- Decision card: one benchmark instance containing support compounds, a candidate pool, hard constraints, budget `k`, and hidden activity values used only by the scorer.",
         "- Support set: already-tested compounds with measured activity that systems may learn from but must not recommend.",
         "- Candidate pool: compounds eligible for selection, subject to hard constraints.",
-        "- QSAR: quantitative structure-activity relationship; here, conventional ML regressors trained on support-set Morgan fingerprints and measured activity, then used to rank feasible candidates by predicted activity.",
+        "- QSAR: quantitative structure-activity relationship; here, conventional ML regressors trained separately for each decision card on support-set Morgan fingerprints and measured support activity, then used to rank feasible candidates by predicted activity. QSAR rows are deployable baselines, not oracle controls.",
         "- Oracle: non-deployable upper-bound scorer that uses hidden activity values. It is a sanity check, not a real model.",
         "- Validator: deterministic harness logic that checks schema, candidate IDs, duplicates, support-set exclusion, and molecular constraints. It does not use hidden activity values.",
         "- Direct JSON: the current LLM prompt profile that asks for final JSON only, reducing failures where reasoning/prose consumes the visible output budget.",
@@ -1316,16 +1445,16 @@ def _results_glossary() -> list[str]:
         "- `random_valid`: random valid-candidate baseline.",
         "- `rules_only`: deterministic fallback/rule ranking after applying hard constraints.",
         "- `similarity_to_best_active`: ranks candidates by molecular similarity to the best active support compound.",
-        "- `qsar_rf`: QSAR random forest regressor trained on support-set Morgan fingerprints.",
-        "- `qsar_gbt`: QSAR gradient-boosting regressor trained on support-set Morgan fingerprints.",
-        "- `qsar_svm`: QSAR sparse-scaled linear-kernel support-vector regressor trained on support-set Morgan fingerprints.",
+        "- `qsar_rf`: random forest QSAR regressor trained per card on support-set Morgan fingerprints and measured activity.",
+        "- `qsar_gbt`: gradient-boosting QSAR regressor trained per card on support-set Morgan fingerprints and measured activity.",
+        "- `qsar_svm`: sparse-scaled linear-kernel support-vector QSAR regressor trained per card on support-set Morgan fingerprints and measured activity.",
         "- `bare_llm`: LLM receives the decision card and returns candidate IDs without deterministic repair.",
         "- `llm_tools`: LLM condition with extra computed descriptor/tool-summary fields in the candidate rows.",
         "- `llm_validator`: guarded LLM system; raw output is checked and invalid/missing slots may be deterministically repaired.",
         "- `llm_tools_validator`: tool-summary LLM condition plus deterministic checking and repair.",
-        "- `*_frontier_selector`: legacy run label for the direct-JSON frontier interface. It means final-answer JSON prompting with no explicit high/extended-thinking mode where avoidable.",
-        "- `*_frontier`: original frontier/high-reasoning or provider-default frontier condition.",
-        "- `*_fast`: lower-latency/lower-cost provider condition.",
+        "- `*_frontier_selector`: legacy internal run ID for the direct-JSON condition. Reader-facing labels should use the provider, exact model name, and reasoning/thinking setting instead of this shorthand.",
+        "- `*_frontier`: legacy internal run ID for the original full-pool frontier-model condition. Some rows are diagnostic interface failures, not clean model-capability measurements.",
+        "- `*_fast`: legacy internal run ID for lower-latency/lower-cost provider conditions.",
         "",
         "### Metrics",
         "",
@@ -1348,10 +1477,36 @@ def _results_glossary() -> list[str]:
     ]
 
 
+def _best_row(frame: pd.DataFrame, metric: str, *, group: str | None = None) -> pd.Series | None:
+    if frame.empty or metric not in frame.columns:
+        return None
+    source = frame
+    if group is not None and "system_group" in source.columns:
+        source = source[source["system_group"] == group]
+    metric_frame = source.dropna(subset=[metric])
+    if metric_frame.empty:
+        return None
+    return metric_frame.sort_values(metric, ascending=False).iloc[0]
+
+
+def _row_label(row: pd.Series | None) -> str:
+    if row is None:
+        return "n/a"
+    return str(row.get("display_label") or row.get("system_name") or "n/a")
+
+
+def _row_value(row: pd.Series | None, metric: str) -> str:
+    if row is None or metric not in row or pd.isna(row.get(metric)):
+        return "n/a"
+    return _format_float(row.get(metric))
+
+
 def write_results_summary(comparison_csv: Path, out_dir: Path, *, title: str = "SpecGuard-Chem v2 Results Summary") -> Path:
     frame = pd.read_csv(comparison_csv)
     out_dir.mkdir(parents=True, exist_ok=True)
     if not frame.empty and "system_name" in frame.columns:
+        frame = _add_display_columns(frame)
+        frame["system_group"] = frame["system_name"].map(_system_group)
         frame = frame.sort_values(["feasible_utility", "compliance_rate"], ascending=[False, False])
         oracle = frame[frame["system_name"].map(_is_oracle_system)]
         primary = frame[~frame["system_name"].map(_is_oracle_system)]
@@ -1359,11 +1514,22 @@ def write_results_summary(comparison_csv: Path, out_dir: Path, *, title: str = "
         oracle = frame
         primary = frame
 
+    best_qsar = _best_row(primary, "feasible_utility", group="QSAR")
+    best_llm = _best_row(primary, "feasible_utility", group="LLM")
+    best_raw_llm = _best_row(primary, "raw_feasible_utility", group="LLM")
+    best_similarity = primary[primary["system_name"] == "similarity_to_best_active"].iloc[0] if not primary.empty and (primary["system_name"] == "similarity_to_best_active").any() else None
+    best_oracle = _best_row(oracle, "feasible_utility")
+
     columns = [
+        "display_label",
         "system_name",
         "feasible_utility",
+        "feasible_utility_ci_low",
+        "feasible_utility_ci_high",
         "raw_feasible_utility",
         "ndcg_at_k",
+        "ndcg_at_k_ci_low",
+        "ndcg_at_k_ci_high",
         "raw_ndcg_at_k",
         "constrained_regret",
         "compliance_rate",
@@ -1381,6 +1547,29 @@ def write_results_summary(comparison_csv: Path, out_dir: Path, *, title: str = "
         f"Source comparison CSV: `{comparison_csv}`",
         "",
         "This report is a computational audit artifact. It ranks provided candidate IDs only and does not claim synthesis feasibility, safety, selectivity, clinical utility, or therapeutic value.",
+        "",
+        "## Central Paper Argument",
+        "",
+        "SpecGuard-Chem evaluates constrained medicinal-chemistry decision systems on two axes at once. Activity utility alone can reward potent compounds that violate project specifications. Compliance alone can be enforced cheaply and may produce valid but weak recommendations. The paper question is whether a system can choose candidate IDs that are both valid under the written constraints and useful as next-assay priorities.",
+        "",
+        "The LO paper-50 results therefore compare LLM systems against deterministic baselines and QSAR models rather than only against other LLMs. In this result set, the best deployable QSAR baseline is "
+        f"**{_row_label(best_qsar)}** with feasible utility `{_row_value(best_qsar, 'feasible_utility')}`, "
+        f"below the oracle upper bound `{_row_value(best_oracle, 'feasible_utility')}` but above the best final LLM row "
+        f"**{_row_label(best_llm)}** at `{_row_value(best_llm, 'feasible_utility')}` and the best raw LLM row "
+        f"**{_row_label(best_raw_llm)}** at raw feasible utility `{_row_value(best_raw_llm, 'raw_feasible_utility')}`.",
+        "",
+        "## QSAR Baseline Interpretation",
+        "",
+        "QSAR means quantitative structure-activity relationship modelling. Here, each QSAR row is trained separately for each decision card using only the support compounds' Morgan fingerprints and measured support activity. The trained model predicts candidate activity, then ranks feasible candidate IDs. It does not use hidden candidate activity and is therefore a deployable non-language comparator, unlike the oracle control.",
+        "",
+        "The fact that `qsar_rf`, `qsar_gbt`, and `qsar_svm` all beat random, rules-only, and similarity baselines in this run supports treating QSAR as a serious baseline. It does not make QSAR ground truth, a universal activity model, or a substitute for prospective medicinal-chemistry judgement.",
+        "",
+        "## Hypotheses And Contentions",
+        "",
+        "- H1, validators improve compliance more reliably than utility: supported as a reporting requirement. Final validator-assisted rows can be more compliant and sometimes more useful, but raw metrics show when the gain is harness repair rather than raw model behavior.",
+        f"- H2, simple QSAR and similarity baselines are competitive: supported. Best QSAR feasible utility is `{_row_value(best_qsar, 'feasible_utility')}`; similarity-to-best-active is `{_row_value(best_similarity, 'feasible_utility')}`; best final LLM is `{_row_value(best_llm, 'feasible_utility')}`.",
+        "- H3, the best useful system is likely hybrid: partially supported. Guarded/tool-summary LLM rows can improve over bare LLM rows, but this implementation is not yet the broader agent design where QSAR, RDKit, similarity retrieval, and other tools are actively available as callable tools.",
+        "- H4, compliance and utility are imperfectly correlated: supported. Near-perfect compliance appears in rows with materially different feasible utility, so compliance alone is not the target outcome.",
         "",
         "## Primary Systems",
         "",

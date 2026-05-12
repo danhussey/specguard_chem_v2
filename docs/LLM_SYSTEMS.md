@@ -43,9 +43,9 @@ each supported provider:
 | `anthropic_fast` | Anthropic | `claude-haiku-4-5-20251001` | Anthropic fastest condition. |
 | `deepseek_frontier` | DeepSeek | `deepseek-v4-pro` | DeepSeek pro condition with thinking enabled. |
 | `deepseek_fast` | DeepSeek | `deepseek-v4-flash` | DeepSeek fast condition with thinking disabled. |
-| `openai_frontier_selector` | OpenAI | `gpt-5.5` | Direct-selector frontier condition with `json_first` prompting. |
-| `anthropic_frontier_selector` | Anthropic | `claude-opus-4-7` | Direct-selector frontier condition without extended thinking. |
-| `deepseek_frontier_selector` | DeepSeek | `deepseek-v4-pro` | Direct-selector frontier condition with thinking disabled. |
+| `openai_frontier_selector` | OpenAI | `gpt-5.5` | Direct-JSON condition: low reasoning, `json_first` prompting. |
+| `anthropic_frontier_selector` | Anthropic | `claude-opus-4-7` | Direct-JSON condition: no extended thinking, `json_first` prompting. |
+| `deepseek_frontier_selector` | DeepSeek | `deepseek-v4-pro` | Direct-JSON condition: thinking disabled, `json_first` prompting. |
 | `openai_frontier_reasoning_budget` | OpenAI | `gpt-5.5` | Pilot-only reasoning-budget condition. |
 | `anthropic_frontier_thinking_8k` | Anthropic | `claude-opus-4-7` | Pilot-only extended-thinking condition with explicit budget. |
 | `deepseek_frontier_thinking_32k` | DeepSeek | `deepseek-v4-pro` | Pilot-only thinking condition with long budget and timeout. |
@@ -84,7 +84,10 @@ Use `--workers N` for bounded card-level concurrency during live matrix runs.
 This changes execution throughput only; it does not alter prompts, cache keys,
 model conditions, or scoring.
 
-Use the selector conditions for the fair cross-provider frontier comparison:
+Use the direct-JSON conditions for the fair cross-provider comparison. The
+condition IDs still contain `frontier_selector` for reproducibility, but
+reader-facing labels should use provider, exact model, reasoning/thinking
+setting, and Direct JSON profile instead of the shorthand ID:
 
 ```bash
 uv run --extra providers sgchem run-llm-matrix data/cards/cara_lo_paper_50.jsonl \
