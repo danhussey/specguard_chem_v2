@@ -254,6 +254,9 @@ def test_compare_and_frontier_plot(tmp_path: Path) -> None:
     assert "SpecGuard-Chem v2 Results Dashboard" in dashboard_text
     assert "Compliance-Utility Frontier" in dashboard_text
     assert "QSAR models" in dashboard_text
+    assert "xScale" in dashboard_text
+    assert "Primary Systems" in dashboard_text
+    assert "term" in dashboard_text
 
 
 def test_compare_variant_ablation_rows(tmp_path: Path) -> None:

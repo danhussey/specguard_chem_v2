@@ -71,6 +71,11 @@
     .flow-step { border: 1px solid var(--line); border-radius: 7px; padding: 10px; background: #fbfcfa; min-height: 86px; }
     .flow-step strong { display: block; margin-bottom: 4px; }
     .flow-step small { color: var(--muted); }
+    .term {
+      border-bottom: 1px dotted var(--muted);
+      cursor: help;
+      text-decoration: none;
+    }
     .table-wrap { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th, td { border-bottom: 1px solid var(--line); padding: 8px; text-align: left; vertical-align: top; }
@@ -95,25 +100,25 @@
 <body>
   <header>
     <h1>SpecGuard-Chem v2 CARA LO Paper-50 Direct-JSON Dashboard</h1>
-    <div class="subtle">Generated at <code>2026-05-12T06:30:26.363335+00:00</code> from <code>paper/tables/cara_lo_paper_50_selector_completed/system_comparison.csv</code></div>
+    <div class="subtle">Generated at <code>2026-05-12T06:48:49.950452+00:00</code> from <code>paper/tables/cara_lo_paper_50_selector_completed/system_comparison.csv</code></div>
   </header>
   <main>
     <section class="grid summary-grid" id="summaryCards"></section>
 
     <section class="panel" style="margin-top:16px">
-      <h2>Run Pipeline</h2>
+      <h2><span class="term" title="The reproducible path from frozen decision cards to scored result artifacts.">Run Pipeline</span></h2>
       <div class="flow">
-        <div class="flow-step"><strong>1. Decision cards</strong><small>Support set, candidate pool, hard constraints, and budget k.</small></div>
+        <div class="flow-step"><strong><span class="term" title="One benchmark instance: support compounds, candidate pool, hard constraints, budget k, and hidden scorer-only activity values.">1. Decision cards</span></strong><small>Support set, candidate pool, hard constraints, and budget k.</small></div>
         <div class="flow-step"><strong>2. System output</strong><small>Baselines or LLMs return ranked candidate IDs.</small></div>
-        <div class="flow-step"><strong>3. Raw audit</strong><small>Raw LLM selections are scored before repair where available.</small></div>
-        <div class="flow-step"><strong>4. Validator</strong><small>Deterministic schema, ID, duplicate, support-exclusion, and RDKit/property checks.</small></div>
+        <div class="flow-step"><strong><span class="term" title="Scores the model output before deterministic validator repair, so repaired behavior is not mistaken for raw model behavior.">3. Raw audit</span></strong><small>Raw LLM selections are scored before repair where available.</small></div>
+        <div class="flow-step"><strong><span class="term" title="Deterministic harness logic for schema, candidate IDs, duplicates, support-set exclusion, and RDKit/property constraints. It does not use hidden activity.">4. Validator</span></strong><small>Deterministic schema, ID, duplicate, support-exclusion, and RDKit/property checks.</small></div>
         <div class="flow-step"><strong>5. Scoring</strong><small>Utility, compliance, regret, repair rate, and frontier plots.</small></div>
       </div>
     </section>
 
     <section class="grid plot-grid" style="margin-top:16px">
       <div class="panel">
-        <h2>Compliance-Utility Frontier</h2>
+        <h2><span class="term" title="Scatter plot separating specification compliance on the x-axis from medicinal-chemistry decision utility on the y-axis.">Compliance-Utility Frontier</span></h2>
         <div class="controls">
           <label>Y metric
             <select id="yMetric">
@@ -131,12 +136,20 @@
               <option value="raw_schema_error_rate">Raw schema error</option>
             </select>
           </label>
+          <label>X scale
+            <select id="xScale">
+              <option value="auto" selected>Auto log for clustered rates</option>
+              <option value="linear">Linear</option>
+              <option value="log_gap">Log gap to 1.0</option>
+              <option value="log_value">Log value</option>
+            </select>
+          </label>
         </div>
         <div id="scatter"></div>
         <div class="legend" id="legend"></div>
       </div>
       <div class="panel">
-        <h2>Top Primary Systems</h2>
+        <h2>Top <span class="term" title="Primary systems exclude oracle controls. They are the deployable or prospectively runnable systems used for main comparisons.">Primary Systems</span></h2>
         <div id="leaderboard"></div>
       </div>
     </section>
@@ -149,11 +162,11 @@
       </div>
       <div class="panel">
         <h2>Label Guide</h2>
-        <p><strong>QSAR models:</strong> all three train on support-set Morgan fingerprints and measured activity, then rank feasible candidates by predicted activity.</p>
+        <p><strong><span class="term" title="Quantitative structure-activity relationship models: conventional molecular ML regressors, not language models.">QSAR models:</span></strong> all three train on support-set Morgan fingerprints and measured activity, then rank feasible candidates by predicted activity.</p>
         <p><code>qsar_rf</code> is a random forest regressor; <code>qsar_gbt</code> is a gradient-boosting regressor; <code>qsar_svm</code> is a sparse-scaled linear-kernel support-vector regressor.</p>
-        <p><strong>Validator:</strong> deterministic harness checks and repair. It does not inspect hidden activity values.</p>
-        <p><strong>Oracle:</strong> hidden-activity upper bound used only to show remaining decision headroom.</p>
-        <p><strong>Direct JSON:</strong> final-answer JSON prompting designed to avoid visible-output budget failures.</p>
+        <p><strong><span class="term" title="Deterministic harness logic, not a model and not an activity oracle.">Validator:</span></strong> deterministic harness checks and repair. It does not inspect hidden activity values.</p>
+        <p><strong><span class="term" title="A non-deployable control that uses hidden candidate activity values.">Oracle:</span></strong> hidden-activity upper bound used only to show remaining decision headroom.</p>
+        <p><strong><span class="term" title="The current prompt profile: final answer JSON only, without relying on visible chain-of-thought text.">Direct JSON:</span></strong> final-answer JSON prompting designed to avoid visible-output budget failures.</p>
       </div>
     </section>
 
@@ -179,12 +192,12 @@
             <tr>
               <th>System</th>
               <th>Group</th>
-              <th title="Final utility after any validator repair. Sums hidden activity for selected candidates that satisfy hard constraints. Higher is better.">Utility</th>
-              <th title="Utility before validator repair. This is the closer measure of raw LLM behavior. Higher is better.">Raw utility</th>
-              <th title="Final ranking quality using hidden activity as graded relevance. 1.0 is ideal.">NDCG</th>
-              <th title="Fraction of requested selections that are valid after final repair, if repair applies.">Compliance</th>
-              <th title="Fraction of requested selections that are valid before validator repair.">Raw compliance</th>
-              <th title="Fraction of cards where the final validator changed the raw model output.">Repaired</th>
+              <th><span class="term" title="Final utility after any validator repair. Sums hidden activity for selected candidates that satisfy hard constraints. Higher is better.">Utility</span></th>
+              <th><span class="term" title="Utility before validator repair. This is the closer measure of raw LLM behavior. Higher is better.">Raw utility</span></th>
+              <th><span class="term" title="Final ranking quality using hidden activity as graded relevance. 1.0 is ideal.">NDCG</span></th>
+              <th><span class="term" title="Fraction of requested selections that are valid after final repair, if repair applies.">Compliance</span></th>
+              <th><span class="term" title="Fraction of requested selections that are valid before validator repair.">Raw compliance</span></th>
+              <th><span class="term" title="Fraction of cards where the final validator changed the raw model output.">Repaired</span></th>
               <th>Description</th>
             </tr>
           </thead>
@@ -235,37 +248,72 @@
       return outMin + ((value - inMin) / (inMax - inMin)) * (outMax - outMin);
     }
 
+    function effectiveXScale(metric, requested) {
+      if (requested !== "auto") return requested;
+      if (metric.includes("compliance")) return "log_gap";
+      if (metric.includes("schema_error")) return "log_value";
+      return "linear";
+    }
+
+    function transformX(value, metric, mode) {
+      const epsilon = 1e-4;
+      if (mode === "log_gap") return -Math.log10(Math.max(epsilon, 1 - value));
+      if (mode === "log_value") return Math.log10(Math.max(epsilon, value));
+      return value;
+    }
+
+    function xTickValues(metric, mode) {
+      if (mode === "log_gap") return [0, 0.5, 0.9, 0.99, 0.999, 1.0];
+      if (mode === "log_value") return [0, 0.001, 0.01, 0.1, 1.0];
+      return [0, 0.25, 0.5, 0.75, 1.0];
+    }
+
+    function xTickLabel(value, mode) {
+      if (mode === "log_gap") return value === 1 ? "1.000" : fmt(value, value >= 0.99 ? 3 : 2);
+      if (mode === "log_value") return value === 0 ? "0" : String(value);
+      return fmt(value, 2);
+    }
+
+    function xAxisLabel(metric, mode) {
+      if (mode === "log_gap") return `${metric} (log distance from 1.0; right is better)`;
+      if (mode === "log_value") return `${metric} (log value)`;
+      return metric;
+    }
+
     function renderScatter() {
       const xMetric = document.getElementById("xMetric").value;
       const yMetric = document.getElementById("yMetric").value;
+      const xMode = effectiveXScale(xMetric, document.getElementById("xScale").value);
       const data = rows.filter(row => row[xMetric] !== null && row[yMetric] !== null);
       const width = 860, height = 500, margin = {left: 74, right: 24, top: 20, bottom: 58};
-      const xVals = data.map(row => row[xMetric]);
+      const xVals = data.map(row => transformX(row[xMetric], xMetric, xMode));
       const yVals = data.map(row => row[yMetric]);
-      const xMin = Math.min(0, ...xVals), xMax = Math.max(1, ...xVals);
+      const xMin = Math.min(...xVals), xMax = Math.max(...xVals);
       const yMin = Math.min(0, ...yVals), yMax = Math.max(...yVals) * 1.06;
       const x = value => scale(value, xMin, xMax, margin.left, width - margin.right);
       const y = value => scale(value, yMin, yMax, height - margin.bottom, margin.top);
-      const ticks = [0, 0.25, 0.5, 0.75, 1.0].filter(tick => tick >= xMin && tick <= xMax);
+      const ticks = xTickValues(xMetric, xMode)
+        .map(value => ({value, position: transformX(value, xMetric, xMode)}))
+        .filter(tick => tick.position >= xMin - 1e-9 && tick.position <= xMax + 1e-9);
       const yTicks = [0, 0.25, 0.5, 0.75, 1.0].includes(yMax) ? [0, 0.5, 1.0] : [0, yMax / 4, yMax / 2, yMax * 0.75, yMax];
       const point = row => {
-        const title = `${row.system_name}\n${row.description}\n${xMetric}: ${fmt(row[xMetric])}\n${yMetric}: ${fmt(row[yMetric])}`;
-        return `<circle cx="${x(row[xMetric])}" cy="${y(row[yMetric])}" r="${row.group === "Oracle" ? 6 : 5}" fill="${colors[row.group] || colors.Other}" opacity="0.9"><title>${title}</title></circle>`;
+        const title = `${row.system_name}\n${row.description}\n${xMetric}: ${fmt(row[xMetric])}\n${yMetric}: ${fmt(row[yMetric])}\nx scale: ${xMode}`;
+        return `<circle cx="${x(transformX(row[xMetric], xMetric, xMode))}" cy="${y(row[yMetric])}" r="${row.group === "Oracle" ? 6 : 5}" fill="${colors[row.group] || colors.Other}" opacity="0.9"><title>${title}</title></circle>`;
       };
       const rawLinks = rows.filter(row => row.raw_feasible_utility !== null && row.raw_compliance_rate !== null && yMetric === "feasible_utility" && xMetric === "compliance_rate")
-        .map(row => `<line x1="${x(row.raw_compliance_rate)}" y1="${y(row.raw_feasible_utility)}" x2="${x(row.compliance_rate)}" y2="${y(row.feasible_utility)}" stroke="#9aa5a1" stroke-width="1.5" opacity="0.55"><title>Raw-to-final shift: ${row.system_name}</title></line>`)
+        .map(row => `<line x1="${x(transformX(row.raw_compliance_rate, xMetric, xMode))}" y1="${y(row.raw_feasible_utility)}" x2="${x(transformX(row.compliance_rate, xMetric, xMode))}" y2="${y(row.feasible_utility)}" stroke="#9aa5a1" stroke-width="1.5" opacity="0.55"><title>Raw-to-final shift: ${row.system_name}</title></line>`)
         .join("");
       const labels = byMetricDesc(yMetric).slice(0, 8).filter(row => row[xMetric] !== null && row[yMetric] !== null)
-        .map(row => `<text x="${x(row[xMetric]) + 7}" y="${y(row[yMetric]) - 5}" font-size="10" fill="#3b4650">${row.base_system}</text>`)
+        .map(row => `<text x="${x(transformX(row[xMetric], xMetric, xMode)) + 7}" y="${y(row[yMetric]) - 5}" font-size="10" fill="#3b4650">${row.base_system}</text>`)
         .join("");
       document.getElementById("scatter").innerHTML = `
         <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Compliance utility frontier">
           <g class="axis">
             <line x1="${margin.left}" y1="${height - margin.bottom}" x2="${width - margin.right}" y2="${height - margin.bottom}"></line>
             <line x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${height - margin.bottom}"></line>
-            ${ticks.map(tick => `<g><line x1="${x(tick)}" y1="${height - margin.bottom}" x2="${x(tick)}" y2="${height - margin.bottom + 5}"></line><text x="${x(tick)}" y="${height - margin.bottom + 22}" text-anchor="middle">${fmt(tick, 2)}</text></g>`).join("")}
+            ${ticks.map(tick => `<g><line x1="${x(tick.position)}" y1="${height - margin.bottom}" x2="${x(tick.position)}" y2="${height - margin.bottom + 5}"></line><text x="${x(tick.position)}" y="${height - margin.bottom + 22}" text-anchor="middle">${xTickLabel(tick.value, xMode)}</text></g>`).join("")}
             ${yTicks.map(tick => `<g><line x1="${margin.left - 5}" y1="${y(tick)}" x2="${margin.left}" y2="${y(tick)}"></line><text x="${margin.left - 9}" y="${y(tick) + 4}" text-anchor="end">${fmt(tick)}</text></g>`).join("")}
-            <text x="${width / 2}" y="${height - 14}" text-anchor="middle">${xMetric}</text>
+            <text x="${width / 2}" y="${height - 14}" text-anchor="middle">${xAxisLabel(xMetric, xMode)}</text>
             <text transform="translate(18 ${height / 2}) rotate(-90)" text-anchor="middle">${yMetric}</text>
           </g>
           ${rawLinks}
@@ -339,6 +387,7 @@
     }
 
     document.getElementById("xMetric").addEventListener("change", renderScatter);
+    document.getElementById("xScale").addEventListener("change", renderScatter);
     document.getElementById("yMetric").addEventListener("change", renderScatter);
     document.getElementById("groupFilter").addEventListener("change", renderTable);
     document.getElementById("searchBox").addEventListener("input", renderTable);
