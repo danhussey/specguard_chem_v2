@@ -4,6 +4,7 @@ from specguard_chem_v2.io import load_models
 from specguard_chem_v2.reports import (
     compare_run_summaries,
     make_frontier_plot,
+    write_results_dashboard,
     write_results_summary,
 )
 from specguard_chem_v2.runner import run_system_file, run_system_on_card
@@ -244,6 +245,15 @@ def test_compare_and_frontier_plot(tmp_path: Path) -> None:
     assert summary.exists()
     assert "Primary Systems" in summary.read_text(encoding="utf-8")
     assert "raw_feasible_utility" in summary.read_text(encoding="utf-8")
+    dashboard = write_results_dashboard(
+        tmp_path / "compare" / "system_comparison.csv",
+        tmp_path / "paper",
+    )
+    dashboard_text = dashboard.read_text(encoding="utf-8")
+    assert dashboard.exists()
+    assert "SpecGuard-Chem v2 Results Dashboard" in dashboard_text
+    assert "Compliance-Utility Frontier" in dashboard_text
+    assert "QSAR models" in dashboard_text
 
 
 def test_compare_variant_ablation_rows(tmp_path: Path) -> None:

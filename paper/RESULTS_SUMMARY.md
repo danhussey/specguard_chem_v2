@@ -1,6 +1,6 @@
 # SpecGuard-Chem v2 CARA LO Paper-50 Direct-JSON Results
 
-Generated at: `2026-05-12T06:19:10.159343+00:00`
+Generated at: `2026-05-12T06:30:45.917641+00:00`
 
 Source comparison CSV: `paper/tables/cara_lo_paper_50_selector_completed/system_comparison.csv`
 
@@ -74,7 +74,7 @@ This report is a computational audit artifact. It ranks provided candidate IDs o
 - Decision card: one benchmark instance containing support compounds, a candidate pool, hard constraints, budget `k`, and hidden activity values used only by the scorer.
 - Support set: already-tested compounds with measured activity that systems may learn from but must not recommend.
 - Candidate pool: compounds eligible for selection, subject to hard constraints.
-- QSAR: quantitative structure-activity relationship; here, conventional ML models trained on support compounds to predict candidate activity from molecular fingerprints.
+- QSAR: quantitative structure-activity relationship; here, conventional ML regressors trained on support-set Morgan fingerprints and measured activity, then used to rank feasible candidates by predicted activity.
 - Oracle: non-deployable upper-bound scorer that uses hidden activity values. It is a sanity check, not a real model.
 - Validator: deterministic harness logic that checks schema, candidate IDs, duplicates, support-set exclusion, and molecular constraints. It does not use hidden activity values.
 - Direct JSON: the current LLM prompt profile that asks for final JSON only, reducing failures where reasoning/prose consumes the visible output budget.
@@ -85,7 +85,9 @@ This report is a computational audit artifact. It ranks provided candidate IDs o
 - `random_valid`: random valid-candidate baseline.
 - `rules_only`: deterministic fallback/rule ranking after applying hard constraints.
 - `similarity_to_best_active`: ranks candidates by molecular similarity to the best active support compound.
-- `qsar_rf`, `qsar_gbt`, `qsar_svm`: conventional QSAR baselines trained on support compounds with random forest, gradient-boosted trees, or support-vector regression.
+- `qsar_rf`: QSAR random forest regressor trained on support-set Morgan fingerprints.
+- `qsar_gbt`: QSAR gradient-boosting regressor trained on support-set Morgan fingerprints.
+- `qsar_svm`: QSAR sparse-scaled linear-kernel support-vector regressor trained on support-set Morgan fingerprints.
 - `bare_llm`: LLM receives the decision card and returns candidate IDs without deterministic repair.
 - `llm_tools`: LLM condition with extra computed descriptor/tool-summary fields in the candidate rows.
 - `llm_validator`: guarded LLM system; raw output is checked and invalid/missing slots may be deterministically repaired.

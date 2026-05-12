@@ -155,6 +155,7 @@ uv run sgchem run-suite data/cards/cara_lo_cards.jsonl --systems all-with-oracle
 uv run sgchem compare-runs runs/cara_lo/*/scores/summary.json --out paper/tables
 uv run sgchem make-figures paper/tables/system_comparison.csv --out paper/figures
 uv run sgchem make-report paper/tables/system_comparison.csv --out paper
+uv run sgchem make-dashboard paper/tables/system_comparison.csv --out paper
 ```
 
 `run-suite` executes each named system against the same frozen cards. Each system
@@ -185,6 +186,10 @@ not an implementation failure.
 `make-figures` turns the comparison CSV into reproducible visuals, including the
 compliance-utility frontier. `make-report` builds a generated report shell from
 the same tables so paper artifacts remain traceable to run outputs.
+`make-dashboard` creates a static HTML quality-control dashboard with the same
+comparison data embedded in the file. Use it to inspect the leaderboard,
+compliance-utility scatter, raw-to-final repair deltas, and label definitions
+without running a web server.
 
 ## LLM Request Review
 
