@@ -1,0 +1,95 @@
+# Provider pricing snapshot for cost estimates.
+#
+# Prices are USD per 1M tokens. Update this file when provider pricing changes.
+# Sources checked 2026-05-12:
+# - OpenAI: https://openai.com/api/pricing/
+# - Anthropic: https://platform.claude.com/docs/en/about-claude/pricing
+# - DeepSeek: https://api-docs.deepseek.com/quick_start/pricing
+
+[defaults]
+chars_per_token = 2.0
+safety_multiplier = 1.35
+
+[models.openai_frontier]
+input_per_1m_usd = 5.00
+cached_input_per_1m_usd = 0.50
+output_per_1m_usd = 30.00
+source_url = "https://openai.com/api/pricing/"
+notes = "GPT-5.5 standard pricing."
+
+[models.openai_frontier_selector]
+input_per_1m_usd = 5.00
+cached_input_per_1m_usd = 0.50
+output_per_1m_usd = 30.00
+source_url = "https://openai.com/api/pricing/"
+notes = "GPT-5.5 standard pricing."
+
+[models.openai_frontier_reasoning_budget]
+input_per_1m_usd = 5.00
+cached_input_per_1m_usd = 0.50
+output_per_1m_usd = 30.00
+source_url = "https://openai.com/api/pricing/"
+notes = "GPT-5.5 standard pricing."
+
+[models.openai_fast]
+input_per_1m_usd = 0.75
+cached_input_per_1m_usd = 0.075
+output_per_1m_usd = 4.50
+source_url = "https://openai.com/api/pricing/"
+notes = "GPT-5.4 mini standard pricing."
+
+[models.anthropic_frontier]
+input_per_1m_usd = 5.00
+cached_input_per_1m_usd = 0.50
+output_per_1m_usd = 25.00
+source_url = "https://platform.claude.com/docs/en/about-claude/pricing"
+notes = "Claude Opus 4.7 base input/output pricing."
+
+[models.anthropic_frontier_selector]
+input_per_1m_usd = 5.00
+cached_input_per_1m_usd = 0.50
+output_per_1m_usd = 25.00
+source_url = "https://platform.claude.com/docs/en/about-claude/pricing"
+notes = "Claude Opus 4.7 base input/output pricing."
+
+[models.anthropic_frontier_thinking_8k]
+input_per_1m_usd = 5.00
+cached_input_per_1m_usd = 0.50
+output_per_1m_usd = 25.00
+source_url = "https://platform.claude.com/docs/en/about-claude/pricing"
+notes = "Claude Opus 4.7 base input/output pricing."
+
+[models.anthropic_fast]
+input_per_1m_usd = 1.00
+cached_input_per_1m_usd = 0.10
+output_per_1m_usd = 5.00
+source_url = "https://platform.claude.com/docs/en/about-claude/pricing"
+notes = "Claude Haiku 4.5 base input/output pricing."
+
+[models.deepseek_frontier]
+input_per_1m_usd = 0.435
+cached_input_per_1m_usd = 0.003625
+output_per_1m_usd = 0.87
+source_url = "https://api-docs.deepseek.com/quick_start/pricing"
+notes = "DeepSeek V4 Pro discounted pricing listed through 2026-05-31."
+
+[models.deepseek_frontier_selector]
+input_per_1m_usd = 0.435
+cached_input_per_1m_usd = 0.003625
+output_per_1m_usd = 0.87
+source_url = "https://api-docs.deepseek.com/quick_start/pricing"
+notes = "DeepSeek V4 Pro discounted pricing listed through 2026-05-31."
+
+[models.deepseek_frontier_thinking_32k]
+input_per_1m_usd = 0.435
+cached_input_per_1m_usd = 0.003625
+output_per_1m_usd = 0.87
+source_url = "https://api-docs.deepseek.com/quick_start/pricing"
+notes = "DeepSeek V4 Pro discounted pricing listed through 2026-05-31."
+
+[models.deepseek_fast]
+input_per_1m_usd = 0.14
+cached_input_per_1m_usd = 0.0028
+output_per_1m_usd = 0.28
+source_url = "https://api-docs.deepseek.com/quick_start/pricing"
+notes = "DeepSeek V4 Flash pricing."

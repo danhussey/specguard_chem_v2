@@ -113,4 +113,8 @@ quota failures therefore need to be treated as run-feasibility failures, not as
 model-performance scores.
 
 Before future live runs, use cheap pilots and explicit budget gates. A full run
-should not start unless estimated calls, tokens, and cost are acceptable.
+should not start unless estimated calls, tokens, and cost are acceptable. See
+`docs/COST_CONTROL.md`.
+
+For high-reasoning/thinking interface redesign options, see
+`docs/HIGH_REASONING_INTERFACE_OPTIONS.md`.

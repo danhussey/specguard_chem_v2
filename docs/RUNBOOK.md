@@ -217,6 +217,16 @@ Example LLM review record:
 
 ## Provider Matrix Pilot
 
+Estimate live cost before running provider calls:
+
+```bash
+uv run sgchem estimate-llm-cost data/cards/cara_lo_cards.jsonl \
+  --systems llm_tools,llm_tools_validator \
+  --model-conditions openai_fast,anthropic_fast,deepseek_fast \
+  --out-run-dir runs/cara_lo_llm_pilot \
+  --out runs/cara_lo_llm_pilot/cost_estimate.json
+```
+
 ```bash
 uv run sgchem list-model-matrix configs/model_matrix.toml
 uv run sgchem run-llm-matrix tests/fixtures/cards.jsonl --systems llm_tools_validator --model-conditions openai_fast,deepseek_fast --out runs/fixture_llm_matrix
@@ -236,7 +246,10 @@ uv run sgchem run-llm-matrix data/cards/cara_lo_cards.jsonl \
   --systems llm_tools,llm_tools_validator \
   --model-conditions openai_fast,anthropic_fast,deepseek_fast \
   --out runs/cara_lo_llm_pilot \
-  --allow-external
+  --allow-external \
+  --require-cost-estimate \
+  --max-estimated-cost-usd 25 \
+  --max-live-calls 50
 ```
 
 Provider API keys are read from `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, and

@@ -59,6 +59,45 @@ def test_cli_fixture_smoke(tmp_path: Path) -> None:
     assert "openai_fast" in result.output
     assert "openai_frontier_selector" in result.output
 
+    result = runner.invoke(
+        app,
+        [
+            "estimate-llm-cost",
+            str(cards),
+            "--systems",
+            "llm_tools_validator",
+            "--model-conditions",
+            "openai_fast,deepseek_fast",
+            "--out-run-dir",
+            str(tmp_path / "cost_matrix"),
+            "--out",
+            str(tmp_path / "cost_estimate.json"),
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "cost_estimate.json").exists()
+    assert '"missing_live_calls": 4' in result.output
+
+    result = runner.invoke(
+        app,
+        [
+            "run-llm-matrix",
+            str(cards),
+            "--systems",
+            "llm_tools_validator",
+            "--model-conditions",
+            "openai_fast",
+            "--out",
+            str(tmp_path / "gated_matrix"),
+            "--allow-external",
+            "--max-live-calls",
+            "0",
+        ],
+    )
+    assert result.exit_code == 2, result.output
+    assert "Cost gate failed" in result.output
+    assert (tmp_path / "gated_matrix" / "cost_estimate.json").exists()
+
     matrix_dir = tmp_path / "llm_matrix"
     result = runner.invoke(
         app,

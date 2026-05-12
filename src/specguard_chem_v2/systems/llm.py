@@ -48,6 +48,10 @@ def _request_hash(request: dict[str, Any]) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
+def request_hash(request: dict[str, Any]) -> str:
+    return _request_hash(request)
+
+
 def _generation_settings(model_config: LLMModelConfig) -> dict[str, Any]:
     return {
         "max_tokens": model_config.max_tokens,
@@ -201,6 +205,17 @@ def _cache_candidate_paths(cache_dir: Path, request: dict[str, Any]) -> list[Pat
         paths.append(legacy_hash)
     paths.extend(_stable_task_cache_paths(cache_dir, request))
     return paths
+
+
+def cache_candidate_paths(cache_dir: Path, request: dict[str, Any]) -> list[Path]:
+    return _cache_candidate_paths(cache_dir, request)
+
+
+def find_cached_response(cache_dir: Path, request: dict[str, Any]) -> Path | None:
+    for candidate_path in _cache_candidate_paths(cache_dir, request):
+        if candidate_path.exists():
+            return candidate_path
+    return None
 
 
 def _extract_json_object(text: str) -> dict[str, Any]:

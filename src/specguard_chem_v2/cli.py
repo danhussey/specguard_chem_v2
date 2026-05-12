@@ -7,6 +7,12 @@ from typing import Optional
 import typer
 from rich.console import Console
 
+from .costing import (
+    enforce_cost_limits,
+    estimate_llm_matrix_cost,
+    load_pricing_config,
+    trace_is_complete,
+)
 from .data.cara import build_cards_from_jsonl, download_cara as download_cara_data
 from .data.cara import inspect_cara_layout
 from .data.cara import summarize_cards as summarize_card_models
@@ -31,6 +37,14 @@ def _expand_systems(value: str) -> list[str]:
     if value.strip().lower() == "all-with-oracle":
         return sorted(DETERMINISTIC_SYSTEMS) + sorted(LLM_SYSTEMS)
     return [name.strip() for name in value.split(",") if name.strip()]
+
+
+def _expand_llm_systems(value: str) -> list[str]:
+    names = [name.strip() for name in value.split(",") if name.strip()]
+    unknown = [name for name in names if name not in LLM_SYSTEMS]
+    if unknown:
+        raise typer.BadParameter(f"Unknown LLM systems: {', '.join(unknown)}")
+    return names
 
 
 @app.command("list-systems")
@@ -223,6 +237,46 @@ def export_llm_requests(
     console.print(f"Exported [green]{len(rows)}[/green] LLM requests -> {out}")
 
 
+@app.command("estimate-llm-cost")
+def estimate_llm_cost(
+    cards: Path = typer.Argument(..., help="Decision-card JSONL path."),
+    systems: str = typer.Option(
+        "bare_llm,llm_validator,llm_tools,llm_tools_validator",
+        "--systems",
+        help="Comma-separated LLM system names.",
+    ),
+    model_matrix: Path = typer.Option(Path("configs/model_matrix.toml"), "--model-matrix"),
+    model_conditions: str = typer.Option("all", "--model-conditions"),
+    pricing: Path = typer.Option(Path("configs/provider_pricing.toml"), "--pricing"),
+    out_run_dir: Path = typer.Option(
+        Path("runs/llm_matrix"),
+        "--out-run-dir",
+        help="Run directory used for completed-trace and default-cache detection.",
+    ),
+    cache_dir: Optional[Path] = typer.Option(None, "--cache-dir"),
+    out: Optional[Path] = typer.Option(None, "--out", "-o"),
+    force: bool = typer.Option(False, "--force", help="Ignore completed traces when estimating."),
+) -> None:
+    loaded = load_models(cards, DecisionCard)
+    names = _expand_llm_systems(systems)
+    configs = select_model_configs(load_model_matrix(model_matrix), model_conditions)
+    effective_cache_dir = cache_dir or (out_run_dir / "cache")
+    estimate = estimate_llm_matrix_cost(
+        loaded,
+        names,
+        configs,
+        pricing=load_pricing_config(pricing),
+        cache_dir=effective_cache_dir,
+        run_out=out_run_dir,
+        force=force,
+    )
+    if out is not None:
+        write_json(out, estimate)
+        console.print(f"Wrote cost estimate to [green]{out}[/green]")
+    printable = {key: value for key, value in estimate.items() if key != "rows"}
+    console.print_json(data=printable)
+
+
 @app.command("list-model-matrix")
 def list_model_matrix(
     model_matrix: Path = typer.Argument(Path("configs/model_matrix.toml")),
@@ -250,13 +304,65 @@ def run_llm_matrix(
     cache_dir: Optional[Path] = typer.Option(None, "--cache-dir"),
     allow_external: bool = typer.Option(False, "--allow-external"),
     workers: int = typer.Option(1, "--workers", min=1, help="Card-level worker count."),
+    pricing: Path = typer.Option(Path("configs/provider_pricing.toml"), "--pricing"),
+    require_cost_estimate: bool = typer.Option(
+        False,
+        "--require-cost-estimate",
+        help="Write and enforce a cost estimate before live calls.",
+    ),
+    max_estimated_cost_usd: Optional[float] = typer.Option(
+        None,
+        "--max-estimated-cost-usd",
+        min=0,
+        help="Abort if missing live calls exceed this estimated incremental cost.",
+    ),
+    max_live_calls: Optional[int] = typer.Option(
+        None,
+        "--max-live-calls",
+        min=0,
+        help="Abort if more than this many calls would need live provider execution.",
+    ),
+    max_input_tokens_per_call: Optional[int] = typer.Option(
+        None,
+        "--max-input-tokens-per-call",
+        min=1,
+        help="Abort if any missing live call is estimated above this input-token count.",
+    ),
+    force: bool = typer.Option(False, "--force", help="Rerun completed traces instead of skipping."),
 ) -> None:
-    names = [name.strip() for name in systems.split(",") if name.strip()]
-    unknown = [name for name in names if name not in LLM_SYSTEMS]
-    if unknown:
-        raise typer.BadParameter(f"Unknown LLM systems: {', '.join(unknown)}")
+    names = _expand_llm_systems(systems)
     configs = select_model_configs(load_model_matrix(model_matrix), model_conditions)
     effective_cache_dir = cache_dir or (out / "cache")
+    loaded_cards = load_models(cards, DecisionCard)
+    if allow_external and (
+        require_cost_estimate
+        or max_estimated_cost_usd is not None
+        or max_live_calls is not None
+        or max_input_tokens_per_call is not None
+    ):
+        estimate = estimate_llm_matrix_cost(
+            loaded_cards,
+            names,
+            configs,
+            pricing=load_pricing_config(pricing),
+            cache_dir=effective_cache_dir,
+            run_out=out,
+            force=force,
+        )
+        write_json(out / "cost_estimate.json", estimate)
+        failures = enforce_cost_limits(
+            estimate,
+            max_estimated_cost_usd=max_estimated_cost_usd,
+            max_live_calls=max_live_calls,
+            max_input_tokens_per_call=max_input_tokens_per_call,
+        )
+        printable = {key: value for key, value in estimate.items() if key != "rows"}
+        console.print("[bold]Cost estimate[/bold]")
+        console.print_json(data=printable)
+        if failures:
+            for failure in failures:
+                console.print(f"[red]Cost gate failed:[/red] {failure}")
+            raise typer.Exit(code=2)
     manifest = {
         "cards": str(cards),
         "systems": names,
@@ -271,18 +377,23 @@ def run_llm_matrix(
         for system_name in names:
             run_label = f"{system_name}__{config.id}"
             run_path = out / config.id / system_name / "trace.jsonl"
-            run_system_file(
-                cards,
-                system_name,
-                run_path,
-                seed=seed,
-                cache_dir=effective_cache_dir / config.id / system_name,
-                allow_external=allow_external,
-                model_config=config,
-                run_label=run_label,
-                workers=workers,
-            )
             scores_dir = out / config.id / system_name / "scores"
+            skipped_existing = False
+            if not force and trace_is_complete(run_path, len(loaded_cards)):
+                skipped_existing = True
+                console.print(f"Skipping completed [green]{run_label}[/green]")
+            else:
+                run_system_file(
+                    cards,
+                    system_name,
+                    run_path,
+                    seed=seed,
+                    cache_dir=effective_cache_dir / config.id / system_name,
+                    allow_external=allow_external,
+                    model_config=config,
+                    run_label=run_label,
+                    workers=workers,
+                )
             score_run(cards, run_path, scores_dir)
             manifest["runs"].append(
                 {
@@ -293,6 +404,7 @@ def run_llm_matrix(
                     "model": config.model,
                     "trace": str(run_path),
                     "scores": str(scores_dir),
+                    "skipped_existing": skipped_existing,
                 }
             )
             console.print(f"Completed [green]{run_label}[/green]")
