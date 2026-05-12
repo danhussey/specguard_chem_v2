@@ -564,11 +564,15 @@ def write_results_dashboard(
             </select>
           </label>
           <label>
-            <input id="showRepairLinks" type="checkbox">
-            <span class="term" tabindex="0" data-tooltip="Optional diagnostic overlay. Each grey segment connects a validator system's raw model output to its final post-validator repaired output. The final score may be model plus guardrail behavior.">Raw-to-final repair links</span>
+            <span class="term" tabindex="0" data-tooltip="Switches the LLM scatter points between final scored outputs, raw model outputs, or both connected by repair links. Deterministic baselines remain shown as context.">LLM point view</span>
+            <select id="repairPointView">
+              <option value="final" selected>Final scored points</option>
+              <option value="raw">Raw LLM points</option>
+              <option value="both">Raw + final repair links</option>
+            </select>
           </label>
         </div>
-        <p class="subtle" id="repairLinkNote">Grey raw-to-final repair links are hidden by default; enable them to inspect how validator repair moves LLM rows.</p>
+        <p class="subtle" id="repairLinkNote">Showing final scored outputs. For validator rows, final points may include deterministic repair.</p>
         <div id="scatter" class="chart"></div>
         <div class="legend" id="legend"></div>
       </div>
@@ -783,6 +787,20 @@ def write_results_dashboard(
       return metric;
     }}
 
+    function rawMetricFor(metric) {{
+      const mapping = {{
+        feasible_utility: "raw_feasible_utility",
+        ndcg_at_k: "raw_ndcg_at_k",
+        compliance_rate: "raw_compliance_rate",
+        schema_error_rate: "raw_schema_error_rate"
+      }};
+      return mapping[metric] || metric;
+    }}
+
+    function hasRawPoint(row, rawXMetric, rawYMetric) {{
+      return row[rawXMetric] !== null && row[rawXMetric] !== undefined && row[rawYMetric] !== null && row[rawYMetric] !== undefined;
+    }}
+
     function wrapPlotLabel(value, maxLineLength = 24) {{
       const text = String(value);
       const chunks = text.split("__");
@@ -841,12 +859,27 @@ def write_results_dashboard(
       const xMetric = document.getElementById("xMetric").value;
       const yMetric = document.getElementById("yMetric").value;
       const xMode = effectiveXScale(xMetric, document.getElementById("xScale").value);
-      const showRepairLinks = document.getElementById("showRepairLinks").checked;
-      const data = rows.filter(row => row[xMetric] !== null && row[yMetric] !== null);
+      const pointView = document.getElementById("repairPointView").value;
+      const rawXMetric = rawMetricFor(xMetric);
+      const rawYMetric = rawMetricFor(yMetric);
+      const canShowRepair = rawXMetric !== xMetric || rawYMetric !== yMetric;
+      const data = rows
+        .map(row => {{
+          const showRaw = pointView === "raw" && row.group === "LLM" && hasRawPoint(row, rawXMetric, rawYMetric);
+          return {{
+            ...row,
+            plot_x: showRaw ? row[rawXMetric] : row[xMetric],
+            plot_y: showRaw ? row[rawYMetric] : row[yMetric],
+            point_kind: showRaw ? "raw LLM output" : "final scored output",
+            marker_symbol: showRaw ? "circle-open" : "circle"
+          }};
+        }})
+        .filter(row => row.plot_x !== null && row.plot_x !== undefined && row.plot_y !== null && row.plot_y !== undefined)
+        .filter(row => pointView !== "raw" || row.group !== "LLM" || row.point_kind === "raw LLM output");
       const traces = [];
-      const repairRows = rows.filter(row => row.raw_feasible_utility !== null && row.raw_compliance_rate !== null && row.feasible_utility !== null && row.compliance_rate !== null);
-      if (showRepairLinks && yMetric === "feasible_utility" && xMetric === "compliance_rate") {{
-        repairRows.forEach((row, index) => traces.push({{
+      const linkRows = rows.filter(row => hasRawPoint(row, rawXMetric, rawYMetric) && row[xMetric] !== null && row[xMetric] !== undefined && row[yMetric] !== null && row[yMetric] !== undefined);
+      if (pointView === "both" && canShowRepair) {{
+        linkRows.forEach((row, index) => traces.push({{
             type: "scatter",
             mode: "lines",
             name: "raw -> final repair",
@@ -855,19 +888,19 @@ def write_results_dashboard(
             hoverinfo: "text",
             line: {{color: "#9aa5a1", width: 1.4, dash: "dot"}},
             opacity: 0.55,
-            x: [transformX(row.raw_compliance_rate, xMetric, xMode), transformX(row.compliance_rate, xMetric, xMode)],
-            y: [row.raw_feasible_utility, row.feasible_utility],
-            text: [`${{row.system_name}}<br>raw compliance: ${{fmt(row.raw_compliance_rate)}}<br>raw utility: ${{fmt(row.raw_feasible_utility)}}`, `${{row.system_name}}<br>final compliance: ${{fmt(row.compliance_rate)}}<br>final utility: ${{fmt(row.feasible_utility)}}`]
+            x: [transformX(row[rawXMetric], xMetric, xMode), transformX(row[xMetric], xMetric, xMode)],
+            y: [row[rawYMetric], row[yMetric]],
+            text: [`${{row.system_name}}<br>raw ${{xMetric}}: ${{fmt(row[rawXMetric])}}<br>raw ${{yMetric}}: ${{fmt(row[rawYMetric])}}`, `${{row.system_name}}<br>final ${{xMetric}}: ${{fmt(row[xMetric])}}<br>final ${{yMetric}}: ${{fmt(row[yMetric])}}`]
         }}));
         traces.push({{
           type: "scatter",
           mode: "markers",
           name: "raw output",
           legendgroup: "repair_links",
-          x: repairRows.map(row => transformX(row.raw_compliance_rate, xMetric, xMode)),
-          y: repairRows.map(row => row.raw_feasible_utility),
-          customdata: repairRows.map(row => [row.system_name, row.raw_compliance_rate, row.raw_feasible_utility, row.compliance_rate, row.feasible_utility]),
-          hovertemplate: "<b>%{{customdata[0]}}</b><br>raw output<br>raw compliance: %{{customdata[1]:.3f}}<br>raw utility: %{{customdata[2]:.3f}}<br>final compliance: %{{customdata[3]:.3f}}<br>final utility: %{{customdata[4]:.3f}}<extra></extra>",
+          x: linkRows.map(row => transformX(row[rawXMetric], xMetric, xMode)),
+          y: linkRows.map(row => row[rawYMetric]),
+          customdata: linkRows.map(row => [row.system_name, row[rawXMetric], row[rawYMetric], row[xMetric], row[yMetric]]),
+          hovertemplate: "<b>%{{customdata[0]}}</b><br>raw output<br>raw x: %{{customdata[1]:.3f}}<br>raw y: %{{customdata[2]:.3f}}<br>final x: %{{customdata[3]:.3f}}<br>final y: %{{customdata[4]:.3f}}<extra></extra>",
           marker: {{symbol: "circle-open", size: 11, color: "#64717f", line: {{color: "#64717f", width: 2}}}}
         }});
       }}
@@ -878,11 +911,11 @@ def write_results_dashboard(
           type: "scatter",
           mode: "markers",
           name: group,
-          x: groupRows.map(row => transformX(row[xMetric], xMetric, xMode)),
-          y: groupRows.map(row => row[yMetric]),
-          customdata: groupRows.map(row => [row.system_name, row.description, row[xMetric], row[yMetric], row.condition || "none"]),
-          hovertemplate: "<b>%{{customdata[0]}}</b><br>%{{customdata[1]}}<br>" + xMetric + ": %{{customdata[2]:.3f}}<br>" + yMetric + ": %{{customdata[3]:.3f}}<br>condition: %{{customdata[4]}}<extra></extra>",
-          marker: {{size: group === "Oracle" ? 15 : 11, color: colors[group] || colors.Other, opacity: 0.88, line: {{color: "#ffffff", width: 1}}}}
+          x: groupRows.map(row => transformX(row.plot_x, xMetric, xMode)),
+          y: groupRows.map(row => row.plot_y),
+          customdata: groupRows.map(row => [row.system_name, row.description, row.plot_x, row.plot_y, row.condition || "none", row.point_kind]),
+          hovertemplate: "<b>%{{customdata[0]}}</b><br>%{{customdata[5]}}<br>%{{customdata[1]}}<br>" + xMetric + ": %{{customdata[2]:.3f}}<br>" + yMetric + ": %{{customdata[3]:.3f}}<br>condition: %{{customdata[4]}}<extra></extra>",
+          marker: {{size: group === "Oracle" ? 15 : 11, color: colors[group] || colors.Other, symbol: groupRows.map(row => row.marker_symbol), opacity: 0.88, line: {{color: "#ffffff", width: 1}}}}
         }});
       }}
       const tickValues = xTickValues(xMetric, xMode);
@@ -891,9 +924,16 @@ def write_results_dashboard(
       layout.xaxis.tickvals = tickValues.map(value => transformX(value, xMetric, xMode));
       layout.xaxis.ticktext = tickValues.map(value => xTickLabel(value, xMode));
       Plotly.react("scatter", traces, layout, plotlyConfig);
-      document.getElementById("repairLinkNote").textContent = showRepairLinks
-        ? "Open grey circles are raw LLM outputs. Dotted grey segments connect each raw output to that same system's final validator-repaired point."
-        : "Grey raw-to-final repair links are hidden by default; enable them to inspect how validator repair moves LLM rows.";
+      const note = document.getElementById("repairLinkNote");
+      if (pointView === "raw") {{
+        note.textContent = "Showing raw LLM output points where raw metrics are available; LLM rows without raw metrics are omitted, while deterministic baselines and oracle controls remain as context.";
+      }} else if (pointView === "both" && canShowRepair) {{
+        note.textContent = "Open grey circles are raw LLM outputs. Dotted grey segments connect each raw point to that same system's final scored point.";
+      }} else if (pointView === "both") {{
+        note.textContent = "Raw-to-final repair links require a final metric with a matching raw metric. Use final utility/compliance or final NDCG/compliance to inspect repair movement.";
+      }} else {{
+        note.textContent = "Showing final scored outputs. For validator rows, final points may include deterministic repair.";
+      }}
       document.getElementById("legend").innerHTML = "";
     }}
 
@@ -984,7 +1024,7 @@ def write_results_dashboard(
     document.getElementById("xMetric").addEventListener("change", renderScatter);
     document.getElementById("xScale").addEventListener("change", renderScatter);
     document.getElementById("yMetric").addEventListener("change", renderScatter);
-    document.getElementById("showRepairLinks").addEventListener("change", renderScatter);
+    document.getElementById("repairPointView").addEventListener("change", renderScatter);
     document.getElementById("groupFilter").addEventListener("change", renderTable);
     document.getElementById("searchBox").addEventListener("input", renderTable);
     renderSummary();
