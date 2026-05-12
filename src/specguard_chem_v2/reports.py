@@ -425,6 +425,20 @@ def write_results_dashboard(
     .flow-step {{ border: 1px solid var(--line); border-radius: 7px; padding: 10px; background: #fbfcfa; min-height: 86px; }}
     .flow-step strong {{ display: block; margin-bottom: 4px; }}
     .flow-step small {{ color: var(--muted); }}
+    .hypothesis-grid {{ display: grid; grid-template-columns: repeat(2, minmax(260px, 1fr)); gap: 12px; }}
+    .hypothesis {{
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fbfcfa;
+      padding: 12px;
+    }}
+    .hypothesis-title {{ display: flex; align-items: start; justify-content: space-between; gap: 12px; margin-bottom: 6px; }}
+    .hypothesis-title strong {{ font-size: 14px; }}
+    .status {{ border-radius: 999px; color: #fff; display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; white-space: nowrap; }}
+    .status-supported {{ background: #0f766e; }}
+    .status-partial {{ background: #a16207; }}
+    .status-caveat {{ background: #475569; }}
+    .evidence {{ color: var(--muted); margin: 0; }}
     .term {{
       border-bottom: 1px dotted var(--muted);
       cursor: help;
@@ -490,7 +504,7 @@ def write_results_dashboard(
     summary {{ cursor: pointer; font-weight: 600; }}
     code {{ background: #edf0ec; padding: 1px 4px; border-radius: 4px; }}
     @media (max-width: 980px) {{
-      .summary-grid, .plot-grid, .flow {{ grid-template-columns: 1fr; }}
+      .summary-grid, .plot-grid, .flow, .hypothesis-grid {{ grid-template-columns: 1fr; }}
       main {{ padding: 16px; }}
       header {{ padding: 22px 18px 14px; }}
     }}
@@ -513,6 +527,12 @@ def write_results_dashboard(
         <div class="flow-step"><strong><span class="term" tabindex="0" data-tooltip="Deterministic harness logic for schema, candidate IDs, duplicates, support-set exclusion, and RDKit/property constraints. It does not use hidden activity.">4. Validator</span></strong><small>Deterministic schema, ID, duplicate, support-exclusion, and RDKit/property checks.</small></div>
         <div class="flow-step"><strong>5. Scoring</strong><small>Utility, compliance, regret, repair rate, and frontier plots.</small></div>
       </div>
+    </section>
+
+    <section class="panel" style="margin-top:16px">
+      <h2>Original Hypotheses and Evidence</h2>
+      <p class="subtle">This panel links the completed comparison table back to the project brief. It is descriptive, not a replacement for statistical analysis in the manuscript.</p>
+      <div id="hypotheses" class="hypothesis-grid"></div>
     </section>
 
     <section class="grid plot-grid" style="margin-top:16px">
@@ -645,6 +665,87 @@ def write_results_dashboard(
         </div>`).join("");
     }}
 
+    function rowByName(name) {{
+      return rows.find(row => row.system_name === name) || null;
+    }}
+
+    function bestRow(metric, filterFn = () => true) {{
+      return rows
+        .filter(row => filterFn(row) && row[metric] !== null)
+        .sort((a, b) => b[metric] - a[metric])[0] || null;
+    }}
+
+    function metricRange(metric, filterFn = () => true) {{
+      const values = rows.filter(row => filterFn(row) && row[metric] !== null).map(row => row[metric]);
+      if (!values.length) return null;
+      return {{min: Math.min(...values), max: Math.max(...values)}};
+    }}
+
+    function renderHypotheses() {{
+      const bestQsar = bestRow("feasible_utility", row => row.group === "QSAR");
+      const bestLlmFinal = bestRow("feasible_utility", row => row.group === "LLM");
+      const bestRawLlm = bestRow("raw_feasible_utility", row => row.group === "LLM");
+      const similarity = rowByName("similarity_to_best_active");
+      const bareOpenai = rowByName("bare_llm__openai_frontier_selector");
+      const toolsOpenai = rowByName("llm_tools__openai_frontier_selector");
+      const validatorOpenai = rowByName("llm_validator__openai_frontier_selector");
+      const repairRows = rows
+        .filter(row => row.raw_feasible_utility !== null && row.feasible_utility !== null)
+        .map(row => ({{...row, delta: row.feasible_utility - row.raw_feasible_utility}}))
+        .sort((a, b) => b.delta - a.delta);
+      const biggestRepair = repairRows[0];
+      const perfectComplianceRange = metricRange("feasible_utility", row => row.group !== "Oracle" && row.compliance_rate !== null && row.compliance_rate >= 0.999);
+      const hypotheses = [
+        {{
+          label: "H1",
+          status: "Supported",
+          statusClass: "status-supported",
+          title: "Validators raise compliance more reliably than utility.",
+          evidence: biggestRepair
+            ? `Largest observed raw-to-final utility shift is ${{biggestRepair.system_name}}: +${{fmt(biggestRepair.delta)}} feasible utility, with repaired_rate ${{fmt(biggestRepair.repaired_rate)}}. These final scores are guarded-system behavior, not raw model behavior.`
+            : "Raw-to-final repair data were not available for this table."
+        }},
+        {{
+          label: "H2",
+          status: "Supported",
+          statusClass: "status-supported",
+          title: "Simple QSAR and similarity baselines are competitive.",
+          evidence: `Best QSAR is ${{bestQsar?.system_name || "n/a"}} at ${{fmt(bestQsar?.feasible_utility)}} feasible utility; best LLM final is ${{bestLlmFinal?.system_name || "n/a"}} at ${{fmt(bestLlmFinal?.feasible_utility)}}; similarity-to-best-active is ${{fmt(similarity?.feasible_utility)}}.`
+        }},
+        {{
+          label: "H3",
+          status: "Partial",
+          statusClass: "status-partial",
+          title: "The best LLM system is likely hybrid, not a naked LLM.",
+          evidence: `For OpenAI direct JSON, bare LLM is ${{fmt(bareOpenai?.feasible_utility)}}, tools-only is ${{fmt(toolsOpenai?.feasible_utility)}}, and validator-assisted is ${{fmt(validatorOpenai?.feasible_utility)}}. Hybrid/guarded LLM rows improve on bare LLMs, but none beats the best QSAR baseline.`
+        }},
+        {{
+          label: "H4",
+          status: "Supported",
+          statusClass: "status-supported",
+          title: "Compliance and utility are imperfectly correlated.",
+          evidence: perfectComplianceRange
+            ? `Among non-oracle rows with final compliance near 1.0, feasible utility ranges from ${{fmt(perfectComplianceRange.min)}} to ${{fmt(perfectComplianceRange.max)}}. Perfect compliance alone does not imply strong prioritisation utility.`
+            : "No near-perfect compliance rows were available."
+        }},
+        {{
+          label: "Central contention",
+          status: "Caveat",
+          statusClass: "status-caveat",
+          title: "Compliance is not utility.",
+          evidence: `The current results support the audit framing: direct-JSON LLMs can become valid and useful, but best raw LLM utility (${{fmt(bestRawLlm?.raw_feasible_utility)}}) remains below best QSAR utility (${{fmt(bestQsar?.feasible_utility)}}), and validator repair can materially change final scores.`
+        }}
+      ];
+      document.getElementById("hypotheses").innerHTML = hypotheses.map(item => `
+        <article class="hypothesis">
+          <div class="hypothesis-title">
+            <strong>${{item.label}}: ${{item.title}}</strong>
+            <span class="status ${{item.statusClass}}">${{item.status}}</span>
+          </div>
+          <p class="evidence">${{item.evidence}}</p>
+        </article>`).join("");
+    }}
+
     function effectiveXScale(metric, requested) {{
       if (requested !== "auto") return requested;
       if (metric.includes("compliance")) return "log_gap";
@@ -672,9 +773,46 @@ def write_results_dashboard(
     }}
 
     function xAxisLabel(metric, mode) {{
-      if (mode === "log_gap") return `${{metric}} (log distance from 1.0; right is better)`;
+      if (mode === "log_gap") return `${{metric}}<br>(log distance from 1.0; right is better)`;
       if (mode === "log_value") return `${{metric}} (log value)`;
       return metric;
+    }}
+
+    function wrapPlotLabel(value, maxLineLength = 24) {{
+      const text = String(value);
+      const chunks = text.split("__");
+      const lines = [];
+      let current = "";
+      for (const chunk of chunks) {{
+        const part = current ? "__" + chunk : chunk;
+        if (current && current.length + part.length > maxLineLength) {{
+          lines.push(current);
+          current = chunk;
+        }} else {{
+          current += part;
+        }}
+      }}
+      if (current) lines.push(current);
+      const expanded = [];
+      for (const line of lines) {{
+        if (line.length <= maxLineLength + 8) {{
+          expanded.push(line);
+          continue;
+        }}
+        const pieces = line.split("_");
+        let subline = "";
+        for (const piece of pieces) {{
+          const part = subline ? "_" + piece : piece;
+          if (subline && subline.length + part.length > maxLineLength) {{
+            expanded.push(subline);
+            subline = piece;
+          }} else {{
+            subline += part;
+          }}
+        }}
+        if (subline) expanded.push(subline);
+      }}
+      return expanded.join("<br>");
     }}
 
     function plotlyLayout(title, xTitle, yTitle, height = 460) {{
@@ -687,8 +825,8 @@ def write_results_dashboard(
         hovermode: "closest",
         legend: {{orientation: "h", y: -0.22}},
         font: {{family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", color: "#1f2933"}},
-        xaxis: {{title: xTitle, gridcolor: "#e4e8e4", zerolinecolor: "#cbd5d0"}},
-        yaxis: {{title: yTitle, gridcolor: "#e4e8e4", zerolinecolor: "#cbd5d0"}}
+        xaxis: {{title: xTitle, gridcolor: "#e4e8e4", zerolinecolor: "#cbd5d0", automargin: true}},
+        yaxis: {{title: yTitle, gridcolor: "#e4e8e4", zerolinecolor: "#cbd5d0", automargin: true}}
       }};
     }}
 
@@ -752,8 +890,12 @@ def write_results_dashboard(
         hovertemplate: "<b>%{{y}}</b><br>%{{customdata[0]}}<br>utility: %{{x:.3f}}<br>NDCG@k: %{{customdata[1]:.3f}}<br>compliance: %{{customdata[2]:.3f}}<extra></extra>"
       }};
       const layout = plotlyLayout("Primary-system leaderboard", "feasible_utility", "", 560);
-      layout.margin = {{l: 250, r: 24, t: 42, b: 52}};
+      layout.margin = {{l: 138, r: 24, t: 42, b: 52}};
       layout.showlegend = false;
+      layout.yaxis.tickmode = "array";
+      layout.yaxis.tickvals = plotRows.map(row => row.system_name);
+      layout.yaxis.ticktext = plotRows.map(row => wrapPlotLabel(row.system_name, 22));
+      layout.yaxis.tickfont = {{size: 11}};
       Plotly.react("leaderboard", [trace], layout, plotlyConfig);
     }}
 
@@ -779,8 +921,12 @@ def write_results_dashboard(
         hovertemplate: "<b>%{{y}}</b><br>%{{customdata[3]}}<br>raw utility: %{{customdata[0]:.3f}}<br>final utility: %{{customdata[1]:.3f}}<br>delta: %{{x:+.3f}}<br>repaired rate: %{{customdata[2]:.3f}}<extra></extra>"
       }};
       const layout = plotlyLayout("Validator repair effect", "final - raw feasible utility", "", 500);
-      layout.margin = {{l: 250, r: 24, t: 42, b: 52}};
+      layout.margin = {{l: 138, r: 24, t: 42, b: 52}};
       layout.showlegend = false;
+      layout.yaxis.tickmode = "array";
+      layout.yaxis.tickvals = plotRows.map(row => row.system_name);
+      layout.yaxis.ticktext = plotRows.map(row => wrapPlotLabel(row.system_name, 22));
+      layout.yaxis.tickfont = {{size: 11}};
       layout.xaxis.zeroline = true;
       layout.xaxis.zerolinewidth = 2;
       layout.xaxis.zerolinecolor = "#64717f";
@@ -821,6 +967,7 @@ def write_results_dashboard(
     document.getElementById("groupFilter").addEventListener("change", renderTable);
     document.getElementById("searchBox").addEventListener("input", renderTable);
     renderSummary();
+    renderHypotheses();
     renderScatter();
     renderLeaderboard();
     renderRepairBars();

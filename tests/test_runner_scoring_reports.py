@@ -257,6 +257,9 @@ def test_compare_and_frontier_plot(tmp_path: Path) -> None:
     assert "xScale" in dashboard_text
     assert "Plotly.react" in dashboard_text
     assert "data-tooltip" in dashboard_text
+    assert "Original Hypotheses and Evidence" in dashboard_text
+    assert "Compliance is not utility" in dashboard_text
+    assert "wrapPlotLabel" in dashboard_text
     assert "Primary Systems" in dashboard_text
     assert "term" in dashboard_text
 
