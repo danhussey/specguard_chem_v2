@@ -260,6 +260,9 @@ def test_compare_and_frontier_plot(tmp_path: Path) -> None:
     assert "Original Hypotheses and Evidence" in dashboard_text
     assert "Compliance is not utility" in dashboard_text
     assert "wrapPlotLabel" in dashboard_text
+    assert "wrapHoverText" in dashboard_text
+    assert "wrapIdentifier" in dashboard_text
+    assert "escapeHtml" in dashboard_text
     assert "repairPointView" in dashboard_text
     assert "Raw LLM points" in dashboard_text
     assert "Raw + final repair links" in dashboard_text

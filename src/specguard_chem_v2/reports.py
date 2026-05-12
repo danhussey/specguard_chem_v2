@@ -838,6 +838,37 @@ def write_results_dashboard(
       return expanded.join("<br>");
     }}
 
+    function escapeHtml(value) {{
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }}
+
+    function wrapHoverText(value, maxLineLength = 68) {{
+      const words = String(value || "").trim().split(/\s+/).filter(Boolean);
+      const lines = [];
+      let current = "";
+      for (const word of words) {{
+        if (!current) {{
+          current = word;
+        }} else if (current.length + 1 + word.length > maxLineLength) {{
+          lines.push(current);
+          current = word;
+        }} else {{
+          current += " " + word;
+        }}
+      }}
+      if (current) lines.push(current);
+      return lines.map(escapeHtml).join("<br>");
+    }}
+
+    function wrapIdentifier(value, maxLineLength = 44) {{
+      return wrapPlotLabel(value, maxLineLength).split("<br>").map(escapeHtml).join("<br>");
+    }}
+
     function plotlyLayout(title, xTitle, yTitle, height = 460) {{
       return {{
         title: {{text: title, font: {{size: 15}}, x: 0}},
@@ -846,6 +877,7 @@ def write_results_dashboard(
         margin: {{l: 72, r: 24, t: 42, b: 68}},
         height,
         hovermode: "closest",
+        hoverlabel: {{align: "left"}},
         legend: {{orientation: "h", y: -0.22}},
         font: {{family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", color: "#1f2933"}},
         xaxis: {{title: xTitle, gridcolor: "#e4e8e4", zerolinecolor: "#cbd5d0", automargin: true}},
@@ -890,7 +922,7 @@ def write_results_dashboard(
             opacity: 0.55,
             x: [transformX(row[rawXMetric], xMetric, xMode), transformX(row[xMetric], xMetric, xMode)],
             y: [row[rawYMetric], row[yMetric]],
-            text: [`${{row.system_name}}<br>raw ${{xMetric}}: ${{fmt(row[rawXMetric])}}<br>raw ${{yMetric}}: ${{fmt(row[rawYMetric])}}`, `${{row.system_name}}<br>final ${{xMetric}}: ${{fmt(row[xMetric])}}<br>final ${{yMetric}}: ${{fmt(row[yMetric])}}`]
+            text: [`<b>${{wrapIdentifier(row.system_name)}}</b><br>raw ${{escapeHtml(xMetric)}}: ${{fmt(row[rawXMetric])}}<br>raw ${{escapeHtml(yMetric)}}: ${{fmt(row[rawYMetric])}}`, `<b>${{wrapIdentifier(row.system_name)}}</b><br>final ${{escapeHtml(xMetric)}}: ${{fmt(row[xMetric])}}<br>final ${{escapeHtml(yMetric)}}: ${{fmt(row[yMetric])}}`]
         }}));
         traces.push({{
           type: "scatter",
@@ -899,7 +931,7 @@ def write_results_dashboard(
           legendgroup: "repair_links",
           x: linkRows.map(row => transformX(row[rawXMetric], xMetric, xMode)),
           y: linkRows.map(row => row[rawYMetric]),
-          customdata: linkRows.map(row => [row.system_name, row[rawXMetric], row[rawYMetric], row[xMetric], row[yMetric]]),
+          customdata: linkRows.map(row => [wrapIdentifier(row.system_name), row[rawXMetric], row[rawYMetric], row[xMetric], row[yMetric]]),
           hovertemplate: "<b>%{{customdata[0]}}</b><br>raw output<br>raw x: %{{customdata[1]:.3f}}<br>raw y: %{{customdata[2]:.3f}}<br>final x: %{{customdata[3]:.3f}}<br>final y: %{{customdata[4]:.3f}}<extra></extra>",
           marker: {{symbol: "circle-open", size: 11, color: "#64717f", line: {{color: "#64717f", width: 2}}}}
         }});
@@ -913,7 +945,7 @@ def write_results_dashboard(
           name: group,
           x: groupRows.map(row => transformX(row.plot_x, xMetric, xMode)),
           y: groupRows.map(row => row.plot_y),
-          customdata: groupRows.map(row => [row.system_name, row.description, row.plot_x, row.plot_y, row.condition || "none", row.point_kind]),
+          customdata: groupRows.map(row => [wrapIdentifier(row.system_name), wrapHoverText(row.description), row.plot_x, row.plot_y, wrapIdentifier(row.condition || "none"), row.point_kind]),
           hovertemplate: "<b>%{{customdata[0]}}</b><br>%{{customdata[5]}}<br>%{{customdata[1]}}<br>" + xMetric + ": %{{customdata[2]:.3f}}<br>" + yMetric + ": %{{customdata[3]:.3f}}<br>condition: %{{customdata[4]}}<extra></extra>",
           marker: {{size: group === "Oracle" ? 15 : 11, color: colors[group] || colors.Other, symbol: groupRows.map(row => row.marker_symbol), opacity: 0.88, line: {{color: "#ffffff", width: 1}}}}
         }});
@@ -946,8 +978,8 @@ def write_results_dashboard(
         x: plotRows.map(row => row.feasible_utility),
         y: plotRows.map(row => row.system_name),
         marker: {{color: plotRows.map(row => colors[row.group] || colors.Other)}},
-        customdata: plotRows.map(row => [row.description, row.ndcg_at_k, row.compliance_rate]),
-        hovertemplate: "<b>%{{y}}</b><br>%{{customdata[0]}}<br>utility: %{{x:.3f}}<br>NDCG@k: %{{customdata[1]:.3f}}<br>compliance: %{{customdata[2]:.3f}}<extra></extra>"
+        customdata: plotRows.map(row => [wrapHoverText(row.description), row.ndcg_at_k, row.compliance_rate, wrapIdentifier(row.system_name)]),
+        hovertemplate: "<b>%{{customdata[3]}}</b><br>%{{customdata[0]}}<br>utility: %{{x:.3f}}<br>NDCG@k: %{{customdata[1]:.3f}}<br>compliance: %{{customdata[2]:.3f}}<extra></extra>"
       }};
       const layout = plotlyLayout("Primary-system leaderboard", "feasible_utility", "", 560);
       layout.margin = {{l: 138, r: 24, t: 42, b: 52}};
@@ -977,8 +1009,8 @@ def write_results_dashboard(
         x: plotRows.map(row => row.delta),
         y: plotRows.map(row => row.system_name),
         marker: {{color: plotRows.map(row => row.delta >= 0 ? "#7c3aed" : "#ca8a04")}},
-        customdata: plotRows.map(row => [row.raw_feasible_utility, row.feasible_utility, row.repaired_rate, row.description]),
-        hovertemplate: "<b>%{{y}}</b><br>%{{customdata[3]}}<br>raw utility: %{{customdata[0]:.3f}}<br>final utility: %{{customdata[1]:.3f}}<br>delta: %{{x:+.3f}}<br>repaired rate: %{{customdata[2]:.3f}}<extra></extra>"
+        customdata: plotRows.map(row => [row.raw_feasible_utility, row.feasible_utility, row.repaired_rate, wrapHoverText(row.description), wrapIdentifier(row.system_name)]),
+        hovertemplate: "<b>%{{customdata[4]}}</b><br>%{{customdata[3]}}<br>raw utility: %{{customdata[0]:.3f}}<br>final utility: %{{customdata[1]:.3f}}<br>delta: %{{x:+.3f}}<br>repaired rate: %{{customdata[2]:.3f}}<extra></extra>"
       }};
       const layout = plotlyLayout("Validator repair effect", "final - raw feasible utility", "", 500);
       layout.margin = {{l: 138, r: 24, t: 42, b: 52}};
