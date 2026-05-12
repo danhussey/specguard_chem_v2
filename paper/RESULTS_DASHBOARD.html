@@ -91,47 +91,62 @@
       text-decoration: none;
       position: relative;
     }
-    .term::after {
+    .rich-tooltip {
       background: #17202a;
       border-radius: 6px;
       box-shadow: 0 8px 24px rgba(31, 41, 51, 0.22);
       color: #ffffff;
-      content: attr(data-tooltip);
+      display: none;
       font-size: 12px;
       font-weight: 500;
-      left: 0;
       line-height: 1.35;
-      max-width: min(320px, 80vw);
+      max-width: min(460px, calc(100vw - 24px));
       opacity: 0;
-      padding: 8px 10px;
+      padding: 10px 12px;
       pointer-events: none;
-      position: absolute;
+      position: fixed;
       text-transform: none;
-      top: calc(100% + 8px);
       transform: translateY(-4px);
       transition: opacity 120ms ease, transform 120ms ease;
       white-space: normal;
-      width: max-content;
-      z-index: 10;
+      z-index: 1000;
     }
-    .term::before {
-      border-left: 6px solid transparent;
-      border-right: 6px solid transparent;
-      border-bottom: 6px solid #17202a;
-      content: "";
-      left: 16px;
-      opacity: 0;
-      pointer-events: none;
-      position: absolute;
-      top: calc(100% + 2px);
-      transform: translateY(-4px);
-      transition: opacity 120ms ease, transform 120ms ease;
-      z-index: 11;
-    }
-    .term:hover::after, .term:focus::after,
-    .term:hover::before, .term:focus::before {
+    .rich-tooltip.visible {
+      display: block;
       opacity: 1;
       transform: translateY(0);
+    }
+    .rich-tooltip-title {
+      color: #ffffff;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .rich-tooltip-body { color: #edf2f0; }
+    .rich-tooltip-example {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 5px;
+      color: #f8fafc;
+      font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      margin: 8px 0 0;
+      overflow-x: auto;
+      padding: 8px;
+      white-space: pre-wrap;
+    }
+    .metric-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 4px 0 12px;
+    }
+    .metric-chip {
+      background: #edf0ec;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--ink);
+      display: inline-flex;
+      font-size: 12px;
+      padding: 3px 8px;
     }
     .chart { min-height: 420px; }
     .side-chart { min-height: 520px; }
@@ -159,19 +174,19 @@
 <body>
   <header>
     <h1>SpecGuard-Chem v2 CARA LO Paper-50 Direct-JSON Dashboard</h1>
-    <div class="subtle">Generated at <code>2026-05-12T08:30:08.114354+00:00</code> from <code>paper/tables/cara_lo_paper_50_selector_completed/system_comparison.csv</code></div>
+    <div class="subtle">Generated at <code>2026-05-12T08:53:00.378499+00:00</code> from <code>paper/tables/cara_lo_paper_50_selector_completed/system_comparison.csv</code></div>
   </header>
   <main>
     <section class="grid summary-grid" id="summaryCards"></section>
 
     <section class="panel" style="margin-top:16px">
-      <h2><span class="term" tabindex="0" data-tooltip="The reproducible path from frozen decision cards to scored result artifacts.">Run Pipeline</span></h2>
+      <h2><span class="term" tabindex="0" data-tooltip="The reproducible path from frozen decision cards to scored result artifacts." data-example="cards.jsonl -&gt; run traces.jsonl -&gt; score summary.json -&gt; comparison CSV -&gt; dashboard/report">Run Pipeline</span></h2>
       <div class="flow">
-        <div class="flow-step"><strong><span class="term" tabindex="0" data-tooltip="One benchmark instance: support compounds, candidate pool, hard constraints, budget k, and hidden scorer-only activity values.">1. Decision cards</span></strong><small>Support set, candidate pool, hard constraints, and budget k.</small></div>
-        <div class="flow-step"><strong>2. System output</strong><small>Baselines or LLMs return ranked candidate IDs.</small></div>
-        <div class="flow-step"><strong><span class="term" tabindex="0" data-tooltip="Scores the model output before deterministic validator repair, so repaired behavior is not mistaken for raw model behavior.">3. Raw audit</span></strong><small>Raw LLM selections are scored before repair where available.</small></div>
-        <div class="flow-step"><strong><span class="term" tabindex="0" data-tooltip="Deterministic harness logic for schema, candidate IDs, duplicates, support-set exclusion, and RDKit/property constraints. It does not use hidden activity.">4. Validator</span></strong><small>Deterministic schema, ID, duplicate, support-exclusion, and RDKit/property checks.</small></div>
-        <div class="flow-step"><strong>5. Scoring</strong><small>Utility, compliance, regret, repair rate, and frontier plots.</small></div>
+        <div class="flow-step"><strong><span class="term" tabindex="0" data-tooltip="One benchmark instance: support compounds, candidate pool, hard constraints, budget k, and hidden scorer-only activity values." data-example="{&#10;  &quot;task_id&quot;: &quot;CARA_LO_assay_0001&quot;,&#10;  &quot;budget_k&quot;: 10,&#10;  &quot;support_set&quot;: [{&quot;id&quot;: &quot;S001&quot;, &quot;smiles&quot;: &quot;...&quot;, &quot;pIC50&quot;: 6.4}],&#10;  &quot;candidate_pool&quot;: [{&quot;id&quot;: &quot;C017&quot;, &quot;mw&quot;: 412.2, &quot;clogp&quot;: 3.1}],&#10;  &quot;hard_constraints&quot;: [&quot;MW &lt;= 500&quot;, &quot;cLogP &lt;= 4.5&quot;, &quot;no support compounds&quot;]&#10;}">1. Decision cards</span></strong><small>Support set, candidate pool, hard constraints, and budget k.</small></div>
+        <div class="flow-step"><strong><span class="term" tabindex="0" data-tooltip="The runnable system returns an ordered batch of candidate IDs. Baselines produce this deterministically; LLM rows produce it from the prompt response." data-example="{&#10;  &quot;selections&quot;: [&#10;    {&quot;rank&quot;: 1, &quot;candidate_id&quot;: &quot;C017&quot;, &quot;confidence&quot;: 0.72},&#10;    {&quot;rank&quot;: 2, &quot;candidate_id&quot;: &quot;C042&quot;, &quot;confidence&quot;: 0.61}&#10;  ]&#10;}">2. System output</span></strong><small>Baselines or LLMs return ranked candidate IDs.</small></div>
+        <div class="flow-step"><strong><span class="term" tabindex="0" data-tooltip="Scores and records the model output before deterministic validator repair, so repaired behavior is not mistaken for raw model behavior." data-example="raw_output: C017, C017, S003&#10;raw_issues: duplicate C017; support compound S003; fewer than k unique valid candidate IDs">3. Raw audit</span></strong><small>Raw LLM selections are scored before repair where available.</small></div>
+        <div class="flow-step"><strong><span class="term" tabindex="0" data-tooltip="Deterministic harness logic for schema, candidate IDs, duplicates, support-set exclusion, and RDKit/property constraints. It does not use hidden activity." data-example="kept: C017&#10;rejected: duplicate C017, support compound S003&#10;filled missing slots from fallback_ranking(card)&#10;validator_repaired: true">4. Validator</span></strong><small>Deterministic schema, ID, duplicate, support-exclusion, and RDKit/property checks.</small></div>
+        <div class="flow-step"><strong><span class="term" tabindex="0" data-tooltip="Computes utility, ranking quality, compliance, regret, repair rates, and comparison tables from the final output and raw output where available." data-example="feasible_utility = sum(hidden activity for valid selected IDs)&#10;compliance_rate = valid_selected_count / budget_k&#10;constrained_regret = oracle_valid_topk_utility - feasible_utility">5. Scoring</span></strong><small>Utility, compliance, regret, repair rate, and frontier plots.</small></div>
       </div>
     </section>
 
@@ -185,7 +200,7 @@
       <div class="panel">
         <h2><span class="term" tabindex="0" data-tooltip="Scatter plot separating specification compliance on the x-axis from medicinal-chemistry decision utility on the y-axis.">Compliance-Utility Frontier</span></h2>
         <div class="controls">
-          <label>Y metric
+          <label><span class="term" tabindex="0" data-tooltip="Metric plotted on the vertical axis. Hover the selected metric chip below for the calculation.">Y metric</span>
             <select id="yMetric">
               <option value="feasible_utility">Final feasible utility</option>
               <option value="raw_feasible_utility">Raw feasible utility</option>
@@ -193,7 +208,7 @@
               <option value="raw_ndcg_at_k">Raw NDCG@k</option>
             </select>
           </label>
-          <label>X metric
+          <label><span class="term" tabindex="0" data-tooltip="Metric plotted on the horizontal axis. Hover the selected metric chip below for the calculation.">X metric</span>
             <select id="xMetric">
               <option value="compliance_rate">Final compliance</option>
               <option value="raw_compliance_rate">Raw compliance</option>
@@ -201,7 +216,7 @@
               <option value="raw_schema_error_rate">Raw schema error</option>
             </select>
           </label>
-          <label>X scale
+          <label><span class="term" tabindex="0" data-tooltip="How the x-axis is transformed. Log gap to 1.0 expands values clustered near perfect compliance; log value expands small error rates.">X scale</span>
             <select id="xScale">
               <option value="auto" selected>Auto log for clustered rates</option>
               <option value="linear">Linear</option>
@@ -218,6 +233,7 @@
             </select>
           </label>
         </div>
+        <div class="metric-chip-row" id="selectedMetricDefinitions"></div>
         <p class="subtle" id="repairLinkNote">Showing final scored outputs. For validator rows, final points may include deterministic repair.</p>
         <div id="scatter" class="chart"></div>
         <div class="legend" id="legend"></div>
@@ -266,12 +282,12 @@
             <tr>
               <th>System</th>
               <th>Group</th>
-              <th><span class="term" tabindex="0" data-tooltip="Final utility after any validator repair. Sums hidden activity for selected candidates that satisfy hard constraints. Higher is better.">Utility</span></th>
-              <th><span class="term" tabindex="0" data-tooltip="Utility before validator repair. This is the closer measure of raw LLM behavior. Higher is better.">Raw utility</span></th>
-              <th><span class="term" tabindex="0" data-tooltip="Final ranking quality using hidden activity as graded relevance. 1.0 is ideal.">NDCG</span></th>
-              <th><span class="term" tabindex="0" data-tooltip="Fraction of requested selections that are valid after final repair, if repair applies.">Compliance</span></th>
-              <th><span class="term" tabindex="0" data-tooltip="Fraction of requested selections that are valid before validator repair.">Raw compliance</span></th>
-              <th><span class="term" tabindex="0" data-tooltip="Fraction of cards where the final validator changed the raw model output.">Repaired</span></th>
+              <th><span class="term" tabindex="0" data-tooltip-title="feasible_utility" data-tooltip="Final utility after any validator repair. Sums hidden activity for selected candidates that satisfy hard constraints. Higher is better." data-example="Example: k=3 and the final valid selections have hidden activities 7.2, 6.8, and 0.0 for an invalid or missing slot. feasible_utility = 7.2 + 6.8 + 0.0 = 14.0.">Utility</span></th>
+              <th><span class="term" tabindex="0" data-tooltip-title="raw_feasible_utility" data-tooltip="Utility before validator repair. This is the closer measure of raw LLM behavior. Higher is better." data-example="Same calculation as feasible_utility, but applied to the model&#x27;s raw output before deterministic validator repair.">Raw utility</span></th>
+              <th><span class="term" tabindex="0" data-tooltip-title="ndcg_at_k" data-tooltip="Final ranking quality using hidden activity as graded relevance. 1.0 is ideal." data-example="Example: the best possible valid ranking has DCG=18.0 and the system ranking has DCG=14.4. NDCG@k = 14.4 / 18.0 = 0.80.">NDCG</span></th>
+              <th><span class="term" tabindex="0" data-tooltip-title="compliance_rate" data-tooltip="Fraction of requested selections that are valid after final repair, if repair applies." data-example="Example: budget k=10 and 9 final selections are valid candidate IDs satisfying all hard constraints. compliance_rate = 9 / 10 = 0.90.">Compliance</span></th>
+              <th><span class="term" tabindex="0" data-tooltip-title="raw_compliance_rate" data-tooltip="Fraction of requested selections that are valid before validator repair." data-example="Same compliance calculation, but on the raw model output before validator repair.">Raw compliance</span></th>
+              <th><span class="term" tabindex="0" data-tooltip-title="repaired_rate" data-tooltip="Fraction of cards where the final validator changed the raw model output." data-example="Example: if validator repair changed 12 out of 50 raw card outputs, repaired_rate = 12 / 50 = 0.24.">Repaired</span></th>
               <th>Description</th>
             </tr>
           </thead>
@@ -284,6 +300,7 @@
       <summary>Metric definitions</summary>
       <dl id="metricDefinitions"></dl>
     </details>
+    <div id="richTooltip" class="rich-tooltip" role="tooltip" aria-hidden="true"></div>
   </main>
   <script>
 /**
@@ -4172,6 +4189,7 @@ return Plotly;
   <script>
     const rows = [{"base_system": "oracle_valid_topk", "compliance_rate": 1.0, "condition": "", "constrained_regret": 0.0, "description": "Non-deployable upper-bound control that ranks valid candidates using hidden activity values.", "display_name": "Oracle upper-bound", "feasible_utility": 89.0217, "group": "Oracle", "ndcg_at_k": 1.0, "provider": "", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "oracle_valid_topk"}, {"base_system": "qsar_svm", "compliance_rate": 1.0, "condition": "", "constrained_regret": 7.639400000000001, "description": "Trains a sparse-scaled linear-kernel support-vector regressor on support-set Morgan fingerprints and measured activity, then ranks feasible candidates by predicted activity.", "display_name": "QSAR linear SVR", "feasible_utility": 81.3823, "group": "QSAR", "ndcg_at_k": 0.9095927114580384, "provider": "", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "qsar_svm"}, {"base_system": "qsar_gbt", "compliance_rate": 1.0, "condition": "", "constrained_regret": 8.1338, "description": "Trains a gradient-boosting regressor on support-set Morgan fingerprints and measured activity, then ranks feasible candidates by predicted activity.", "display_name": "QSAR gradient boosting", "feasible_utility": 80.8879, "group": "QSAR", "ndcg_at_k": 0.9001640764345573, "provider": "", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "qsar_gbt"}, {"base_system": "qsar_rf", "compliance_rate": 1.0, "condition": "", "constrained_regret": 8.387599999999999, "description": "Trains a random forest regressor on support-set Morgan fingerprints and measured activity, then ranks feasible candidates by predicted activity.", "display_name": "QSAR random forest", "feasible_utility": 80.6341, "group": "QSAR", "ndcg_at_k": 0.9006286945492078, "provider": "", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "qsar_rf"}, {"base_system": "llm_validator", "compliance_rate": 1.0, "condition": "openai_frontier_selector", "constrained_regret": 10.8333, "description": "Checks raw model output and deterministically repairs invalid or missing slots where possible, without hidden activity. Direct-JSON frontier condition: final-answer JSON prompting with no explicit extended-thinking mode where avoidable.", "display_name": "LLM plus validator", "feasible_utility": 78.1884, "group": "LLM", "ndcg_at_k": 0.881293750124048, "provider": "openai", "raw_compliance_rate": 0.976, "raw_feasible_utility": 76.758, "raw_ndcg_at_k": 0.8676406104713894, "raw_schema_error_rate": 0.0, "repaired_from_empty_rate": 0.0, "repaired_rate": 0.14, "schema_error_rate": 0.0, "system_name": "llm_validator__openai_frontier_selector"}, {"base_system": "llm_tools_validator", "compliance_rate": 1.0, "condition": "openai_frontier_selector", "constrained_regret": 11.3342, "description": "Combines tool-summary candidate rows with deterministic validation and repair. Direct-JSON frontier condition: final-answer JSON prompting with no explicit extended-thinking mode where avoidable.", "display_name": "LLM plus tools and validator", "feasible_utility": 77.6875, "group": "LLM", "ndcg_at_k": 0.8734836495184645, "provider": "openai", "raw_compliance_rate": 0.994, "raw_feasible_utility": 77.20909999999999, "raw_ndcg_at_k": 0.8658117844419935, "raw_schema_error_rate": 0.0, "repaired_from_empty_rate": 0.0, "repaired_rate": 0.04, "schema_error_rate": 0.0, "system_name": "llm_tools_validator__openai_frontier_selector"}, {"base_system": "llm_tools", "compliance_rate": 0.99, "condition": "openai_frontier_selector", "constrained_regret": 11.8489, "description": "Adds computed tool-summary fields to the candidate rows before prompting the model. Direct-JSON frontier condition: final-answer JSON prompting with no explicit extended-thinking mode where avoidable.", "display_name": "LLM plus tool summaries", "feasible_utility": 77.1728, "group": "LLM", "ndcg_at_k": 0.8701706812915421, "provider": "openai", "raw_compliance_rate": 0.99, "raw_feasible_utility": 77.1728, "raw_ndcg_at_k": 0.8701706812915421, "raw_schema_error_rate": 0.0, "repaired_from_empty_rate": 0.0, "repaired_rate": 0.0, "schema_error_rate": 0.0, "system_name": "llm_tools__openai_frontier_selector"}, {"base_system": "bare_llm", "compliance_rate": 0.962, "condition": "openai_frontier_selector", "constrained_regret": 13.2405, "description": "Prompts the model to return ranked candidate IDs directly, with no deterministic repair. Direct-JSON frontier condition: final-answer JSON prompting with no explicit extended-thinking mode where avoidable.", "display_name": "Bare LLM", "feasible_utility": 75.7812, "group": "LLM", "ndcg_at_k": 0.8470572056237144, "provider": "openai", "raw_compliance_rate": 0.962, "raw_feasible_utility": 75.7812, "raw_ndcg_at_k": 0.8470572056237144, "raw_schema_error_rate": 0.0, "repaired_from_empty_rate": 0.0, "repaired_rate": 0.0, "schema_error_rate": 0.0, "system_name": "bare_llm__openai_frontier_selector"}, {"base_system": "llm_tools_validator", "compliance_rate": 1.0, "condition": "anthropic_frontier_selector", "constrained_regret": 14.551, "description": "Combines tool-summary candidate rows with deterministic validation and repair. Direct-JSON frontier condition: final-answer JSON prompting with no explicit extended-thinking mode where avoidable.", "display_name": "LLM plus tools and validator", "feasible_utility": 74.4707, "group": "LLM", "ndcg_at_k": 0.8340537013013269, "provider": "anthropic", "raw_compliance_rate": 0.822, "raw_feasible_utility": 62.8591, "raw_ndcg_at_k": 0.6841974568910913, "raw_schema_error_rate": 0.02, "repaired_from_empty_rate": 0.0, "repaired_rate": 0.58, "schema_error_rate": 0.0, "system_name": "llm_tools_validator__anthropic_frontier_selector"}, {"base_system": "llm_validator", "compliance_rate": 1.0, "condition": "anthropic_frontier_selector", "constrained_regret": 14.7477, "description": "Checks raw model output and deterministically repairs invalid or missing slots where possible, without hidden activity. Direct-JSON frontier condition: final-answer JSON prompting with no explicit extended-thinking mode where avoidable.", "display_name": "LLM plus validator", "feasible_utility": 74.274, "group": "LLM", "ndcg_at_k": 0.8324817427545911, "provider": "anthropic", "raw_compliance_rate": 0.71, "raw_feasible_utility": 55.3884, "raw_ndcg_at_k": 0.6021936269429466, "raw_schema_error_rate": 0.0, "repaired_from_empty_rate": 0.0, "repaired_rate": 0.72, "schema_error_rate": 0.0, "system_name": "llm_validator__anthropic_frontier_selector"}, {"base_system": "llm_tools_validator", "compliance_rate": 1.0, "condition": "anthropic_frontier", "constrained_regret": 15.0425, "description": "Combines tool-summary candidate rows with deterministic validation and repair. Original frontier/high-reasoning or provider-default frontier condition.", "display_name": "LLM plus tools and validator", "feasible_utility": 73.9792, "group": "LLM", "ndcg_at_k": 0.8323358381733874, "provider": "anthropic", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "llm_tools_validator__anthropic_frontier"}, {"base_system": "llm_validator", "compliance_rate": 1.0, "condition": "anthropic_frontier", "constrained_regret": 15.282799999999998, "description": "Checks raw model output and deterministically repairs invalid or missing slots where possible, without hidden activity. Original frontier/high-reasoning or provider-default frontier condition.", "display_name": "LLM plus validator", "feasible_utility": 73.7389, "group": "LLM", "ndcg_at_k": 0.8309550905248216, "provider": "anthropic", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "llm_validator__anthropic_frontier"}, {"base_system": "similarity_to_best_active", "compliance_rate": 1.0, "condition": "", "constrained_regret": 15.418499999999998, "description": "Ranks feasible candidates by Morgan-fingerprint Tanimoto similarity to the most active support compound.", "display_name": "Similarity-to-best-active baseline", "feasible_utility": 73.6032, "group": "Baseline", "ndcg_at_k": 0.8252633550888693, "provider": "", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "similarity_to_best_active"}, {"base_system": "llm_validator", "compliance_rate": 1.0, "condition": "deepseek_fast", "constrained_regret": 20.62, "description": "Checks raw model output and deterministically repairs invalid or missing slots where possible, without hidden activity. Lower-latency/lower-cost provider condition.", "display_name": "LLM plus validator", "feasible_utility": 68.4017, "group": "LLM", "ndcg_at_k": 0.7625753130298435, "provider": "deepseek", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "llm_validator__deepseek_fast"}, {"base_system": "llm_tools_validator", "compliance_rate": 1.0, "condition": "openai_fast", "constrained_regret": 21.3195, "description": "Combines tool-summary candidate rows with deterministic validation and repair. Lower-latency/lower-cost provider condition.", "display_name": "LLM plus tools and validator", "feasible_utility": 67.7022, "group": "LLM", "ndcg_at_k": 0.7515057907623737, "provider": "openai", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "llm_tools_validator__openai_fast"}, {"base_system": "llm_validator", "compliance_rate": 1.0, "condition": "deepseek_frontier_selector", "constrained_regret": 21.4004, "description": "Checks raw model output and deterministically repairs invalid or missing slots where possible, without hidden activity. Direct-JSON frontier condition: final-answer JSON prompting with no explicit extended-thinking mode where avoidable.", "display_name": "LLM plus validator", "feasible_utility": 67.6213, "group": "LLM", "ndcg_at_k": 0.7519676272558882, "provider": "deepseek", "raw_compliance_rate": 0.726, "raw_feasible_utility": 49.2013, "raw_ndcg_at_k": 0.551187471070077, "raw_schema_error_rate": 0.0, "repaired_from_empty_rate": 0.0, "repaired_rate": 0.56, "schema_error_rate": 0.0, "system_name": "llm_validator__deepseek_frontier_selector"}, {"base_system": "llm_tools_validator", "compliance_rate": 1.0, "condition": "anthropic_fast", "constrained_regret": 21.7962, "description": "Combines tool-summary candidate rows with deterministic validation and repair. Lower-latency/lower-cost provider condition.", "display_name": "LLM plus tools and validator", "feasible_utility": 67.2255, "group": "LLM", "ndcg_at_k": 0.7499669257905809, "provider": "anthropic", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "llm_tools_validator__anthropic_fast"}, {"base_system": "llm_tools_validator", "compliance_rate": 1.0, "condition": "deepseek_fast", "constrained_regret": 21.8043, "description": "Combines tool-summary candidate rows with deterministic validation and repair. Lower-latency/lower-cost provider condition.", "display_name": "LLM plus tools and validator", "feasible_utility": 67.2174, "group": "LLM", "ndcg_at_k": 0.748728329921694, "provider": "deepseek", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "llm_tools_validator__deepseek_fast"}, {"base_system": "llm_validator", "compliance_rate": 1.0, "condition": "openai_fast", "constrained_regret": 22.0216, "description": "Checks raw model output and deterministically repairs invalid or missing slots where possible, without hidden activity. Lower-latency/lower-cost provider condition.", "display_name": "LLM plus validator", "feasible_utility": 67.0001, "group": "LLM", "ndcg_at_k": 0.7439824912101305, "provider": "openai", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "llm_validator__openai_fast"}, {"base_system": "llm_tools_validator", "compliance_rate": 1.0, "condition": "deepseek_frontier_selector", "constrained_regret": 22.0739, "description": "Combines tool-summary candidate rows with deterministic validation and repair. Direct-JSON frontier condition: final-answer JSON prompting with no explicit extended-thinking mode where avoidable.", "display_name": "LLM plus tools and validator", "feasible_utility": 66.9478, "group": "LLM", "ndcg_at_k": 0.7401826987610386, "provider": "deepseek", "raw_compliance_rate": 0.864, "raw_feasible_utility": 57.8486, "raw_ndcg_at_k": 0.6353692963580958, "raw_schema_error_rate": 0.0, "repaired_from_empty_rate": 0.0, "repaired_rate": 0.38, "schema_error_rate": 0.0, "system_name": "llm_tools_validator__deepseek_frontier_selector"}, {"base_system": "llm_validator", "compliance_rate": 1.0, "condition": "anthropic_fast", "constrained_regret": 22.1409, "description": "Checks raw model output and deterministically repairs invalid or missing slots where possible, without hidden activity. Lower-latency/lower-cost provider condition.", "display_name": "LLM plus validator", "feasible_utility": 66.8808, "group": "LLM", "ndcg_at_k": 0.7408942718713442, "provider": "anthropic", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "llm_validator__anthropic_fast"}, {"base_system": "random_valid", "compliance_rate": 1.0, "condition": "", "constrained_regret": 22.1783, "description": "Samples valid candidates at random after deterministic feasibility filtering.", "display_name": "Random valid baseline", "feasible_utility": 66.8434, "group": "Baseline", "ndcg_at_k": 0.7390839124019264, "provider": "", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "random_valid"}, {"base_system": "rules_only", "compliance_rate": 1.0, "condition": "", "constrained_regret": 22.9786, "description": "Applies deterministic constraints, then ranks by simple molecular-property desirability around MW 350, cLogP 2.5, and TPSA 75.", "display_name": "Rule/desirability baseline", "feasible_utility": 66.0431, "group": "Baseline", "ndcg_at_k": 0.7305447011525146, "provider": "", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "rules_only"}, {"base_system": "llm_tools_validator", "compliance_rate": 1.0, "condition": "openai_frontier", "constrained_regret": 22.9786, "description": "Combines tool-summary candidate rows with deterministic validation and repair. Original frontier/high-reasoning or provider-default frontier condition.", "display_name": "LLM plus tools and validator", "feasible_utility": 66.0431, "group": "LLM", "ndcg_at_k": 0.7305447011525146, "provider": "openai", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "llm_tools_validator__openai_frontier"}, {"base_system": "llm_validator", "compliance_rate": 1.0, "condition": "openai_frontier", "constrained_regret": 22.9786, "description": "Checks raw model output and deterministically repairs invalid or missing slots where possible, without hidden activity. Original frontier/high-reasoning or provider-default frontier condition.", "display_name": "LLM plus validator", "feasible_utility": 66.0431, "group": "LLM", "ndcg_at_k": 0.7305447011525146, "provider": "openai", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "llm_validator__openai_frontier"}, {"base_system": "llm_tools", "compliance_rate": 0.782, "condition": "anthropic_frontier_selector", "constrained_regret": 29.1469, "description": "Adds computed tool-summary fields to the candidate rows before prompting the model. Direct-JSON frontier condition: final-answer JSON prompting with no explicit extended-thinking mode where avoidable.", "display_name": "LLM plus tool summaries", "feasible_utility": 59.8748, "group": "LLM", "ndcg_at_k": 0.6459898760118582, "provider": "anthropic", "raw_compliance_rate": 0.782, "raw_feasible_utility": 59.8748, "raw_ndcg_at_k": 0.6459898760118582, "raw_schema_error_rate": 0.0, "repaired_from_empty_rate": 0.0, "repaired_rate": 0.0, "schema_error_rate": 0.0, "system_name": "llm_tools__anthropic_frontier_selector"}, {"base_system": "llm_tools", "compliance_rate": 0.778, "condition": "anthropic_frontier", "constrained_regret": 29.6, "description": "Adds computed tool-summary fields to the candidate rows before prompting the model. Original frontier/high-reasoning or provider-default frontier condition.", "display_name": "LLM plus tool summaries", "feasible_utility": 59.4217, "group": "LLM", "ndcg_at_k": 0.6222912706515207, "provider": "anthropic", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "llm_tools__anthropic_frontier"}, {"base_system": "llm_tools", "compliance_rate": 0.81, "condition": "anthropic_fast", "constrained_regret": 33.5894, "description": "Adds computed tool-summary fields to the candidate rows before prompting the model. Lower-latency/lower-cost provider condition.", "display_name": "LLM plus tool summaries", "feasible_utility": 55.4323, "group": "LLM", "ndcg_at_k": 0.609595723232485, "provider": "anthropic", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "llm_tools__anthropic_fast"}, {"base_system": "llm_tools", "compliance_rate": 0.81, "condition": "deepseek_frontier_selector", "constrained_regret": 33.6139, "description": "Adds computed tool-summary fields to the candidate rows before prompting the model. Direct-JSON frontier condition: final-answer JSON prompting with no explicit extended-thinking mode where avoidable.", "display_name": "LLM plus tool summaries", "feasible_utility": 55.4078, "group": "LLM", "ndcg_at_k": 0.6078849864971202, "provider": "deepseek", "raw_compliance_rate": 0.81, "raw_feasible_utility": 55.4078, "raw_ndcg_at_k": 0.6078849864971202, "raw_schema_error_rate": 0.0, "repaired_from_empty_rate": 0.0, "repaired_rate": 0.0, "schema_error_rate": 0.0, "system_name": "llm_tools__deepseek_frontier_selector"}, {"base_system": "bare_llm", "compliance_rate": 0.692, "condition": "anthropic_frontier_selector", "constrained_regret": 35.242, "description": "Prompts the model to return ranked candidate IDs directly, with no deterministic repair. Direct-JSON frontier condition: final-answer JSON prompting with no explicit extended-thinking mode where avoidable.", "display_name": "Bare LLM", "feasible_utility": 53.7797, "group": "LLM", "ndcg_at_k": 0.5800388118875124, "provider": "anthropic", "raw_compliance_rate": 0.692, "raw_feasible_utility": 53.7797, "raw_ndcg_at_k": 0.5800388118875124, "raw_schema_error_rate": 0.0, "repaired_from_empty_rate": 0.0, "repaired_rate": 0.0, "schema_error_rate": 0.0, "system_name": "bare_llm__anthropic_frontier_selector"}, {"base_system": "bare_llm", "compliance_rate": 0.682, "condition": "anthropic_frontier", "constrained_regret": 35.699, "description": "Prompts the model to return ranked candidate IDs directly, with no deterministic repair. Original frontier/high-reasoning or provider-default frontier condition.", "display_name": "Bare LLM", "feasible_utility": 53.3227, "group": "LLM", "ndcg_at_k": 0.5787344413724205, "provider": "anthropic", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "bare_llm__anthropic_frontier"}, {"base_system": "llm_tools", "compliance_rate": 0.738, "condition": "openai_fast", "constrained_regret": 37.6313, "description": "Adds computed tool-summary fields to the candidate rows before prompting the model. Lower-latency/lower-cost provider condition.", "display_name": "LLM plus tool summaries", "feasible_utility": 51.3904, "group": "LLM", "ndcg_at_k": 0.5471258548289782, "provider": "openai", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "llm_tools__openai_fast"}, {"base_system": "bare_llm", "compliance_rate": 0.732, "condition": "openai_fast", "constrained_regret": 37.9544, "description": "Prompts the model to return ranked candidate IDs directly, with no deterministic repair. Lower-latency/lower-cost provider condition.", "display_name": "Bare LLM", "feasible_utility": 51.0673, "group": "LLM", "ndcg_at_k": 0.5569823806428502, "provider": "openai", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "bare_llm__openai_fast"}, {"base_system": "bare_llm", "compliance_rate": 0.75, "condition": "anthropic_fast", "constrained_regret": 38.9016, "description": "Prompts the model to return ranked candidate IDs directly, with no deterministic repair. Lower-latency/lower-cost provider condition.", "display_name": "Bare LLM", "feasible_utility": 50.1201, "group": "LLM", "ndcg_at_k": 0.5500878900498203, "provider": "anthropic", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "bare_llm__anthropic_fast"}, {"base_system": "bare_llm", "compliance_rate": 0.734, "condition": "deepseek_frontier_selector", "constrained_regret": 39.4501, "description": "Prompts the model to return ranked candidate IDs directly, with no deterministic repair. Direct-JSON frontier condition: final-answer JSON prompting with no explicit extended-thinking mode where avoidable.", "display_name": "Bare LLM", "feasible_utility": 49.5716, "group": "LLM", "ndcg_at_k": 0.5505553994940333, "provider": "deepseek", "raw_compliance_rate": 0.734, "raw_feasible_utility": 49.5716, "raw_ndcg_at_k": 0.5505553994940333, "raw_schema_error_rate": 0.0, "repaired_from_empty_rate": 0.0, "repaired_rate": 0.0, "schema_error_rate": 0.0, "system_name": "bare_llm__deepseek_frontier_selector"}, {"base_system": "llm_tools", "compliance_rate": 0.512, "condition": "deepseek_fast", "constrained_regret": 55.4957, "description": "Adds computed tool-summary fields to the candidate rows before prompting the model. Lower-latency/lower-cost provider condition.", "display_name": "LLM plus tool summaries", "feasible_utility": 33.526, "group": "LLM", "ndcg_at_k": 0.373457494391869, "provider": "deepseek", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.04, "system_name": "llm_tools__deepseek_fast"}, {"base_system": "bare_llm", "compliance_rate": 0.366, "condition": "deepseek_fast", "constrained_regret": 62.8601, "description": "Prompts the model to return ranked candidate IDs directly, with no deterministic repair. Lower-latency/lower-cost provider condition.", "display_name": "Bare LLM", "feasible_utility": 26.1616, "group": "LLM", "ndcg_at_k": 0.2809572577840991, "provider": "deepseek", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 0.0, "system_name": "bare_llm__deepseek_fast"}, {"base_system": "bare_llm", "compliance_rate": 0.0, "condition": "deepseek_frontier", "constrained_regret": 89.0217, "description": "Prompts the model to return ranked candidate IDs directly, with no deterministic repair. Original frontier/high-reasoning or provider-default frontier condition.", "display_name": "Bare LLM", "feasible_utility": 0.0, "group": "LLM", "ndcg_at_k": 0.0, "provider": "deepseek", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 1.0, "system_name": "bare_llm__deepseek_frontier"}, {"base_system": "bare_llm", "compliance_rate": 0.0, "condition": "openai_frontier", "constrained_regret": 89.0217, "description": "Prompts the model to return ranked candidate IDs directly, with no deterministic repair. Original frontier/high-reasoning or provider-default frontier condition.", "display_name": "Bare LLM", "feasible_utility": 0.0, "group": "LLM", "ndcg_at_k": 0.0, "provider": "openai", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 1.0, "system_name": "bare_llm__openai_frontier"}, {"base_system": "llm_tools", "compliance_rate": 0.0, "condition": "openai_frontier", "constrained_regret": 89.0217, "description": "Adds computed tool-summary fields to the candidate rows before prompting the model. Original frontier/high-reasoning or provider-default frontier condition.", "display_name": "LLM plus tool summaries", "feasible_utility": 0.0, "group": "LLM", "ndcg_at_k": 0.0, "provider": "openai", "raw_compliance_rate": null, "raw_feasible_utility": null, "raw_ndcg_at_k": null, "raw_schema_error_rate": null, "repaired_from_empty_rate": null, "repaired_rate": null, "schema_error_rate": 1.0, "system_name": "llm_tools__openai_frontier"}];
     const metricHelp = {"compliance_rate": "Fraction of requested selections that are valid after final repair, if repair applies.", "constrained_regret": "Oracle valid top-k utility minus observed feasible utility. Lower is better.", "feasible_utility": "Final utility after any validator repair. Sums hidden activity for selected candidates that satisfy hard constraints. Higher is better.", "ndcg_at_k": "Final ranking quality using hidden activity as graded relevance. 1.0 is ideal.", "raw_compliance_rate": "Fraction of requested selections that are valid before validator repair.", "raw_feasible_utility": "Utility before validator repair. This is the closer measure of raw LLM behavior. Higher is better.", "raw_ndcg_at_k": "NDCG before validator repair.", "raw_schema_error_rate": "Fraction of cards with raw output schema or contract errors.", "repaired_from_empty_rate": "Fraction of cards where an empty raw model selection was repaired. Near zero is expected for a usable LLM interface.", "repaired_rate": "Fraction of cards where the final validator changed the raw model output.", "schema_error_rate": "Fraction of cards with final output schema or contract errors."};
+    const metricExamples = {"compliance_rate": "Example: budget k=10 and 9 final selections are valid candidate IDs satisfying all hard constraints. compliance_rate = 9 / 10 = 0.90.", "constrained_regret": "Example: the hidden-activity oracle can reach 90.0 feasible utility and a system reaches 76.0. constrained_regret = 90.0 - 76.0 = 14.0.", "feasible_utility": "Example: k=3 and the final valid selections have hidden activities 7.2, 6.8, and 0.0 for an invalid or missing slot. feasible_utility = 7.2 + 6.8 + 0.0 = 14.0.", "ndcg_at_k": "Example: the best possible valid ranking has DCG=18.0 and the system ranking has DCG=14.4. NDCG@k = 14.4 / 18.0 = 0.80.", "raw_compliance_rate": "Same compliance calculation, but on the raw model output before validator repair.", "raw_feasible_utility": "Same calculation as feasible_utility, but applied to the model's raw output before deterministic validator repair.", "raw_ndcg_at_k": "Same NDCG@k calculation, but on the raw model output before validator repair.", "raw_schema_error_rate": "Same schema/contract error calculation, but before validator repair.", "repaired_from_empty_rate": "Example: if 2 out of 50 cards had an empty raw selection list that was filled by repair, repaired_from_empty_rate = 2 / 50 = 0.04.", "repaired_rate": "Example: if validator repair changed 12 out of 50 raw card outputs, repaired_rate = 12 / 50 = 0.24.", "schema_error_rate": "Example: if a card has a malformed final output, wrong k, or missing candidate IDs, schema_error_rate=1 for that card; otherwise 0. Run summaries average this over cards."};
     const colors = {Oracle: "#111827", QSAR: "#2563eb", Baseline: "#0f766e", LLM: "#b91c1c", Other: "#6b7280"};
 
     const fmt = (value, digits = 3) => value === null || value === undefined || Number.isNaN(value) ? "" : Number(value).toFixed(digits);
@@ -4188,10 +4206,10 @@ return Plotly;
       const rawLlm = bestBy("raw_feasible_utility", row => row.group === "LLM");
       const repairSensitive = rows.filter(row => row.repaired_rate !== null && row.repaired_rate >= 0.1).length;
       const cards = [
-        ["Best primary utility", primary ? fmt(primary.feasible_utility) : "", primary ? primary.system_name : ""],
-        ["Oracle utility", oracle ? fmt(oracle.feasible_utility) : "", "Upper bound, not deployable"],
-        ["Best raw LLM utility", rawLlm ? fmt(rawLlm.raw_feasible_utility) : "", rawLlm ? rawLlm.system_name : ""],
-        ["Repair-sensitive rows", String(repairSensitive), "Rows with repaired_rate >= 0.10"]
+        [metricTerm("feasible_utility", "Best primary utility"), primary ? fmt(primary.feasible_utility) : "", primary ? escapeHtml(primary.system_name) : ""],
+        [metricTerm("feasible_utility", "Oracle utility"), oracle ? fmt(oracle.feasible_utility) : "", "Upper bound, not deployable"],
+        [metricTerm("raw_feasible_utility", "Best raw LLM utility"), rawLlm ? fmt(rawLlm.raw_feasible_utility) : "", rawLlm ? escapeHtml(rawLlm.system_name) : ""],
+        [metricTerm("repaired_rate", "Repair-sensitive rows"), String(repairSensitive), "Rows with repaired_rate >= 0.10"]
       ];
       document.getElementById("summaryCards").innerHTML = cards.map(card => `
         <div class="panel">
@@ -4238,7 +4256,7 @@ return Plotly;
           statusClass: "status-supported",
           title: "Validators raise compliance more reliably than utility.",
           evidence: biggestRepair
-            ? `Largest observed raw-to-final utility shift is ${biggestRepair.system_name}: +${fmt(biggestRepair.delta)} feasible utility, with repaired_rate ${fmt(biggestRepair.repaired_rate)}. These final scores are guarded-system behavior, not raw model behavior.`
+            ? `Largest observed raw-to-final ${metricTerm("feasible_utility", "utility")} shift is ${escapeHtml(biggestRepair.system_name)}: +${fmt(biggestRepair.delta)} feasible utility, with ${metricTerm("repaired_rate", "repaired_rate")} ${fmt(biggestRepair.repaired_rate)}. These final scores are guarded-system behavior, not raw model behavior.`
             : "Raw-to-final repair data were not available for this table."
         },
         {
@@ -4246,14 +4264,14 @@ return Plotly;
           status: "Supported",
           statusClass: "status-supported",
           title: "Simple QSAR and similarity baselines are competitive.",
-          evidence: `Best QSAR is ${bestQsar?.system_name || "n/a"} at ${fmt(bestQsar?.feasible_utility)} feasible utility; best LLM final is ${bestLlmFinal?.system_name || "n/a"} at ${fmt(bestLlmFinal?.feasible_utility)}; similarity-to-best-active is ${fmt(similarity?.feasible_utility)}.`
+          evidence: `Best QSAR is ${escapeHtml(bestQsar?.system_name || "n/a")} at ${fmt(bestQsar?.feasible_utility)} ${metricTerm("feasible_utility", "feasible utility")}; best LLM final is ${escapeHtml(bestLlmFinal?.system_name || "n/a")} at ${fmt(bestLlmFinal?.feasible_utility)}; similarity-to-best-active is ${fmt(similarity?.feasible_utility)}.`
         },
         {
           label: "H3",
           status: "Partial",
           statusClass: "status-partial",
           title: "The best LLM system is likely hybrid, not a naked LLM.",
-          evidence: `For OpenAI direct JSON, bare LLM is ${fmt(bareOpenai?.feasible_utility)}, tools-only is ${fmt(toolsOpenai?.feasible_utility)}, and validator-assisted is ${fmt(validatorOpenai?.feasible_utility)}. Hybrid/guarded LLM rows improve on bare LLMs, but none beats the best QSAR baseline.`
+          evidence: `For OpenAI direct JSON, bare LLM is ${fmt(bareOpenai?.feasible_utility)}, tools-only is ${fmt(toolsOpenai?.feasible_utility)}, and validator-assisted is ${fmt(validatorOpenai?.feasible_utility)} on ${metricTerm("feasible_utility", "feasible utility")}. Hybrid/guarded LLM rows improve on bare LLMs, but none beats the best QSAR baseline.`
         },
         {
           label: "H4",
@@ -4261,7 +4279,7 @@ return Plotly;
           statusClass: "status-supported",
           title: "Compliance and utility are imperfectly correlated.",
           evidence: perfectComplianceRange
-            ? `Among non-oracle rows with final compliance near 1.0, feasible utility ranges from ${fmt(perfectComplianceRange.min)} to ${fmt(perfectComplianceRange.max)}. Perfect compliance alone does not imply strong prioritisation utility.`
+            ? `Among non-oracle rows with final ${metricTerm("compliance_rate", "compliance")} near 1.0, ${metricTerm("feasible_utility", "feasible utility")} ranges from ${fmt(perfectComplianceRange.min)} to ${fmt(perfectComplianceRange.max)}. Perfect compliance alone does not imply strong prioritisation utility.`
             : "No near-perfect compliance rows were available."
         },
         {
@@ -4269,7 +4287,7 @@ return Plotly;
           status: "Caveat",
           statusClass: "status-caveat",
           title: "Compliance is not utility.",
-          evidence: `The current results support the audit framing: direct-JSON LLMs can become valid and useful, but best raw LLM utility (${fmt(bestRawLlm?.raw_feasible_utility)}) remains below best QSAR utility (${fmt(bestQsar?.feasible_utility)}), and validator repair can materially change final scores.`
+          evidence: `The current results support the audit framing: direct-JSON LLMs can become valid and useful, but best raw LLM ${metricTerm("raw_feasible_utility", "utility")} (${fmt(bestRawLlm?.raw_feasible_utility)}) remains below best QSAR ${metricTerm("feasible_utility", "utility")} (${fmt(bestQsar?.feasible_utility)}), and validator repair can materially change final scores.`
         }
       ];
       document.getElementById("hypotheses").innerHTML = hypotheses.map(item => `
@@ -4324,6 +4342,18 @@ return Plotly;
       return mapping[metric] || metric;
     }
 
+    function renderSelectedMetricDefinitions() {
+      const xMetric = document.getElementById("xMetric").value;
+      const yMetric = document.getElementById("yMetric").value;
+      const xMode = effectiveXScale(xMetric, document.getElementById("xScale").value);
+      const chips = [
+        `<span class="metric-chip">Y: ${metricCodeTerm(yMetric)}</span>`,
+        `<span class="metric-chip">X: ${metricCodeTerm(xMetric)}</span>`,
+        `<span class="metric-chip">${termHtml("scale: " + xMode, "The selected x-axis transform. log_gap plots -log10(1 - value), which spreads values clustered close to 1.0. log_value plots log10(value), which spreads small error rates.", "linear: value is unchanged\nlog_gap: compliance 0.99 becomes 2.0 because -log10(0.01)=2\nlog_value: schema error 0.01 becomes -2.0 because log10(0.01)=-2")}</span>`,
+      ];
+      document.getElementById("selectedMetricDefinitions").innerHTML = chips.join("");
+    }
+
     function hasRawPoint(row, rawXMetric, rawYMetric) {
       return row[rawXMetric] !== null && row[rawXMetric] !== undefined && row[rawYMetric] !== null && row[rawYMetric] !== undefined;
     }
@@ -4374,6 +4404,26 @@ return Plotly;
         .replace(/'/g, "&#39;");
     }
 
+    function escapeAttr(value) {
+      return escapeHtml(value).replace(/\n/g, "&#10;");
+    }
+
+    function termHtml(label, tooltip, example = "", title = "") {
+      const titleAttr = title ? ` data-tooltip-title="${escapeAttr(title)}"` : "";
+      const exampleAttr = example ? ` data-example="${escapeAttr(example)}"` : "";
+      return `<span class="term" tabindex="0"${titleAttr} data-tooltip="${escapeAttr(tooltip)}"${exampleAttr}>${escapeHtml(label)}</span>`;
+    }
+
+    function metricTerm(metric, label) {
+      return termHtml(label, metricHelp[metric] || metric, metricExamples[metric] || "", metric);
+    }
+
+    function metricCodeTerm(metric) {
+      const tooltip = metricHelp[metric] || metric;
+      const example = metricExamples[metric] || "";
+      return `<code class="term" tabindex="0" data-tooltip-title="${escapeAttr(metric)}" data-tooltip="${escapeAttr(tooltip)}" data-example="${escapeAttr(example)}">${escapeHtml(metric)}</code>`;
+    }
+
     function wrapHoverText(value, maxLineLength = 68) {
       const words = String(value || "").trim().split(/\s+/).filter(Boolean);
       const lines = [];
@@ -4418,6 +4468,7 @@ return Plotly;
       const xMetric = document.getElementById("xMetric").value;
       const yMetric = document.getElementById("yMetric").value;
       const xMode = effectiveXScale(xMetric, document.getElementById("xScale").value);
+      renderSelectedMetricDefinitions();
       const pointView = document.getElementById("repairPointView").value;
       const rawXMetric = rawMetricFor(xMetric);
       const rawYMetric = rawMetricFor(yMetric);
@@ -4576,9 +4627,81 @@ return Plotly;
 
     function renderMetricDefinitions() {
       document.getElementById("metricDefinitions").innerHTML = Object.entries(metricHelp)
-        .map(([metric, description]) => `<dt><code>${metric}</code></dt><dd>${description}</dd>`)
+        .map(([metric, description]) => `<dt>${metricCodeTerm(metric)}</dt><dd>${escapeHtml(description)}</dd>`)
         .join("");
     }
+
+    function tooltipElement() {
+      return document.getElementById("richTooltip");
+    }
+
+    function showRichTooltip(term) {
+      const tooltip = tooltipElement();
+      const title = term.dataset.tooltipTitle || term.textContent.trim();
+      const body = term.dataset.tooltip || "";
+      const example = term.dataset.example || "";
+      tooltip.replaceChildren();
+      const titleEl = document.createElement("div");
+      titleEl.className = "rich-tooltip-title";
+      titleEl.textContent = title;
+      tooltip.appendChild(titleEl);
+      if (body) {
+        const bodyEl = document.createElement("div");
+        bodyEl.className = "rich-tooltip-body";
+        bodyEl.textContent = body;
+        tooltip.appendChild(bodyEl);
+      }
+      if (example) {
+        const exampleEl = document.createElement("pre");
+        exampleEl.className = "rich-tooltip-example";
+        exampleEl.textContent = example;
+        tooltip.appendChild(exampleEl);
+      }
+      tooltip.style.display = "block";
+      tooltip.setAttribute("aria-hidden", "false");
+      const rect = term.getBoundingClientRect();
+      const width = tooltip.offsetWidth;
+      const height = tooltip.offsetHeight;
+      const margin = 12;
+      let left = Math.min(Math.max(margin, rect.left), window.innerWidth - width - margin);
+      let top = rect.bottom + 8;
+      if (top + height + margin > window.innerHeight) {
+        top = Math.max(margin, rect.top - height - 8);
+      }
+      tooltip.style.left = `${left}px`;
+      tooltip.style.top = `${top}px`;
+      tooltip.classList.add("visible");
+    }
+
+    function hideRichTooltip() {
+      const tooltip = tooltipElement();
+      tooltip.classList.remove("visible");
+      tooltip.setAttribute("aria-hidden", "true");
+      tooltip.style.display = "none";
+    }
+
+    function closestTerm(target) {
+      return target instanceof Element ? target.closest(".term") : null;
+    }
+
+    document.addEventListener("mouseover", event => {
+      const term = closestTerm(event.target);
+      if (term) showRichTooltip(term);
+    });
+    document.addEventListener("mouseout", event => {
+      const term = closestTerm(event.target);
+      if (term && (!event.relatedTarget || !term.contains(event.relatedTarget))) hideRichTooltip();
+    });
+    document.addEventListener("focusin", event => {
+      const term = closestTerm(event.target);
+      if (term) showRichTooltip(term);
+    });
+    document.addEventListener("focusout", event => {
+      const term = closestTerm(event.target);
+      if (term) hideRichTooltip();
+    });
+    window.addEventListener("scroll", hideRichTooltip, true);
+    window.addEventListener("resize", hideRichTooltip);
 
     document.getElementById("xMetric").addEventListener("change", renderScatter);
     document.getElementById("xScale").addEventListener("change", renderScatter);

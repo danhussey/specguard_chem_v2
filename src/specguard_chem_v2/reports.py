@@ -243,6 +243,34 @@ METRIC_DESCRIPTIONS = {
 }
 
 
+METRIC_EXAMPLES = {
+    "feasible_utility": "Example: k=3 and the final valid selections have hidden activities 7.2, 6.8, and 0.0 for an invalid or missing slot. feasible_utility = 7.2 + 6.8 + 0.0 = 14.0.",
+    "raw_feasible_utility": "Same calculation as feasible_utility, but applied to the model's raw output before deterministic validator repair.",
+    "ndcg_at_k": "Example: the best possible valid ranking has DCG=18.0 and the system ranking has DCG=14.4. NDCG@k = 14.4 / 18.0 = 0.80.",
+    "raw_ndcg_at_k": "Same NDCG@k calculation, but on the raw model output before validator repair.",
+    "constrained_regret": "Example: the hidden-activity oracle can reach 90.0 feasible utility and a system reaches 76.0. constrained_regret = 90.0 - 76.0 = 14.0.",
+    "compliance_rate": "Example: budget k=10 and 9 final selections are valid candidate IDs satisfying all hard constraints. compliance_rate = 9 / 10 = 0.90.",
+    "raw_compliance_rate": "Same compliance calculation, but on the raw model output before validator repair.",
+    "schema_error_rate": "Example: if a card has a malformed final output, wrong k, or missing candidate IDs, schema_error_rate=1 for that card; otherwise 0. Run summaries average this over cards.",
+    "raw_schema_error_rate": "Same schema/contract error calculation, but before validator repair.",
+    "repaired_rate": "Example: if validator repair changed 12 out of 50 raw card outputs, repaired_rate = 12 / 50 = 0.24.",
+    "repaired_from_empty_rate": "Example: if 2 out of 50 cards had an empty raw selection list that was filled by repair, repaired_from_empty_rate = 2 / 50 = 0.04.",
+}
+
+
+def _attr(value: object) -> str:
+    return escape(str(value), quote=True).replace("\n", "&#10;")
+
+
+def _term(label: str, tooltip: str, *, example: str = "", title: str | None = None) -> str:
+    title_attr = f' data-tooltip-title="{_attr(title)}"' if title else ""
+    example_attr = f' data-example="{_attr(example)}"' if example else ""
+    return (
+        f'<span class="term" tabindex="0"{title_attr} '
+        f'data-tooltip="{_attr(tooltip)}"{example_attr}>{escape(label)}</span>'
+    )
+
+
 def _base_system_name(system_name: str) -> str:
     return system_name.split("__", 1)[0]
 
@@ -352,6 +380,74 @@ def write_results_dashboard(
     out_dir.mkdir(parents=True, exist_ok=True)
     output = out_dir / "RESULTS_DASHBOARD.html"
     plotly_js = get_plotlyjs()
+    run_pipeline_term = _term(
+        "Run Pipeline",
+        "The reproducible path from frozen decision cards to scored result artifacts.",
+        example="cards.jsonl -> run traces.jsonl -> score summary.json -> comparison CSV -> dashboard/report",
+    )
+    decision_cards_term = _term(
+        "1. Decision cards",
+        "One benchmark instance: support compounds, candidate pool, hard constraints, budget k, and hidden scorer-only activity values.",
+        example='{\n  "task_id": "CARA_LO_assay_0001",\n  "budget_k": 10,\n  "support_set": [{"id": "S001", "smiles": "...", "pIC50": 6.4}],\n  "candidate_pool": [{"id": "C017", "mw": 412.2, "clogp": 3.1}],\n  "hard_constraints": ["MW <= 500", "cLogP <= 4.5", "no support compounds"]\n}',
+    )
+    system_output_term = _term(
+        "2. System output",
+        "The runnable system returns an ordered batch of candidate IDs. Baselines produce this deterministically; LLM rows produce it from the prompt response.",
+        example='{\n  "selections": [\n    {"rank": 1, "candidate_id": "C017", "confidence": 0.72},\n    {"rank": 2, "candidate_id": "C042", "confidence": 0.61}\n  ]\n}',
+    )
+    raw_audit_term = _term(
+        "3. Raw audit",
+        "Scores and records the model output before deterministic validator repair, so repaired behavior is not mistaken for raw model behavior.",
+        example="raw_output: C017, C017, S003\nraw_issues: duplicate C017; support compound S003; fewer than k unique valid candidate IDs",
+    )
+    validator_term = _term(
+        "4. Validator",
+        "Deterministic harness logic for schema, candidate IDs, duplicates, support-set exclusion, and RDKit/property constraints. It does not use hidden activity.",
+        example="kept: C017\nrejected: duplicate C017, support compound S003\nfilled missing slots from fallback_ranking(card)\nvalidator_repaired: true",
+    )
+    scoring_term = _term(
+        "5. Scoring",
+        "Computes utility, ranking quality, compliance, regret, repair rates, and comparison tables from the final output and raw output where available.",
+        example="feasible_utility = sum(hidden activity for valid selected IDs)\ncompliance_rate = valid_selected_count / budget_k\nconstrained_regret = oracle_valid_topk_utility - feasible_utility",
+    )
+    table_terms = {
+        "feasible_utility": _term(
+            "Utility",
+            METRIC_DESCRIPTIONS["feasible_utility"],
+            example=METRIC_EXAMPLES["feasible_utility"],
+            title="feasible_utility",
+        ),
+        "raw_feasible_utility": _term(
+            "Raw utility",
+            METRIC_DESCRIPTIONS["raw_feasible_utility"],
+            example=METRIC_EXAMPLES["raw_feasible_utility"],
+            title="raw_feasible_utility",
+        ),
+        "ndcg_at_k": _term(
+            "NDCG",
+            METRIC_DESCRIPTIONS["ndcg_at_k"],
+            example=METRIC_EXAMPLES["ndcg_at_k"],
+            title="ndcg_at_k",
+        ),
+        "compliance_rate": _term(
+            "Compliance",
+            METRIC_DESCRIPTIONS["compliance_rate"],
+            example=METRIC_EXAMPLES["compliance_rate"],
+            title="compliance_rate",
+        ),
+        "raw_compliance_rate": _term(
+            "Raw compliance",
+            METRIC_DESCRIPTIONS["raw_compliance_rate"],
+            example=METRIC_EXAMPLES["raw_compliance_rate"],
+            title="raw_compliance_rate",
+        ),
+        "repaired_rate": _term(
+            "Repaired",
+            METRIC_DESCRIPTIONS["repaired_rate"],
+            example=METRIC_EXAMPLES["repaired_rate"],
+            title="repaired_rate",
+        ),
+    }
     html = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -445,47 +541,62 @@ def write_results_dashboard(
       text-decoration: none;
       position: relative;
     }}
-    .term::after {{
+    .rich-tooltip {{
       background: #17202a;
       border-radius: 6px;
       box-shadow: 0 8px 24px rgba(31, 41, 51, 0.22);
       color: #ffffff;
-      content: attr(data-tooltip);
+      display: none;
       font-size: 12px;
       font-weight: 500;
-      left: 0;
       line-height: 1.35;
-      max-width: min(320px, 80vw);
+      max-width: min(460px, calc(100vw - 24px));
       opacity: 0;
-      padding: 8px 10px;
+      padding: 10px 12px;
       pointer-events: none;
-      position: absolute;
+      position: fixed;
       text-transform: none;
-      top: calc(100% + 8px);
       transform: translateY(-4px);
       transition: opacity 120ms ease, transform 120ms ease;
       white-space: normal;
-      width: max-content;
-      z-index: 10;
+      z-index: 1000;
     }}
-    .term::before {{
-      border-left: 6px solid transparent;
-      border-right: 6px solid transparent;
-      border-bottom: 6px solid #17202a;
-      content: "";
-      left: 16px;
-      opacity: 0;
-      pointer-events: none;
-      position: absolute;
-      top: calc(100% + 2px);
-      transform: translateY(-4px);
-      transition: opacity 120ms ease, transform 120ms ease;
-      z-index: 11;
-    }}
-    .term:hover::after, .term:focus::after,
-    .term:hover::before, .term:focus::before {{
+    .rich-tooltip.visible {{
+      display: block;
       opacity: 1;
       transform: translateY(0);
+    }}
+    .rich-tooltip-title {{
+      color: #ffffff;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }}
+    .rich-tooltip-body {{ color: #edf2f0; }}
+    .rich-tooltip-example {{
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 5px;
+      color: #f8fafc;
+      font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      margin: 8px 0 0;
+      overflow-x: auto;
+      padding: 8px;
+      white-space: pre-wrap;
+    }}
+    .metric-chip-row {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 4px 0 12px;
+    }}
+    .metric-chip {{
+      background: #edf0ec;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--ink);
+      display: inline-flex;
+      font-size: 12px;
+      padding: 3px 8px;
     }}
     .chart {{ min-height: 420px; }}
     .side-chart {{ min-height: 520px; }}
@@ -519,13 +630,13 @@ def write_results_dashboard(
     <section class="grid summary-grid" id="summaryCards"></section>
 
     <section class="panel" style="margin-top:16px">
-      <h2><span class="term" tabindex="0" data-tooltip="The reproducible path from frozen decision cards to scored result artifacts.">Run Pipeline</span></h2>
+      <h2>{run_pipeline_term}</h2>
       <div class="flow">
-        <div class="flow-step"><strong><span class="term" tabindex="0" data-tooltip="One benchmark instance: support compounds, candidate pool, hard constraints, budget k, and hidden scorer-only activity values.">1. Decision cards</span></strong><small>Support set, candidate pool, hard constraints, and budget k.</small></div>
-        <div class="flow-step"><strong>2. System output</strong><small>Baselines or LLMs return ranked candidate IDs.</small></div>
-        <div class="flow-step"><strong><span class="term" tabindex="0" data-tooltip="Scores the model output before deterministic validator repair, so repaired behavior is not mistaken for raw model behavior.">3. Raw audit</span></strong><small>Raw LLM selections are scored before repair where available.</small></div>
-        <div class="flow-step"><strong><span class="term" tabindex="0" data-tooltip="Deterministic harness logic for schema, candidate IDs, duplicates, support-set exclusion, and RDKit/property constraints. It does not use hidden activity.">4. Validator</span></strong><small>Deterministic schema, ID, duplicate, support-exclusion, and RDKit/property checks.</small></div>
-        <div class="flow-step"><strong>5. Scoring</strong><small>Utility, compliance, regret, repair rate, and frontier plots.</small></div>
+        <div class="flow-step"><strong>{decision_cards_term}</strong><small>Support set, candidate pool, hard constraints, and budget k.</small></div>
+        <div class="flow-step"><strong>{system_output_term}</strong><small>Baselines or LLMs return ranked candidate IDs.</small></div>
+        <div class="flow-step"><strong>{raw_audit_term}</strong><small>Raw LLM selections are scored before repair where available.</small></div>
+        <div class="flow-step"><strong>{validator_term}</strong><small>Deterministic schema, ID, duplicate, support-exclusion, and RDKit/property checks.</small></div>
+        <div class="flow-step"><strong>{scoring_term}</strong><small>Utility, compliance, regret, repair rate, and frontier plots.</small></div>
       </div>
     </section>
 
@@ -539,7 +650,7 @@ def write_results_dashboard(
       <div class="panel">
         <h2><span class="term" tabindex="0" data-tooltip="Scatter plot separating specification compliance on the x-axis from medicinal-chemistry decision utility on the y-axis.">Compliance-Utility Frontier</span></h2>
         <div class="controls">
-          <label>Y metric
+          <label>{_term("Y metric", "Metric plotted on the vertical axis. Hover the selected metric chip below for the calculation.")}
             <select id="yMetric">
               <option value="feasible_utility">Final feasible utility</option>
               <option value="raw_feasible_utility">Raw feasible utility</option>
@@ -547,7 +658,7 @@ def write_results_dashboard(
               <option value="raw_ndcg_at_k">Raw NDCG@k</option>
             </select>
           </label>
-          <label>X metric
+          <label>{_term("X metric", "Metric plotted on the horizontal axis. Hover the selected metric chip below for the calculation.")}
             <select id="xMetric">
               <option value="compliance_rate">Final compliance</option>
               <option value="raw_compliance_rate">Raw compliance</option>
@@ -555,7 +666,7 @@ def write_results_dashboard(
               <option value="raw_schema_error_rate">Raw schema error</option>
             </select>
           </label>
-          <label>X scale
+          <label>{_term("X scale", "How the x-axis is transformed. Log gap to 1.0 expands values clustered near perfect compliance; log value expands small error rates.")}
             <select id="xScale">
               <option value="auto" selected>Auto log for clustered rates</option>
               <option value="linear">Linear</option>
@@ -572,6 +683,7 @@ def write_results_dashboard(
             </select>
           </label>
         </div>
+        <div class="metric-chip-row" id="selectedMetricDefinitions"></div>
         <p class="subtle" id="repairLinkNote">Showing final scored outputs. For validator rows, final points may include deterministic repair.</p>
         <div id="scatter" class="chart"></div>
         <div class="legend" id="legend"></div>
@@ -620,12 +732,12 @@ def write_results_dashboard(
             <tr>
               <th>System</th>
               <th>Group</th>
-              <th><span class="term" tabindex="0" data-tooltip="{escape(METRIC_DESCRIPTIONS['feasible_utility'])}">Utility</span></th>
-              <th><span class="term" tabindex="0" data-tooltip="{escape(METRIC_DESCRIPTIONS['raw_feasible_utility'])}">Raw utility</span></th>
-              <th><span class="term" tabindex="0" data-tooltip="{escape(METRIC_DESCRIPTIONS['ndcg_at_k'])}">NDCG</span></th>
-              <th><span class="term" tabindex="0" data-tooltip="{escape(METRIC_DESCRIPTIONS['compliance_rate'])}">Compliance</span></th>
-              <th><span class="term" tabindex="0" data-tooltip="{escape(METRIC_DESCRIPTIONS['raw_compliance_rate'])}">Raw compliance</span></th>
-              <th><span class="term" tabindex="0" data-tooltip="{escape(METRIC_DESCRIPTIONS['repaired_rate'])}">Repaired</span></th>
+              <th>{table_terms["feasible_utility"]}</th>
+              <th>{table_terms["raw_feasible_utility"]}</th>
+              <th>{table_terms["ndcg_at_k"]}</th>
+              <th>{table_terms["compliance_rate"]}</th>
+              <th>{table_terms["raw_compliance_rate"]}</th>
+              <th>{table_terms["repaired_rate"]}</th>
               <th>Description</th>
             </tr>
           </thead>
@@ -638,6 +750,7 @@ def write_results_dashboard(
       <summary>Metric definitions</summary>
       <dl id="metricDefinitions"></dl>
     </details>
+    <div id="richTooltip" class="rich-tooltip" role="tooltip" aria-hidden="true"></div>
   </main>
   <script>
 {plotly_js}
@@ -645,6 +758,7 @@ def write_results_dashboard(
   <script>
     const rows = {_json_for_html(rows)};
     const metricHelp = {_json_for_html(METRIC_DESCRIPTIONS)};
+    const metricExamples = {_json_for_html(METRIC_EXAMPLES)};
     const colors = {{Oracle: "#111827", QSAR: "#2563eb", Baseline: "#0f766e", LLM: "#b91c1c", Other: "#6b7280"}};
 
     const fmt = (value, digits = 3) => value === null || value === undefined || Number.isNaN(value) ? "" : Number(value).toFixed(digits);
@@ -661,10 +775,10 @@ def write_results_dashboard(
       const rawLlm = bestBy("raw_feasible_utility", row => row.group === "LLM");
       const repairSensitive = rows.filter(row => row.repaired_rate !== null && row.repaired_rate >= 0.1).length;
       const cards = [
-        ["Best primary utility", primary ? fmt(primary.feasible_utility) : "", primary ? primary.system_name : ""],
-        ["Oracle utility", oracle ? fmt(oracle.feasible_utility) : "", "Upper bound, not deployable"],
-        ["Best raw LLM utility", rawLlm ? fmt(rawLlm.raw_feasible_utility) : "", rawLlm ? rawLlm.system_name : ""],
-        ["Repair-sensitive rows", String(repairSensitive), "Rows with repaired_rate >= 0.10"]
+        [metricTerm("feasible_utility", "Best primary utility"), primary ? fmt(primary.feasible_utility) : "", primary ? escapeHtml(primary.system_name) : ""],
+        [metricTerm("feasible_utility", "Oracle utility"), oracle ? fmt(oracle.feasible_utility) : "", "Upper bound, not deployable"],
+        [metricTerm("raw_feasible_utility", "Best raw LLM utility"), rawLlm ? fmt(rawLlm.raw_feasible_utility) : "", rawLlm ? escapeHtml(rawLlm.system_name) : ""],
+        [metricTerm("repaired_rate", "Repair-sensitive rows"), String(repairSensitive), "Rows with repaired_rate >= 0.10"]
       ];
       document.getElementById("summaryCards").innerHTML = cards.map(card => `
         <div class="panel">
@@ -711,7 +825,7 @@ def write_results_dashboard(
           statusClass: "status-supported",
           title: "Validators raise compliance more reliably than utility.",
           evidence: biggestRepair
-            ? `Largest observed raw-to-final utility shift is ${{biggestRepair.system_name}}: +${{fmt(biggestRepair.delta)}} feasible utility, with repaired_rate ${{fmt(biggestRepair.repaired_rate)}}. These final scores are guarded-system behavior, not raw model behavior.`
+            ? `Largest observed raw-to-final ${{metricTerm("feasible_utility", "utility")}} shift is ${{escapeHtml(biggestRepair.system_name)}}: +${{fmt(biggestRepair.delta)}} feasible utility, with ${{metricTerm("repaired_rate", "repaired_rate")}} ${{fmt(biggestRepair.repaired_rate)}}. These final scores are guarded-system behavior, not raw model behavior.`
             : "Raw-to-final repair data were not available for this table."
         }},
         {{
@@ -719,14 +833,14 @@ def write_results_dashboard(
           status: "Supported",
           statusClass: "status-supported",
           title: "Simple QSAR and similarity baselines are competitive.",
-          evidence: `Best QSAR is ${{bestQsar?.system_name || "n/a"}} at ${{fmt(bestQsar?.feasible_utility)}} feasible utility; best LLM final is ${{bestLlmFinal?.system_name || "n/a"}} at ${{fmt(bestLlmFinal?.feasible_utility)}}; similarity-to-best-active is ${{fmt(similarity?.feasible_utility)}}.`
+          evidence: `Best QSAR is ${{escapeHtml(bestQsar?.system_name || "n/a")}} at ${{fmt(bestQsar?.feasible_utility)}} ${{metricTerm("feasible_utility", "feasible utility")}}; best LLM final is ${{escapeHtml(bestLlmFinal?.system_name || "n/a")}} at ${{fmt(bestLlmFinal?.feasible_utility)}}; similarity-to-best-active is ${{fmt(similarity?.feasible_utility)}}.`
         }},
         {{
           label: "H3",
           status: "Partial",
           statusClass: "status-partial",
           title: "The best LLM system is likely hybrid, not a naked LLM.",
-          evidence: `For OpenAI direct JSON, bare LLM is ${{fmt(bareOpenai?.feasible_utility)}}, tools-only is ${{fmt(toolsOpenai?.feasible_utility)}}, and validator-assisted is ${{fmt(validatorOpenai?.feasible_utility)}}. Hybrid/guarded LLM rows improve on bare LLMs, but none beats the best QSAR baseline.`
+          evidence: `For OpenAI direct JSON, bare LLM is ${{fmt(bareOpenai?.feasible_utility)}}, tools-only is ${{fmt(toolsOpenai?.feasible_utility)}}, and validator-assisted is ${{fmt(validatorOpenai?.feasible_utility)}} on ${{metricTerm("feasible_utility", "feasible utility")}}. Hybrid/guarded LLM rows improve on bare LLMs, but none beats the best QSAR baseline.`
         }},
         {{
           label: "H4",
@@ -734,7 +848,7 @@ def write_results_dashboard(
           statusClass: "status-supported",
           title: "Compliance and utility are imperfectly correlated.",
           evidence: perfectComplianceRange
-            ? `Among non-oracle rows with final compliance near 1.0, feasible utility ranges from ${{fmt(perfectComplianceRange.min)}} to ${{fmt(perfectComplianceRange.max)}}. Perfect compliance alone does not imply strong prioritisation utility.`
+            ? `Among non-oracle rows with final ${{metricTerm("compliance_rate", "compliance")}} near 1.0, ${{metricTerm("feasible_utility", "feasible utility")}} ranges from ${{fmt(perfectComplianceRange.min)}} to ${{fmt(perfectComplianceRange.max)}}. Perfect compliance alone does not imply strong prioritisation utility.`
             : "No near-perfect compliance rows were available."
         }},
         {{
@@ -742,7 +856,7 @@ def write_results_dashboard(
           status: "Caveat",
           statusClass: "status-caveat",
           title: "Compliance is not utility.",
-          evidence: `The current results support the audit framing: direct-JSON LLMs can become valid and useful, but best raw LLM utility (${{fmt(bestRawLlm?.raw_feasible_utility)}}) remains below best QSAR utility (${{fmt(bestQsar?.feasible_utility)}}), and validator repair can materially change final scores.`
+          evidence: `The current results support the audit framing: direct-JSON LLMs can become valid and useful, but best raw LLM ${{metricTerm("raw_feasible_utility", "utility")}} (${{fmt(bestRawLlm?.raw_feasible_utility)}}) remains below best QSAR ${{metricTerm("feasible_utility", "utility")}} (${{fmt(bestQsar?.feasible_utility)}}), and validator repair can materially change final scores.`
         }}
       ];
       document.getElementById("hypotheses").innerHTML = hypotheses.map(item => `
@@ -797,6 +911,18 @@ def write_results_dashboard(
       return mapping[metric] || metric;
     }}
 
+    function renderSelectedMetricDefinitions() {{
+      const xMetric = document.getElementById("xMetric").value;
+      const yMetric = document.getElementById("yMetric").value;
+      const xMode = effectiveXScale(xMetric, document.getElementById("xScale").value);
+      const chips = [
+        `<span class="metric-chip">Y: ${{metricCodeTerm(yMetric)}}</span>`,
+        `<span class="metric-chip">X: ${{metricCodeTerm(xMetric)}}</span>`,
+        `<span class="metric-chip">${{termHtml("scale: " + xMode, "The selected x-axis transform. log_gap plots -log10(1 - value), which spreads values clustered close to 1.0. log_value plots log10(value), which spreads small error rates.", "linear: value is unchanged\\nlog_gap: compliance 0.99 becomes 2.0 because -log10(0.01)=2\\nlog_value: schema error 0.01 becomes -2.0 because log10(0.01)=-2")}}</span>`,
+      ];
+      document.getElementById("selectedMetricDefinitions").innerHTML = chips.join("");
+    }}
+
     function hasRawPoint(row, rawXMetric, rawYMetric) {{
       return row[rawXMetric] !== null && row[rawXMetric] !== undefined && row[rawYMetric] !== null && row[rawYMetric] !== undefined;
     }}
@@ -847,8 +973,28 @@ def write_results_dashboard(
         .replace(/'/g, "&#39;");
     }}
 
+    function escapeAttr(value) {{
+      return escapeHtml(value).replace(/\\n/g, "&#10;");
+    }}
+
+    function termHtml(label, tooltip, example = "", title = "") {{
+      const titleAttr = title ? ` data-tooltip-title="${{escapeAttr(title)}}"` : "";
+      const exampleAttr = example ? ` data-example="${{escapeAttr(example)}}"` : "";
+      return `<span class="term" tabindex="0"${{titleAttr}} data-tooltip="${{escapeAttr(tooltip)}}"${{exampleAttr}}>${{escapeHtml(label)}}</span>`;
+    }}
+
+    function metricTerm(metric, label) {{
+      return termHtml(label, metricHelp[metric] || metric, metricExamples[metric] || "", metric);
+    }}
+
+    function metricCodeTerm(metric) {{
+      const tooltip = metricHelp[metric] || metric;
+      const example = metricExamples[metric] || "";
+      return `<code class="term" tabindex="0" data-tooltip-title="${{escapeAttr(metric)}}" data-tooltip="${{escapeAttr(tooltip)}}" data-example="${{escapeAttr(example)}}">${{escapeHtml(metric)}}</code>`;
+    }}
+
     function wrapHoverText(value, maxLineLength = 68) {{
-      const words = String(value || "").trim().split(/\s+/).filter(Boolean);
+      const words = String(value || "").trim().split(/\\s+/).filter(Boolean);
       const lines = [];
       let current = "";
       for (const word of words) {{
@@ -891,6 +1037,7 @@ def write_results_dashboard(
       const xMetric = document.getElementById("xMetric").value;
       const yMetric = document.getElementById("yMetric").value;
       const xMode = effectiveXScale(xMetric, document.getElementById("xScale").value);
+      renderSelectedMetricDefinitions();
       const pointView = document.getElementById("repairPointView").value;
       const rawXMetric = rawMetricFor(xMetric);
       const rawYMetric = rawMetricFor(yMetric);
@@ -1049,9 +1196,81 @@ def write_results_dashboard(
 
     function renderMetricDefinitions() {{
       document.getElementById("metricDefinitions").innerHTML = Object.entries(metricHelp)
-        .map(([metric, description]) => `<dt><code>${{metric}}</code></dt><dd>${{description}}</dd>`)
+        .map(([metric, description]) => `<dt>${{metricCodeTerm(metric)}}</dt><dd>${{escapeHtml(description)}}</dd>`)
         .join("");
     }}
+
+    function tooltipElement() {{
+      return document.getElementById("richTooltip");
+    }}
+
+    function showRichTooltip(term) {{
+      const tooltip = tooltipElement();
+      const title = term.dataset.tooltipTitle || term.textContent.trim();
+      const body = term.dataset.tooltip || "";
+      const example = term.dataset.example || "";
+      tooltip.replaceChildren();
+      const titleEl = document.createElement("div");
+      titleEl.className = "rich-tooltip-title";
+      titleEl.textContent = title;
+      tooltip.appendChild(titleEl);
+      if (body) {{
+        const bodyEl = document.createElement("div");
+        bodyEl.className = "rich-tooltip-body";
+        bodyEl.textContent = body;
+        tooltip.appendChild(bodyEl);
+      }}
+      if (example) {{
+        const exampleEl = document.createElement("pre");
+        exampleEl.className = "rich-tooltip-example";
+        exampleEl.textContent = example;
+        tooltip.appendChild(exampleEl);
+      }}
+      tooltip.style.display = "block";
+      tooltip.setAttribute("aria-hidden", "false");
+      const rect = term.getBoundingClientRect();
+      const width = tooltip.offsetWidth;
+      const height = tooltip.offsetHeight;
+      const margin = 12;
+      let left = Math.min(Math.max(margin, rect.left), window.innerWidth - width - margin);
+      let top = rect.bottom + 8;
+      if (top + height + margin > window.innerHeight) {{
+        top = Math.max(margin, rect.top - height - 8);
+      }}
+      tooltip.style.left = `${{left}}px`;
+      tooltip.style.top = `${{top}}px`;
+      tooltip.classList.add("visible");
+    }}
+
+    function hideRichTooltip() {{
+      const tooltip = tooltipElement();
+      tooltip.classList.remove("visible");
+      tooltip.setAttribute("aria-hidden", "true");
+      tooltip.style.display = "none";
+    }}
+
+    function closestTerm(target) {{
+      return target instanceof Element ? target.closest(".term") : null;
+    }}
+
+    document.addEventListener("mouseover", event => {{
+      const term = closestTerm(event.target);
+      if (term) showRichTooltip(term);
+    }});
+    document.addEventListener("mouseout", event => {{
+      const term = closestTerm(event.target);
+      if (term && (!event.relatedTarget || !term.contains(event.relatedTarget))) hideRichTooltip();
+    }});
+    document.addEventListener("focusin", event => {{
+      const term = closestTerm(event.target);
+      if (term) showRichTooltip(term);
+    }});
+    document.addEventListener("focusout", event => {{
+      const term = closestTerm(event.target);
+      if (term) hideRichTooltip();
+    }});
+    window.addEventListener("scroll", hideRichTooltip, true);
+    window.addEventListener("resize", hideRichTooltip);
 
     document.getElementById("xMetric").addEventListener("change", renderScatter);
     document.getElementById("xScale").addEventListener("change", renderScatter);

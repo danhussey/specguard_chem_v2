@@ -263,6 +263,11 @@ def test_compare_and_frontier_plot(tmp_path: Path) -> None:
     assert "wrapHoverText" in dashboard_text
     assert "wrapIdentifier" in dashboard_text
     assert "escapeHtml" in dashboard_text
+    assert "richTooltip" in dashboard_text
+    assert "data-example" in dashboard_text
+    assert "metricExamples" in dashboard_text
+    assert "selectedMetricDefinitions" in dashboard_text
+    assert "fallback_ranking(card)" in dashboard_text
     assert "repairPointView" in dashboard_text
     assert "Raw LLM points" in dashboard_text
     assert "Raw + final repair links" in dashboard_text
