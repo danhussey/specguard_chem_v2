@@ -563,7 +563,12 @@ def write_results_dashboard(
               <option value="log_value">Log value</option>
             </select>
           </label>
+          <label>
+            <input id="showRepairLinks" type="checkbox">
+            <span class="term" tabindex="0" data-tooltip="Optional diagnostic overlay. Each grey segment connects a validator system's raw model output to its final post-validator repaired output. The final score may be model plus guardrail behavior.">Raw-to-final repair links</span>
+          </label>
         </div>
+        <p class="subtle" id="repairLinkNote">Grey raw-to-final repair links are hidden by default; enable them to inspect how validator repair moves LLM rows.</p>
         <div id="scatter" class="chart"></div>
         <div class="legend" id="legend"></div>
       </div>
@@ -836,16 +841,18 @@ def write_results_dashboard(
       const xMetric = document.getElementById("xMetric").value;
       const yMetric = document.getElementById("yMetric").value;
       const xMode = effectiveXScale(xMetric, document.getElementById("xScale").value);
+      const showRepairLinks = document.getElementById("showRepairLinks").checked;
       const data = rows.filter(row => row[xMetric] !== null && row[yMetric] !== null);
       const traces = [];
-      if (yMetric === "feasible_utility" && xMetric === "compliance_rate") {{
+      if (showRepairLinks && yMetric === "feasible_utility" && xMetric === "compliance_rate") {{
         rows
           .filter(row => row.raw_feasible_utility !== null && row.raw_compliance_rate !== null)
           .forEach(row => traces.push({{
             type: "scatter",
             mode: "lines",
-            name: "raw -> final",
-            showlegend: false,
+            name: "raw -> final repair",
+            legendgroup: "repair_links",
+            showlegend: traces.length === 0,
             hoverinfo: "text",
             line: {{color: "#9aa5a1", width: 1.5}},
             opacity: 0.45,
@@ -874,6 +881,9 @@ def write_results_dashboard(
       layout.xaxis.tickvals = tickValues.map(value => transformX(value, xMetric, xMode));
       layout.xaxis.ticktext = tickValues.map(value => xTickLabel(value, xMode));
       Plotly.react("scatter", traces, layout, plotlyConfig);
+      document.getElementById("repairLinkNote").textContent = showRepairLinks
+        ? "Grey segments connect raw LLM outputs to final validator-repaired outputs for the same system. They are diagnostics, not independent systems."
+        : "Grey raw-to-final repair links are hidden by default; enable them to inspect how validator repair moves LLM rows.";
       document.getElementById("legend").innerHTML = "";
     }}
 
@@ -964,6 +974,7 @@ def write_results_dashboard(
     document.getElementById("xMetric").addEventListener("change", renderScatter);
     document.getElementById("xScale").addEventListener("change", renderScatter);
     document.getElementById("yMetric").addEventListener("change", renderScatter);
+    document.getElementById("showRepairLinks").addEventListener("change", renderScatter);
     document.getElementById("groupFilter").addEventListener("change", renderTable);
     document.getElementById("searchBox").addEventListener("input", renderTable);
     renderSummary();
