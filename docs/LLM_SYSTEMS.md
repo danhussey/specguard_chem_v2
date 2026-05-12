@@ -7,11 +7,16 @@ They consume structured decision cards and return ranked candidate IDs.
 
 - `bare_llm`: support set, candidate IDs, SMILES, minimal descriptors, hard
   constraints, and output schema.
-- `llm_validator`: same as `bare_llm`, with deterministic validator repair or
-  penalty after output.
+- `llm_validator`: same as `bare_llm`, followed by deterministic contract
+  checking and repair fallback where possible.
 - `llm_tools`: includes computed descriptor/tool-summary fields for each
   candidate.
-- `llm_tools_validator`: tool-summary request plus deterministic validation.
+- `llm_tools_validator`: tool-summary request plus deterministic contract
+  checking and repair fallback where possible.
+
+The `*_validator` conditions are guarded systems, not raw model-only behavior.
+See `docs/LLM_FAILURE_MODES.md` for the distinction between raw output, contract
+checking, and repair fallback.
 
 ## Cache And Replay
 
