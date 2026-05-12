@@ -188,6 +188,59 @@ def _markdown_table(frame: pd.DataFrame, columns: list[str]) -> str:
     return "\n".join([header, separator, *rows]) + "\n"
 
 
+def _results_glossary() -> list[str]:
+    return [
+        "## Label and Metric Glossary",
+        "",
+        "### Study terms",
+        "",
+        "- CARA: public compound-activity benchmark used here as the source substrate for assay-level support/query tasks.",
+        "- LO: lead optimisation. In this project, LO cards represent an observed support set plus candidate compounds to prioritise next.",
+        "- VS: virtual screening. VS is not the primary run here; it usually means ranking a broader candidate set for activity.",
+        "- Decision card: one benchmark instance containing support compounds, a candidate pool, hard constraints, budget `k`, and hidden activity values used only by the scorer.",
+        "- Support set: already-tested compounds with measured activity that systems may learn from but must not recommend.",
+        "- Candidate pool: compounds eligible for selection, subject to hard constraints.",
+        "- QSAR: quantitative structure-activity relationship; here, conventional ML models trained on support compounds to predict candidate activity from molecular fingerprints.",
+        "- Oracle: non-deployable upper-bound scorer that uses hidden activity values. It is a sanity check, not a real model.",
+        "- Validator: deterministic harness logic that checks schema, candidate IDs, duplicates, support-set exclusion, and molecular constraints. It does not use hidden activity values.",
+        "- Direct JSON: the current LLM prompt profile that asks for final JSON only, reducing failures where reasoning/prose consumes the visible output budget.",
+        "",
+        "### System labels",
+        "",
+        "- `oracle_valid_topk`: non-deployable upper-bound control that uses hidden candidate activity values to choose the best valid top-k set.",
+        "- `random_valid`: random valid-candidate baseline.",
+        "- `rules_only`: deterministic fallback/rule ranking after applying hard constraints.",
+        "- `similarity_to_best_active`: ranks candidates by molecular similarity to the best active support compound.",
+        "- `qsar_rf`, `qsar_gbt`, `qsar_svm`: conventional QSAR baselines trained on support compounds with random forest, gradient-boosted trees, or support-vector regression.",
+        "- `bare_llm`: LLM receives the decision card and returns candidate IDs without deterministic repair.",
+        "- `llm_tools`: LLM condition with extra computed descriptor/tool-summary fields in the candidate rows.",
+        "- `llm_validator`: guarded LLM system; raw output is checked and invalid/missing slots may be deterministically repaired.",
+        "- `llm_tools_validator`: tool-summary LLM condition plus deterministic checking and repair.",
+        "- `*_frontier_selector`: legacy run label for the direct-JSON frontier interface. It means final-answer JSON prompting with no explicit high/extended-thinking mode where avoidable.",
+        "- `*_frontier`: original frontier/high-reasoning or provider-default frontier condition.",
+        "- `*_fast`: lower-latency/lower-cost provider condition.",
+        "",
+        "### Metrics",
+        "",
+        "- `feasible_utility`: sum of hidden activity values for selected candidates that satisfy all hard constraints. Higher is better.",
+        "- `raw_feasible_utility`: feasible utility before deterministic validator repair. This is the closer measure of raw LLM behavior.",
+        "- `ndcg_at_k`: ranking-quality score using hidden activity as graded relevance. Higher is better; `1.0` is ideal ranking.",
+        "- `raw_ndcg_at_k`: NDCG before deterministic validator repair.",
+        "- `constrained_regret`: oracle valid top-k utility minus observed feasible utility. Lower is better.",
+        "- `compliance_rate`: fraction of the requested `k` selections that are valid after final repair, if repair applies.",
+        "- `raw_compliance_rate`: compliance before deterministic validator repair.",
+        "- `schema_error_rate`: fraction of cards with final schema/contract errors.",
+        "- `raw_schema_error_rate`: schema/contract error rate before deterministic validator repair.",
+        "- `repaired_from_empty_rate`: fraction of cards where the validator repaired an empty raw selection list. This should be near zero for a usable LLM interface.",
+        "",
+        "### Interpretation rules",
+        "",
+        "- Raw metrics describe model behavior; final metrics for `*_validator` rows describe model plus deterministic guardrail behavior.",
+        "- Oracle controls are sanity checks, not systems that could be used prospectively.",
+        "- A row can be highly compliant but still have weak utility; this distinction is the main object of the audit.",
+    ]
+
+
 def write_results_summary(comparison_csv: Path, out_dir: Path, *, title: str = "SpecGuard-Chem v2 Results Summary") -> Path:
     frame = pd.read_csv(comparison_csv)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -235,6 +288,8 @@ def write_results_summary(comparison_csv: Path, out_dir: Path, *, title: str = "
         "- Final columns score the selected output after validator repair where applicable.",
         "- Lower constrained regret and schema error rate are better.",
         "- Oracle controls are sanity checks and must not be mixed into primary system claims.",
+        "",
+        *_results_glossary(),
     ]
     output = out_dir / "RESULTS_SUMMARY.md"
     output.write_text("\n".join(content) + "\n", encoding="utf-8")
