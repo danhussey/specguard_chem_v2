@@ -117,6 +117,25 @@ was run, what happened, and what to do next.
 - Follow-up: keep VS, compressed inputs, and high-reasoning-compatible
   interfaces as separate future work rather than mixing them into the LO result.
 
+## 2026-05-12 LO paper-50 statistical diagnostics
+
+- Artifacts: `paper/tables/cara_lo_paper_50_direct_json_completed/`,
+  `paper/figures/cara_lo_paper_50_direct_json_completed/`,
+  `paper/RESULTS_SUMMARY.md`.
+- Scope: no new experiment. Reused existing score summaries, per-card scores,
+  and failure-taxonomy files.
+- Question: strengthen the LO result with paired card-level comparisons,
+  card-level plots, and consolidated failure summaries.
+- Status: complete reporting/statistics extension.
+- Headline: paired bootstrap over the same 50 cards shows `qsar_svm` exceeded
+  the best final LLM row by `3.194` feasible-utility points, 95% paired interval
+  `1.942` to `4.692`. Oracle headroom above `qsar_svm` was `7.639`.
+- Surprise / interpretation: the aggregate QSAR-over-LLM result persists under
+  paired card-level resampling; failure taxonomy shows many raw/non-validator
+  LLM failures are constraint/contract failures rather than just weak utility.
+- Follow-up: use the key paired-delta table for paper prose; keep the full
+  pairwise delta table as an audit artifact.
+
 ## Current Standing Interpretation
 
 - Raw metrics measure model behavior.

@@ -2,7 +2,6 @@
 
 - Validate CARA importer against the official downloaded dataset layout.
 - Add source-specific CARA tests after the first real download.
-- Add bootstrap confidence intervals to comparison reports.
 - Add full provider metadata capture for live LLM calls.
 - Add a resumable per-card trace writer so failed live matrix batches preserve
   partial traces, not only provider caches.
@@ -11,3 +10,5 @@
 - Retry DeepSeek frontier only with a revised reasoning/output strategy.
 - Candidate-summary compression remains a separate future experiment; do not mix
   it into the direct-selector frontier comparison.
+- Add manuscript-grade statistical wording after deciding which paired
+  bootstrap deltas belong in the final paper tables.

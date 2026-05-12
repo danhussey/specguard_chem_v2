@@ -236,8 +236,15 @@ def test_compare_and_frontier_plot(tmp_path: Path) -> None:
     assert (tmp_path / "compare" / "primary_leaderboard.csv").exists()
     assert (tmp_path / "compare" / "oracle_controls.csv").exists()
     assert (tmp_path / "compare" / "ablation_deltas.csv").exists()
+    assert (tmp_path / "compare" / "paired_bootstrap_deltas.csv").exists()
+    assert (tmp_path / "compare" / "paired_bootstrap_key_deltas.csv").exists()
+    assert (tmp_path / "compare" / "card_level_key_systems.csv").exists()
+    assert (tmp_path / "compare" / "card_level_diagnostics.csv").exists()
+    assert (tmp_path / "compare" / "failure_taxonomy_summary.csv").exists()
+    assert (tmp_path / "compare" / "failure_taxonomy_by_group.csv").exists()
     plot = make_frontier_plot(tmp_path / "compare" / "system_comparison.csv", tmp_path / "figures")
     assert plot.exists()
+    assert (tmp_path / "figures" / "card_level_utility_distribution.png").exists()
     summary = write_results_summary(
         tmp_path / "compare" / "system_comparison.csv",
         tmp_path / "paper",
@@ -245,6 +252,8 @@ def test_compare_and_frontier_plot(tmp_path: Path) -> None:
     assert summary.exists()
     assert "Primary Systems" in summary.read_text(encoding="utf-8")
     assert "raw_feasible_utility" in summary.read_text(encoding="utf-8")
+    assert "Failure Taxonomy Summary" in summary.read_text(encoding="utf-8")
+    assert "Card-Level Diagnostics" in summary.read_text(encoding="utf-8")
     dashboard = write_results_dashboard(
         tmp_path / "compare" / "system_comparison.csv",
         tmp_path / "paper",

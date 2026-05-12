@@ -1,6 +1,6 @@
 # SpecGuard-Chem v2 CARA LO Paper-50 Direct-JSON Results
 
-Generated at: `2026-05-12T10:24:01.926091+00:00`
+Generated at: `2026-05-12T10:49:30.655509+00:00`
 
 Source comparison CSV: `paper/tables/cara_lo_paper_50_direct_json_completed/system_comparison.csv`
 
@@ -24,6 +24,56 @@ The fact that `qsar_rf`, `qsar_gbt`, and `qsar_svm` all beat random, rules-only,
 - H2, simple QSAR and similarity baselines are competitive: supported. Best QSAR feasible utility is `81.382`; similarity-to-best-active is `73.603`; best final LLM is `78.188`.
 - H3, the best useful system is likely hybrid: partially supported. Guarded/tool-summary LLM rows can improve over bare LLM rows, but this implementation is not yet the broader agent design where QSAR, RDKit, similarity retrieval, and other tools are actively available as callable tools.
 - H4, compliance and utility are imperfectly correlated: supported. Near-perfect compliance appears in rows with materially different feasible utility, so compliance alone is not the target outcome.
+
+## Paired Bootstrap Highlights
+
+These deltas resample paired decision cards, so each comparison asks how two systems differed on the same cards rather than comparing independent aggregate means.
+
+| comparison | metric | system_a_label | system_b_label | mean_delta | ci_95 | probability_delta_gt_zero |
+| --- | --- | --- | --- | --- | --- | --- |
+| oracle_minus_best_qsar | feasible_utility | Oracle upper-bound | QSAR linear SVR | 7.639 | 6.571 to 8.798 | 1.000 |
+| oracle_minus_best_qsar | ndcg_at_k | Oracle upper-bound | QSAR linear SVR | 0.090 | 0.078 to 0.104 | 1.000 |
+| oracle_minus_best_qsar | compliance_rate | Oracle upper-bound | QSAR linear SVR | 0.000 | 0.000 to 0.000 | 0.000 |
+| best_qsar_minus_best_final_llm | feasible_utility | QSAR linear SVR | LLM plus validator - OpenAI gpt-5.5, low reasoning, Direct JSON | 3.194 | 1.942 to 4.692 | 1.000 |
+| best_qsar_minus_best_final_llm | ndcg_at_k | QSAR linear SVR | LLM plus validator - OpenAI gpt-5.5, low reasoning, Direct JSON | 0.028 | 0.016 to 0.043 | 1.000 |
+| best_qsar_minus_best_final_llm | compliance_rate | QSAR linear SVR | LLM plus validator - OpenAI gpt-5.5, low reasoning, Direct JSON | 0.000 | 0.000 to 0.000 | 0.000 |
+| best_qsar_minus_similarity | feasible_utility | QSAR linear SVR | Similarity-to-best-active baseline | 7.779 | 5.289 to 10.437 | 1.000 |
+| best_qsar_minus_similarity | ndcg_at_k | QSAR linear SVR | Similarity-to-best-active baseline | 0.084 | 0.057 to 0.113 | 1.000 |
+| best_qsar_minus_similarity | compliance_rate | QSAR linear SVR | Similarity-to-best-active baseline | 0.000 | 0.000 to 0.000 | 0.000 |
+| best_final_llm_minus_similarity | feasible_utility | LLM plus validator - OpenAI gpt-5.5, low reasoning, Direct JSON | Similarity-to-best-active baseline | 4.585 | 1.941 to 7.272 | 1.000 |
+| best_final_llm_minus_similarity | ndcg_at_k | LLM plus validator - OpenAI gpt-5.5, low reasoning, Direct JSON | Similarity-to-best-active baseline | 0.056 | 0.028 to 0.086 | 1.000 |
+| best_final_llm_minus_similarity | compliance_rate | LLM plus validator - OpenAI gpt-5.5, low reasoning, Direct JSON | Similarity-to-best-active baseline | 0.000 | 0.000 to 0.000 | 0.000 |
+| best_final_llm_minus_rules | feasible_utility | LLM plus validator - OpenAI gpt-5.5, low reasoning, Direct JSON | Rule/desirability baseline | 12.145 | 10.282 to 14.056 | 1.000 |
+| best_final_llm_minus_rules | ndcg_at_k | LLM plus validator - OpenAI gpt-5.5, low reasoning, Direct JSON | Rule/desirability baseline | 0.151 | 0.130 to 0.171 | 1.000 |
+| best_final_llm_minus_rules | compliance_rate | LLM plus validator - OpenAI gpt-5.5, low reasoning, Direct JSON | Rule/desirability baseline | 0.000 | 0.000 to 0.000 | 0.000 |
+| best_raw_llm_minus_similarity | feasible_utility | LLM plus tools and validator - OpenAI gpt-5.5, low reasoning, Direct JSON | Similarity-to-best-active baseline | 4.084 | 1.454 to 6.853 | 0.999 |
+| best_raw_llm_minus_similarity | ndcg_at_k | LLM plus tools and validator - OpenAI gpt-5.5, low reasoning, Direct JSON | Similarity-to-best-active baseline | 0.048 | 0.019 to 0.080 | 0.999 |
+| best_raw_llm_minus_similarity | compliance_rate | LLM plus tools and validator - OpenAI gpt-5.5, low reasoning, Direct JSON | Similarity-to-best-active baseline | 0.000 | 0.000 to 0.000 | 0.000 |
+
+## Failure Taxonomy Summary
+
+This table aggregates final-output validation failures across cards. Raw LLM repair behavior is still reported separately through raw metrics and repair rates.
+
+| display_label | failure_type | cards_with_type | card_rate | total_issue_count | mean_issue_count_per_card |
+| --- | --- | --- | --- | --- | --- |
+| Bare LLM - DeepSeek deepseek-v4-pro, high reasoning, thinking on, original full-pool prompt | schema_failure | 50.000 | 1.000 | 50.000 | 1.000 |
+| Bare LLM - OpenAI gpt-5.5, high reasoning, original full-pool prompt | schema_failure | 50.000 | 1.000 | 50.000 | 1.000 |
+| LLM plus tool summaries - OpenAI gpt-5.5, high reasoning, original full-pool prompt | schema_failure | 50.000 | 1.000 | 50.000 | 1.000 |
+| Bare LLM - DeepSeek deepseek-v4-flash, thinking off, fast model | selection_contract_failure | 39.000 | 0.780 | 253.000 | 5.060 |
+| Bare LLM - Anthropic claude-opus-4-7, original full-pool prompt, no explicit thinking budget | constraint_failure | 30.000 | 0.600 | 112.000 | 2.240 |
+| Bare LLM - Anthropic claude-opus-4-7, no extended thinking, Direct JSON | constraint_failure | 28.000 | 0.560 | 109.000 | 2.180 |
+| Bare LLM - Anthropic claude-opus-4-7, no extended thinking, Direct JSON | selection_contract_failure | 28.000 | 0.560 | 63.000 | 1.260 |
+| Bare LLM - Anthropic claude-opus-4-7, original full-pool prompt, no explicit thinking budget | selection_contract_failure | 28.000 | 0.560 | 61.000 | 1.220 |
+| LLM plus tool summaries - Anthropic claude-opus-4-7, original full-pool prompt, no explicit thinking budget | constraint_failure | 26.000 | 0.520 | 75.000 | 1.500 |
+| Bare LLM - OpenAI gpt-5.4-mini, low reasoning, fast model | selection_contract_failure | 25.000 | 0.500 | 115.000 | 2.300 |
+| LLM plus tool summaries - DeepSeek deepseek-v4-pro, thinking off, Direct JSON | constraint_failure | 25.000 | 0.500 | 87.000 | 1.740 |
+| LLM plus tool summaries - DeepSeek deepseek-v4-flash, thinking off, fast model | selection_contract_failure | 24.000 | 0.480 | 172.000 | 3.440 |
+| LLM plus tool summaries - OpenAI gpt-5.4-mini, low reasoning, fast model | selection_contract_failure | 21.000 | 0.420 | 120.000 | 2.400 |
+| LLM plus tool summaries - Anthropic claude-opus-4-7, no extended thinking, Direct JSON | constraint_failure | 21.000 | 0.420 | 67.000 | 1.340 |
+
+## Card-Level Diagnostics
+
+Per-card diagnostic tables are written next to the comparison CSV in `paper/tables/cara_lo_paper_50_direct_json_completed`. The matching figure directory contains card-level utility distributions, utility-delta distributions, and a QSAR-versus-LLM per-card scatter plot when `make-figures` is run.
 
 ## Primary Systems
 

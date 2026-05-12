@@ -17,6 +17,17 @@ The legacy `selector_completed` artifacts contain the same direct-JSON
 experiment under the older internal naming. The `fast_complete` and
 `completed` frontier artifacts remain historical diagnostic comparisons.
 
+The direct-JSON table directory also contains strengthened statistical
+diagnostics:
+
+- `paired_bootstrap_key_deltas.csv`: paired card-level deltas for the main
+  paper comparisons.
+- `paired_bootstrap_deltas.csv`: all primary pairwise card-level deltas.
+- `card_level_diagnostics.csv` and `card_level_key_systems.csv`: per-card
+  utility diagnostics for key systems.
+- `failure_taxonomy_summary.csv` and `failure_taxonomy_by_group.csv`:
+  consolidated validation-failure summaries.
+
 ## Card Artifact
 
 ```text
@@ -86,6 +97,11 @@ The best direct-JSON LLM rows were useful and substantially better than the
 rules-only/random region, but they remained below all three QSAR baselines. The
 best raw LLM utility was `77.209` for OpenAI gpt-5.5 low-reasoning
 Direct-JSON with tools and validator instrumentation, before final repair.
+
+Paired bootstrap over the same 50 cards strengthens the main comparison:
+`qsar_svm` exceeded the best final LLM row by `3.194` feasible-utility points
+with a 95% paired-bootstrap interval of `1.942` to `4.692`. The oracle exceeded
+`qsar_svm` by `7.639` feasible-utility points, showing remaining headroom.
 
 ## Hypothesis Readout
 

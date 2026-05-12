@@ -1,0 +1,8 @@
+system_group,failure_type,systems,num_cards,cards_with_type,card_rate,total_issue_count
+LLM,constraint_failure,14,700,237,0.3385714285714286,859.0
+Baseline,none,3,150,150,1.0,0.0
+Oracle,none,1,50,50,1.0,0.0
+QSAR,none,3,150,150,1.0,0.0
+LLM,none,30,1500,1111,0.7406666666666667,0.0
+LLM,schema_failure,4,200,152,0.76,152.0
+LLM,selection_contract_failure,13,650,252,0.38769230769230767,1086.0

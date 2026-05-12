@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+from itertools import combinations
 import json
 from datetime import datetime, timezone
 from html import escape
 from pathlib import Path
+import textwrap
 
+import numpy as np
 import pandas as pd
 from plotly.offline import get_plotlyjs
 
-from .io import read_json
+from .io import read_json, read_jsonl
 
 
 ABLATION_PAIRS = [
@@ -30,6 +33,11 @@ def compare_run_summaries(summary_paths: list[Path], out_dir: Path) -> pd.DataFr
     _write_leaderboard_slices(frame, out_dir)
     _write_metric_winners(frame, out_dir)
     _write_ablation_table(frame, out_dir)
+    card_scores = _load_card_scores(summary_paths)
+    failure_rows = _load_failure_taxonomies(summary_paths)
+    _write_paired_bootstrap_tables(card_scores, frame, out_dir)
+    _write_card_level_diagnostics(card_scores, frame, out_dir)
+    _write_failure_taxonomy_tables(failure_rows, frame, out_dir)
     return frame
 
 
@@ -139,6 +147,424 @@ def _write_ablation_table(frame: pd.DataFrame, out_dir: Path) -> None:
     pd.DataFrame(rows).to_csv(out_dir / "ablation_deltas.csv", index=False)
 
 
+def _load_card_scores(summary_paths: list[Path]) -> pd.DataFrame:
+    rows: list[dict[str, object]] = []
+    for summary_path in summary_paths:
+        card_scores_path = summary_path.parent / "card_scores.jsonl"
+        if not card_scores_path.exists():
+            continue
+        rows.extend(read_jsonl(card_scores_path))
+    return pd.DataFrame(rows)
+
+
+def _load_failure_taxonomies(summary_paths: list[Path]) -> pd.DataFrame:
+    frames: list[pd.DataFrame] = []
+    for summary_path in summary_paths:
+        taxonomy_path = summary_path.parent / "failure_taxonomy.csv"
+        if taxonomy_path.exists():
+            frames.append(pd.read_csv(taxonomy_path))
+    if not frames:
+        return pd.DataFrame(columns=["task_id", "system_name", "failure_type", "count"])
+    return pd.concat(frames, ignore_index=True)
+
+
+def _system_label_maps(frame: pd.DataFrame) -> dict[str, dict[str, object]]:
+    if frame.empty or "system_name" not in frame.columns:
+        return {}
+    enriched = _add_display_columns(frame)
+    maps: dict[str, dict[str, object]] = {}
+    for _, row in enriched.iterrows():
+        system_name = str(row.get("system_name", ""))
+        maps[system_name] = {
+            "display_label": row.get("display_label", system_name),
+            "system_group": row.get("system_group", _system_group(system_name)),
+            "condition_label": row.get("condition_label", ""),
+        }
+    return maps
+
+
+def _add_score_labels(scores: pd.DataFrame, frame: pd.DataFrame) -> pd.DataFrame:
+    if scores.empty or "system_name" not in scores.columns:
+        return scores
+    maps = _system_label_maps(frame)
+    output = scores.copy()
+    output["display_label"] = output["system_name"].map(
+        lambda value: maps.get(str(value), {}).get("display_label", str(value))
+    )
+    output["system_group"] = output["system_name"].map(
+        lambda value: maps.get(str(value), {}).get("system_group", _system_group(str(value)))
+    )
+    output["condition_label"] = output["system_name"].map(
+        lambda value: maps.get(str(value), {}).get("condition_label", "")
+    )
+    return output
+
+
+def _paired_bootstrap_delta(
+    left: pd.Series,
+    right: pd.Series,
+    *,
+    samples: int = 2000,
+    seed: int = 7,
+) -> dict[str, float | int]:
+    differences = (left.astype(float) - right.astype(float)).dropna().to_numpy()
+    if len(differences) == 0:
+        return {
+            "n_cards": 0,
+            "mean_delta": np.nan,
+            "ci_low": np.nan,
+            "ci_high": np.nan,
+            "probability_delta_gt_zero": np.nan,
+        }
+    if len(differences) == 1 or samples <= 0:
+        value = float(differences[0])
+        return {
+            "n_cards": int(len(differences)),
+            "mean_delta": value,
+            "ci_low": value,
+            "ci_high": value,
+            "probability_delta_gt_zero": 1.0 if value > 0 else 0.0,
+        }
+    rng = np.random.default_rng(seed)
+    means = np.empty(samples, dtype=float)
+    for index in range(samples):
+        means[index] = float(np.mean(rng.choice(differences, size=len(differences), replace=True)))
+    return {
+        "n_cards": int(len(differences)),
+        "mean_delta": float(np.mean(differences)),
+        "ci_low": float(np.quantile(means, 0.025)),
+        "ci_high": float(np.quantile(means, 0.975)),
+        "probability_delta_gt_zero": float(np.mean(means > 0)),
+    }
+
+
+def _paired_metric_row(
+    scores: pd.DataFrame,
+    labels: dict[str, dict[str, object]],
+    system_a: str,
+    system_b: str,
+    metric: str,
+    *,
+    comparison: str,
+    seed: int,
+) -> dict[str, object] | None:
+    if metric not in scores.columns:
+        return None
+    left = scores.loc[scores["system_name"] == system_a, ["task_id", metric]].dropna()
+    right = scores.loc[scores["system_name"] == system_b, ["task_id", metric]].dropna()
+    merged = left.merge(right, on="task_id", suffixes=("_a", "_b"))
+    if merged.empty:
+        return None
+    stats = _paired_bootstrap_delta(merged[f"{metric}_a"], merged[f"{metric}_b"], seed=seed)
+    if stats["n_cards"] == 0:
+        return None
+    return {
+        "comparison": comparison,
+        "metric": metric,
+        "system_a": system_a,
+        "system_a_label": labels.get(system_a, {}).get("display_label", system_a),
+        "system_b": system_b,
+        "system_b_label": labels.get(system_b, {}).get("display_label", system_b),
+        "direction": "system_a_minus_system_b",
+        **stats,
+    }
+
+
+def _best_system(frame: pd.DataFrame, group: str | None, metric: str) -> str | None:
+    if frame.empty or metric not in frame.columns or "system_name" not in frame.columns:
+        return None
+    source = frame
+    if group is not None and "system_group" in source.columns:
+        source = source[source["system_group"] == group]
+    metric_frame = source.dropna(subset=[metric])
+    if metric_frame.empty:
+        return None
+    return str(metric_frame.sort_values(metric, ascending=False).iloc[0]["system_name"])
+
+
+def _write_paired_bootstrap_tables(scores: pd.DataFrame, frame: pd.DataFrame, out_dir: Path) -> None:
+    columns = [
+        "comparison",
+        "metric",
+        "system_a",
+        "system_a_label",
+        "system_b",
+        "system_b_label",
+        "direction",
+        "n_cards",
+        "mean_delta",
+        "ci_low",
+        "ci_high",
+        "probability_delta_gt_zero",
+    ]
+    if scores.empty or frame.empty:
+        pd.DataFrame(columns=columns).to_csv(out_dir / "paired_bootstrap_deltas.csv", index=False)
+        pd.DataFrame(columns=columns).to_csv(out_dir / "paired_bootstrap_key_deltas.csv", index=False)
+        return
+
+    enriched_frame = _add_display_columns(frame)
+    primary = enriched_frame.loc[~enriched_frame["system_name"].map(_is_oracle_system)].copy()
+    labels = _system_label_maps(enriched_frame)
+    metrics = [
+        "feasible_utility",
+        "ndcg_at_k",
+        "compliance_rate",
+        "raw_feasible_utility",
+        "raw_ndcg_at_k",
+        "raw_compliance_rate",
+    ]
+    ordered_systems = [str(value) for value in primary["system_name"].tolist()]
+    rows: list[dict[str, object]] = []
+    for system_a, system_b in combinations(ordered_systems, 2):
+        for metric in metrics:
+            row = _paired_metric_row(
+                scores,
+                labels,
+                system_a,
+                system_b,
+                metric,
+                comparison="all_primary_pairs",
+                seed=7,
+            )
+            if row is not None and int(row["n_cards"]) >= 2:
+                rows.append(row)
+    all_pairs = pd.DataFrame(rows, columns=columns)
+    all_pairs.to_csv(out_dir / "paired_bootstrap_deltas.csv", index=False)
+
+    oracle = _best_system(enriched_frame, "Oracle", "feasible_utility")
+    best_qsar = _best_system(enriched_frame, "QSAR", "feasible_utility")
+    best_llm = _best_system(enriched_frame, "LLM", "feasible_utility")
+    best_raw_llm = _best_system(enriched_frame, "LLM", "raw_feasible_utility")
+    similarity = "similarity_to_best_active" if "similarity_to_best_active" in ordered_systems else None
+    rules = "rules_only" if "rules_only" in ordered_systems else None
+    key_specs = [
+        ("oracle_minus_best_qsar", oracle, best_qsar),
+        ("best_qsar_minus_best_final_llm", best_qsar, best_llm),
+        ("best_qsar_minus_similarity", best_qsar, similarity),
+        ("best_final_llm_minus_similarity", best_llm, similarity),
+        ("best_final_llm_minus_rules", best_llm, rules),
+        ("best_raw_llm_minus_similarity", best_raw_llm, similarity),
+    ]
+    key_rows: list[dict[str, object]] = []
+    for comparison, system_a, system_b in key_specs:
+        if system_a is None or system_b is None or system_a == system_b:
+            continue
+        for metric in ["feasible_utility", "ndcg_at_k", "compliance_rate"]:
+            row = _paired_metric_row(
+                scores,
+                labels,
+                system_a,
+                system_b,
+                metric,
+                comparison=comparison,
+                seed=13,
+            )
+            if row is not None and int(row["n_cards"]) >= 2:
+                key_rows.append(row)
+    pd.DataFrame(key_rows, columns=columns).to_csv(
+        out_dir / "paired_bootstrap_key_deltas.csv",
+        index=False,
+    )
+
+
+def _card_series_specs(frame: pd.DataFrame) -> list[tuple[str, str | None, str]]:
+    enriched = _add_display_columns(frame)
+    return [
+        ("Oracle upper-bound", _best_system(enriched, "Oracle", "feasible_utility"), "final"),
+        ("Best QSAR", _best_system(enriched, "QSAR", "feasible_utility"), "final"),
+        ("Best final LLM", _best_system(enriched, "LLM", "feasible_utility"), "final"),
+        ("Best raw LLM", _best_system(enriched, "LLM", "raw_feasible_utility"), "raw"),
+        ("Similarity baseline", "similarity_to_best_active", "final"),
+        ("Rules-only baseline", "rules_only", "final"),
+    ]
+
+
+def _score_value(row: pd.Series, metric: str, source: str) -> object:
+    if source == "raw":
+        raw_metric = f"raw_{metric}" if not metric.startswith("raw_") else metric
+        return row.get(raw_metric)
+    return row.get(metric)
+
+
+def _write_card_level_diagnostics(scores: pd.DataFrame, frame: pd.DataFrame, out_dir: Path) -> None:
+    key_columns = [
+        "task_id",
+        "series",
+        "system_name",
+        "display_label",
+        "metric_source",
+        "feasible_utility",
+        "ndcg_at_k",
+        "compliance_rate",
+        "constrained_regret",
+        "oracle_utility",
+    ]
+    diagnostic_columns = [
+        "task_id",
+        "oracle_utility",
+        "best_qsar_utility",
+        "best_final_llm_utility",
+        "best_raw_llm_utility",
+        "similarity_utility",
+        "rules_utility",
+        "oracle_minus_best_qsar",
+        "best_qsar_minus_best_final_llm",
+        "best_qsar_minus_best_raw_llm",
+        "best_final_llm_minus_similarity",
+        "best_qsar_minus_similarity",
+    ]
+    if scores.empty or frame.empty:
+        pd.DataFrame(columns=key_columns).to_csv(out_dir / "card_level_key_systems.csv", index=False)
+        pd.DataFrame(columns=diagnostic_columns).to_csv(out_dir / "card_level_diagnostics.csv", index=False)
+        return
+
+    labelled_scores = _add_score_labels(scores, frame)
+    score_by_system = {system: group for system, group in labelled_scores.groupby("system_name")}
+    key_rows: list[dict[str, object]] = []
+    for series, system_name, source in _card_series_specs(frame):
+        if system_name is None or system_name not in score_by_system:
+            continue
+        system_scores = score_by_system[system_name]
+        for _, row in system_scores.iterrows():
+            feasible_utility = _score_value(row, "feasible_utility", source)
+            if pd.isna(feasible_utility):
+                continue
+            key_rows.append(
+                {
+                    "task_id": row["task_id"],
+                    "series": series,
+                    "system_name": system_name,
+                    "display_label": row.get("display_label", system_name),
+                    "metric_source": source,
+                    "feasible_utility": feasible_utility,
+                    "ndcg_at_k": _score_value(row, "ndcg_at_k", source),
+                    "compliance_rate": _score_value(row, "compliance_rate", source),
+                    "constrained_regret": row.get("oracle_utility") - float(feasible_utility),
+                    "oracle_utility": row.get("oracle_utility"),
+                }
+            )
+    key_frame = pd.DataFrame(key_rows, columns=key_columns)
+    key_frame.to_csv(out_dir / "card_level_key_systems.csv", index=False)
+
+    if key_frame.empty:
+        pd.DataFrame(columns=diagnostic_columns).to_csv(out_dir / "card_level_diagnostics.csv", index=False)
+        return
+    pivot = key_frame.pivot_table(
+        index="task_id",
+        columns="series",
+        values="feasible_utility",
+        aggfunc="first",
+    )
+    oracle_values = key_frame.groupby("task_id")["oracle_utility"].first()
+    diagnostics = pd.DataFrame({"task_id": pivot.index})
+    diagnostics["oracle_utility"] = diagnostics["task_id"].map(oracle_values)
+    series_to_column = {
+        "Best QSAR": "best_qsar_utility",
+        "Best final LLM": "best_final_llm_utility",
+        "Best raw LLM": "best_raw_llm_utility",
+        "Similarity baseline": "similarity_utility",
+        "Rules-only baseline": "rules_utility",
+    }
+    for series, column in series_to_column.items():
+        diagnostics[column] = diagnostics["task_id"].map(pivot[series]) if series in pivot else np.nan
+    diagnostics["oracle_minus_best_qsar"] = diagnostics["oracle_utility"] - diagnostics["best_qsar_utility"]
+    diagnostics["best_qsar_minus_best_final_llm"] = (
+        diagnostics["best_qsar_utility"] - diagnostics["best_final_llm_utility"]
+    )
+    diagnostics["best_qsar_minus_best_raw_llm"] = (
+        diagnostics["best_qsar_utility"] - diagnostics["best_raw_llm_utility"]
+    )
+    diagnostics["best_final_llm_minus_similarity"] = (
+        diagnostics["best_final_llm_utility"] - diagnostics["similarity_utility"]
+    )
+    diagnostics["best_qsar_minus_similarity"] = diagnostics["best_qsar_utility"] - diagnostics["similarity_utility"]
+    diagnostics[diagnostic_columns].to_csv(out_dir / "card_level_diagnostics.csv", index=False)
+
+
+def _write_failure_taxonomy_tables(taxonomy: pd.DataFrame, frame: pd.DataFrame, out_dir: Path) -> None:
+    summary_columns = [
+        "system_name",
+        "display_label",
+        "system_group",
+        "failure_type",
+        "num_cards",
+        "cards_with_type",
+        "card_rate",
+        "total_issue_count",
+        "mean_issue_count_per_card",
+    ]
+    group_columns = [
+        "system_group",
+        "failure_type",
+        "systems",
+        "num_cards",
+        "cards_with_type",
+        "card_rate",
+        "total_issue_count",
+    ]
+    if taxonomy.empty or frame.empty:
+        pd.DataFrame(columns=summary_columns).to_csv(out_dir / "failure_taxonomy_summary.csv", index=False)
+        pd.DataFrame(columns=group_columns).to_csv(out_dir / "failure_taxonomy_by_group.csv", index=False)
+        return
+    labels = _system_label_maps(frame)
+    working = taxonomy.copy()
+    working["count"] = pd.to_numeric(working["count"], errors="coerce").fillna(0)
+    working["display_label"] = working["system_name"].map(
+        lambda value: labels.get(str(value), {}).get("display_label", str(value))
+    )
+    working["system_group"] = working["system_name"].map(
+        lambda value: labels.get(str(value), {}).get("system_group", _system_group(str(value)))
+    )
+    system_card_counts = working.groupby("system_name")["task_id"].nunique().to_dict()
+    rows: list[dict[str, object]] = []
+    for (system_name, failure_type), group in working.groupby(["system_name", "failure_type"]):
+        if failure_type == "none":
+            cards_with_type = group["task_id"].nunique()
+        else:
+            cards_with_type = group.loc[group["count"] > 0, "task_id"].nunique()
+        num_cards = int(system_card_counts.get(system_name, group["task_id"].nunique()))
+        total_count = float(group["count"].sum())
+        rows.append(
+            {
+                "system_name": system_name,
+                "display_label": labels.get(str(system_name), {}).get("display_label", system_name),
+                "system_group": labels.get(str(system_name), {}).get("system_group", _system_group(str(system_name))),
+                "failure_type": failure_type,
+                "num_cards": num_cards,
+                "cards_with_type": int(cards_with_type),
+                "card_rate": (float(cards_with_type) / num_cards) if num_cards else 0.0,
+                "total_issue_count": total_count,
+                "mean_issue_count_per_card": (total_count / num_cards) if num_cards else 0.0,
+            }
+        )
+    summary = pd.DataFrame(rows, columns=summary_columns).sort_values(
+        ["failure_type", "card_rate", "total_issue_count"],
+        ascending=[True, False, False],
+    )
+    summary.to_csv(out_dir / "failure_taxonomy_summary.csv", index=False)
+
+    group_rows: list[dict[str, object]] = []
+    for (system_group, failure_type), group in summary.groupby(["system_group", "failure_type"]):
+        num_cards = int(group["num_cards"].sum())
+        cards_with_type = int(group["cards_with_type"].sum())
+        total_count = float(group["total_issue_count"].sum())
+        group_rows.append(
+            {
+                "system_group": system_group,
+                "failure_type": failure_type,
+                "systems": int(group["system_name"].nunique()),
+                "num_cards": num_cards,
+                "cards_with_type": cards_with_type,
+                "card_rate": (cards_with_type / num_cards) if num_cards else 0.0,
+                "total_issue_count": total_count,
+            }
+        )
+    pd.DataFrame(group_rows, columns=group_columns).sort_values(
+        ["failure_type", "card_rate"],
+        ascending=[True, False],
+    ).to_csv(out_dir / "failure_taxonomy_by_group.csv", index=False)
+
+
 def make_frontier_plot(comparison_csv: Path, out_dir: Path) -> Path:
     import matplotlib.pyplot as plt
 
@@ -166,7 +592,101 @@ def make_frontier_plot(comparison_csv: Path, out_dir: Path) -> Path:
     output = out_dir / "compliance_utility_frontier.png"
     fig.savefig(output, dpi=200)
     plt.close(fig)
+    _make_card_level_plots(comparison_csv.parent, out_dir)
     return output
+
+
+def _wrap_tick(label: object, width: int = 22) -> str:
+    return "\n".join(textwrap.wrap(str(label), width=width, break_long_words=False))
+
+
+def _make_card_level_plots(table_dir: Path, out_dir: Path) -> list[Path]:
+    import matplotlib.pyplot as plt
+
+    outputs: list[Path] = []
+    key_path = table_dir / "card_level_key_systems.csv"
+    diagnostics_path = table_dir / "card_level_diagnostics.csv"
+    if not key_path.exists() or not diagnostics_path.exists():
+        return outputs
+    key = pd.read_csv(key_path)
+    diagnostics = pd.read_csv(diagnostics_path)
+    if key.empty or diagnostics.empty:
+        return outputs
+
+    series_order = [
+        "Oracle upper-bound",
+        "Best QSAR",
+        "Best final LLM",
+        "Best raw LLM",
+        "Similarity baseline",
+        "Rules-only baseline",
+    ]
+    available_series = [series for series in series_order if series in set(key["series"])]
+    if available_series:
+        plot_data = [
+            key.loc[key["series"] == series, "feasible_utility"].dropna().astype(float).to_numpy()
+            for series in available_series
+        ]
+        fig, ax = plt.subplots(figsize=(8.5, 5.5))
+        ax.boxplot(plot_data, tick_labels=[_wrap_tick(series) for series in available_series], showfliers=False)
+        ax.set_ylabel("Per-card feasible utility")
+        ax.set_title("Card-Level Utility Distribution")
+        ax.grid(axis="y", alpha=0.25)
+        fig.tight_layout()
+        output = out_dir / "card_level_utility_distribution.png"
+        fig.savefig(output, dpi=200)
+        plt.close(fig)
+        outputs.append(output)
+
+    delta_columns = [
+        "oracle_minus_best_qsar",
+        "best_qsar_minus_best_final_llm",
+        "best_qsar_minus_best_raw_llm",
+        "best_final_llm_minus_similarity",
+        "best_qsar_minus_similarity",
+    ]
+    available_deltas = [
+        column for column in delta_columns if column in diagnostics.columns and diagnostics[column].notna().any()
+    ]
+    if available_deltas:
+        plot_data = [diagnostics[column].dropna().astype(float).to_numpy() for column in available_deltas]
+        fig, ax = plt.subplots(figsize=(8.5, 5.5))
+        ax.boxplot(
+            plot_data,
+            tick_labels=[_wrap_tick(column.replace("_", " ")) for column in available_deltas],
+            showfliers=False,
+        )
+        ax.axhline(0, color="#64717f", linewidth=1)
+        ax.set_ylabel("Per-card utility delta")
+        ax.set_title("Card-Level Utility Deltas")
+        ax.grid(axis="y", alpha=0.25)
+        fig.tight_layout()
+        output = out_dir / "card_level_delta_distribution.png"
+        fig.savefig(output, dpi=200)
+        plt.close(fig)
+        outputs.append(output)
+
+    if {
+        "best_qsar_utility",
+        "best_final_llm_utility",
+    }.issubset(diagnostics.columns):
+        scatter = diagnostics[["best_qsar_utility", "best_final_llm_utility"]].dropna()
+        if not scatter.empty:
+            fig, ax = plt.subplots(figsize=(6, 6))
+            ax.scatter(scatter["best_qsar_utility"], scatter["best_final_llm_utility"], alpha=0.75)
+            axis_min = float(min(scatter.min()))
+            axis_max = float(max(scatter.max()))
+            ax.plot([axis_min, axis_max], [axis_min, axis_max], color="#64717f", linestyle="--", linewidth=1)
+            ax.set_xlabel("Best QSAR feasible utility")
+            ax.set_ylabel("Best final LLM feasible utility")
+            ax.set_title("Per-Card QSAR Versus LLM Utility")
+            ax.grid(alpha=0.25)
+            fig.tight_layout()
+            output = out_dir / "card_level_qsar_vs_llm_scatter.png"
+            fig.savefig(output, dpi=200)
+            plt.close(fig)
+            outputs.append(output)
+    return outputs
 
 
 def _format_float(value: object) -> str:
@@ -1501,6 +2021,72 @@ def _row_value(row: pd.Series | None, metric: str) -> str:
     return _format_float(row.get(metric))
 
 
+def _optional_paired_bootstrap_section(table_dir: Path) -> list[str]:
+    path = table_dir / "paired_bootstrap_key_deltas.csv"
+    if not path.exists():
+        return []
+    frame = pd.read_csv(path)
+    if frame.empty:
+        return []
+    metrics = {"feasible_utility", "ndcg_at_k", "compliance_rate"}
+    subset = frame[frame["metric"].isin(metrics)].copy()
+    if subset.empty:
+        return []
+    subset["ci_95"] = subset.apply(
+        lambda row: f"{_format_float(row['ci_low'])} to {_format_float(row['ci_high'])}",
+        axis=1,
+    )
+    columns = [
+        "comparison",
+        "metric",
+        "system_a_label",
+        "system_b_label",
+        "mean_delta",
+        "ci_95",
+        "probability_delta_gt_zero",
+    ]
+    return [
+        "## Paired Bootstrap Highlights",
+        "",
+        "These deltas resample paired decision cards, so each comparison asks how two systems differed on the same cards rather than comparing independent aggregate means.",
+        "",
+        _markdown_table(subset[columns].head(18), columns),
+    ]
+
+
+def _optional_failure_taxonomy_section(table_dir: Path) -> list[str]:
+    path = table_dir / "failure_taxonomy_summary.csv"
+    if not path.exists():
+        return []
+    frame = pd.read_csv(path)
+    if frame.empty:
+        return []
+    failures = frame[(frame["failure_type"] != "none") & (frame["cards_with_type"] > 0)].copy()
+    if failures.empty:
+        return [
+            "## Failure Taxonomy Summary",
+            "",
+            "No consolidated final-output contract failures were recorded in this comparison table.",
+            "",
+        ]
+    failures = failures.sort_values(["card_rate", "total_issue_count"], ascending=[False, False])
+    columns = [
+        "display_label",
+        "failure_type",
+        "cards_with_type",
+        "card_rate",
+        "total_issue_count",
+        "mean_issue_count_per_card",
+    ]
+    return [
+        "## Failure Taxonomy Summary",
+        "",
+        "This table aggregates final-output validation failures across cards. Raw LLM repair behavior is still reported separately through raw metrics and repair rates.",
+        "",
+        _markdown_table(failures[columns].head(14), columns),
+    ]
+
+
 def write_results_summary(comparison_csv: Path, out_dir: Path, *, title: str = "SpecGuard-Chem v2 Results Summary") -> Path:
     frame = pd.read_csv(comparison_csv)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -1570,6 +2156,12 @@ def write_results_summary(comparison_csv: Path, out_dir: Path, *, title: str = "
         f"- H2, simple QSAR and similarity baselines are competitive: supported. Best QSAR feasible utility is `{_row_value(best_qsar, 'feasible_utility')}`; similarity-to-best-active is `{_row_value(best_similarity, 'feasible_utility')}`; best final LLM is `{_row_value(best_llm, 'feasible_utility')}`.",
         "- H3, the best useful system is likely hybrid: partially supported. Guarded/tool-summary LLM rows can improve over bare LLM rows, but this implementation is not yet the broader agent design where QSAR, RDKit, similarity retrieval, and other tools are actively available as callable tools.",
         "- H4, compliance and utility are imperfectly correlated: supported. Near-perfect compliance appears in rows with materially different feasible utility, so compliance alone is not the target outcome.",
+        "",
+        *_optional_paired_bootstrap_section(comparison_csv.parent),
+        *_optional_failure_taxonomy_section(comparison_csv.parent),
+        "## Card-Level Diagnostics",
+        "",
+        f"Per-card diagnostic tables are written next to the comparison CSV in `{comparison_csv.parent}`. The matching figure directory contains card-level utility distributions, utility-delta distributions, and a QSAR-versus-LLM per-card scatter plot when `make-figures` is run.",
         "",
         "## Primary Systems",
         "",

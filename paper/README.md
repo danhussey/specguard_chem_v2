@@ -5,7 +5,7 @@ This directory holds reproducible outputs generated from run artifacts.
 Expected subdirectories:
 
 - `tables/`: comparison tables, metric winners, and ablation deltas.
-- `figures/`: compliance-utility frontier plots.
+- `figures/`: compliance-utility frontier plots and card-level diagnostics.
 - `RESULTS_SUMMARY.md`: generated paper-facing audit summary.
 - `RESULTS_DASHBOARD.html`: generated static quality-control dashboard with
   embedded comparison data, plots, and label definitions.
