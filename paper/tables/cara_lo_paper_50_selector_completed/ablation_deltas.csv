@@ -1,6 +1,7 @@
 ablation,before,after,feasible_utility_delta,raw_feasible_utility_delta,compliance_rate_delta,raw_compliance_rate_delta,constrained_regret_delta,schema_error_rate_delta,raw_schema_error_rate_delta,repaired_rate_delta,repaired_from_empty_rate_delta
 validator_delta__anthropic_fast,bare_llm__anthropic_fast,llm_validator__anthropic_fast,16.760699999999993,,0.25,,-16.760700000000003,0.0,,,
 validator_delta__anthropic_frontier,bare_llm__anthropic_frontier,llm_validator__anthropic_frontier,20.416200000000003,,0.31799999999999995,,-20.4162,0.0,,,
+validator_delta__anthropic_frontier_selector,bare_llm__anthropic_frontier_selector,llm_validator__anthropic_frontier_selector,20.494300000000003,1.608699999999999,0.30800000000000005,0.018000000000000016,-20.494299999999996,0.0,0.0,0.72,0.0
 validator_delta__deepseek_fast,bare_llm__deepseek_fast,llm_validator__deepseek_fast,42.240100000000005,,0.634,,-42.2401,0.0,,,
 validator_delta__deepseek_frontier_selector,bare_llm__deepseek_frontier_selector,llm_validator__deepseek_frontier_selector,18.0497,-0.3703000000000003,0.266,-0.008000000000000007,-18.0497,0.0,0.0,0.56,0.0
 validator_delta__openai_fast,bare_llm__openai_fast,llm_validator__openai_fast,15.9328,,0.268,,-15.9328,0.0,,,
@@ -8,13 +9,17 @@ validator_delta__openai_frontier,bare_llm__openai_frontier,llm_validator__openai
 validator_delta__openai_frontier_selector,bare_llm__openai_frontier_selector,llm_validator__openai_frontier_selector,2.407200000000003,0.9767999999999972,0.038000000000000034,0.014000000000000012,-2.4071999999999996,0.0,0.0,0.14,0.0
 tools_validator_delta__anthropic_fast,llm_tools__anthropic_fast,llm_tools_validator__anthropic_fast,11.793199999999999,,0.18999999999999995,,-11.793199999999999,0.0,,,
 tools_validator_delta__anthropic_frontier,llm_tools__anthropic_frontier,llm_tools_validator__anthropic_frontier,14.557500000000005,,0.22199999999999998,,-14.5575,0.0,,,
+tools_validator_delta__anthropic_frontier_selector,llm_tools__anthropic_frontier_selector,llm_tools_validator__anthropic_frontier_selector,14.595899999999993,2.9842999999999975,0.21799999999999997,0.039999999999999925,-14.595899999999999,0.0,0.02,0.58,0.0
 tools_validator_delta__deepseek_fast,llm_tools__deepseek_fast,llm_tools_validator__deepseek_fast,33.691399999999994,,0.488,,-33.6914,-0.04,,,
 tools_validator_delta__deepseek_frontier_selector,llm_tools__deepseek_frontier_selector,llm_tools_validator__deepseek_frontier_selector,11.54,2.440799999999996,0.18999999999999995,0.05399999999999994,-11.540000000000003,0.0,0.0,0.38,0.0
 tools_validator_delta__openai_fast,llm_tools__openai_fast,llm_tools_validator__openai_fast,16.311800000000005,,0.262,,-16.311799999999998,0.0,,,
 tools_validator_delta__openai_frontier,llm_tools__openai_frontier,llm_tools_validator__openai_frontier,66.0431,,1.0,,-66.0431,-1.0,,,
+tools_validator_delta__openai_frontier_selector,llm_tools__openai_frontier_selector,llm_tools_validator__openai_frontier_selector,0.5147000000000048,0.03629999999999711,0.010000000000000009,0.0040000000000000036,-0.5146999999999977,0.0,0.0,0.04,0.0
 tools_delta__anthropic_fast,bare_llm__anthropic_fast,llm_tools__anthropic_fast,5.312199999999997,,0.06000000000000005,,-5.312200000000004,0.0,,,
 tools_delta__anthropic_frontier,bare_llm__anthropic_frontier,llm_tools__anthropic_frontier,6.099000000000004,,0.09599999999999997,,-6.099,0.0,,,
+tools_delta__anthropic_frontier_selector,bare_llm__anthropic_frontier_selector,llm_tools__anthropic_frontier_selector,6.095100000000002,6.095100000000002,0.09000000000000008,0.09000000000000008,-6.095099999999999,0.0,0.0,0.0,0.0
 tools_delta__deepseek_fast,bare_llm__deepseek_fast,llm_tools__deepseek_fast,7.364400000000003,,0.14600000000000002,,-7.364399999999996,0.04,,,
 tools_delta__deepseek_frontier_selector,bare_llm__deepseek_frontier_selector,llm_tools__deepseek_frontier_selector,5.836199999999998,5.836199999999998,0.07600000000000007,0.07600000000000007,-5.836199999999998,0.0,0.0,0.0,0.0
 tools_delta__openai_fast,bare_llm__openai_fast,llm_tools__openai_fast,0.3230999999999966,,0.006000000000000005,,-0.3231000000000037,0.0,,,
 tools_delta__openai_frontier,bare_llm__openai_frontier,llm_tools__openai_frontier,0.0,,0.0,,0.0,0.0,,,
+tools_delta__openai_frontier_selector,bare_llm__openai_frontier_selector,llm_tools__openai_frontier_selector,1.3915999999999968,1.3915999999999968,0.028000000000000025,0.028000000000000025,-1.3916000000000004,0.0,0.0,0.0,0.0

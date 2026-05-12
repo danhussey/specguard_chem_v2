@@ -71,32 +71,31 @@ was run, what happened, and what to do next.
 - Follow-up: do not overinterpret high-reasoning empty-output failures as
   chemistry reasoning failures; separate raw model output from guarded repair.
 
-## 2026-05-11 paper-50 direct-JSON frontier matrix
+## 2026-05-12 paper-50 direct-JSON frontier matrix
 
 - Artifacts: `runs/cara_lo_paper_50_selector_matrix/`,
   `paper/tables/cara_lo_paper_50_selector_completed/`,
   `paper/figures/cara_lo_paper_50_selector_completed/`,
-  `plans/logs/2026-05-11-0011-reasoning-budget-fairness-selector-partial.md`.
+  `plans/logs/2026-05-12-0013-direct-json-matrix-completion.md`.
 - Scope: same 50 frozen CARA LO cards and full candidate pools; direct-JSON
   prompt profile; OpenAI frontier with low reasoning fallback; DeepSeek frontier
-  with thinking disabled; Anthropic direct-JSON preflight only.
+  with thinking disabled; Anthropic frontier without extended thinking.
 - Question: test whether the high-reasoning failures were caused by the
   interface rather than the prioritisation task.
-- Status: partial. DeepSeek completed all four systems. OpenAI completed
-  `bare_llm` and `llm_validator`, then hit API quota during `llm_tools`.
-  Anthropic preflight returned JSON, but the full run hit overload then low API
-  credit.
-- Headline: OpenAI direct-JSON returned valid, useful raw outputs:
-  `bare_llm__openai_frontier_selector` feasible utility `75.7812`; raw/final
-  `llm_validator__openai_frontier_selector` `76.7580`/`78.1884`, repaired-from-
-  empty rate `0.0`. DeepSeek direct-JSON completed but was weaker; best DeepSeek
-  final selector row was `67.6213`.
+- Status: complete. All 12 provider/system direct-JSON traces have 50 rows.
+- Headline: OpenAI direct-JSON was the strongest LLM condition but still below
+  QSAR. Best rows: `llm_validator__openai_frontier_selector` final/raw
+  `78.1884`/`76.7580`; `llm_tools_validator__openai_frontier_selector`
+  final/raw `77.6875`/`77.2091`; `llm_tools__openai_frontier_selector`
+  raw/final `77.1728`. Anthropic direct-JSON guarded rows reached `74.4707`
+  final utility but relied heavily on repair. DeepSeek direct-JSON completed but
+  was weaker; best DeepSeek final selector row was `67.6213`.
 - Surprise / interpretation: direct-JSON substantially changed OpenAI behavior.
   The original high-reasoning failure should be described as an interface and
-  output-budget failure mode.
-- Follow-up: rename selector artifacts/configs to direct-JSON terminology, add
-  cost estimation/budget gates, then resume incomplete OpenAI and Anthropic rows
-  only after estimated cost is acceptable.
+  output-budget failure mode. Validator repair materially changes Anthropic and
+  DeepSeek final scores, so raw metrics are essential.
+- Follow-up: rename selector artifacts/configs to direct-JSON terminology and
+  design a compressed/staged interface before any high-reasoning full run.
 
 ## Current Standing Interpretation
 

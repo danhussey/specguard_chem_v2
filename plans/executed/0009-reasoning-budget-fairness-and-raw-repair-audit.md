@@ -65,9 +65,8 @@ uv run sgchem export-llm-requests tests/fixtures/cards.jsonl --systems llm_tools
 
 ## Handoff Notes
 
-Code/config/reporting implementation is complete. The selector matrix has partial
-live results under `runs/cara_lo_paper_50_selector_matrix`: DeepSeek selector
-completed all four systems, OpenAI selector completed `bare_llm` and
-`llm_validator`, OpenAI then hit `insufficient_quota`, and Anthropic hit API
-credit limits after one overload retry. The reasoning-budget pilot has not been
-started because the selector matrix is not yet complete.
+Code/config/reporting implementation is complete. The direct-JSON matrix has
+complete live results under `runs/cara_lo_paper_50_selector_matrix`: OpenAI,
+Anthropic, and DeepSeek each completed all four LLM system variants on the 50
+frozen cards. The reasoning-budget pilot was intentionally deferred because
+high-reasoning modes still need a compressed or staged interface plan.

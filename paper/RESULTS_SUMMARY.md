@@ -1,6 +1,6 @@
-# SpecGuard-Chem v2 CARA LO Paper-50 Selector Results
+# SpecGuard-Chem v2 CARA LO Paper-50 Direct-JSON Results
 
-Generated at: `2026-05-11T10:10:06.115547+00:00`
+Generated at: `2026-05-12T06:07:32.990843+00:00`
 
 Source comparison CSV: `paper/tables/cara_lo_paper_50_selector_completed/system_comparison.csv`
 
@@ -14,7 +14,11 @@ This report is a computational audit artifact. It ranks provided candidate IDs o
 | qsar_gbt | 80.888 |  | 0.900 |  | 8.134 | 1.000 |  | 0.000 |  |  |
 | qsar_rf | 80.634 |  | 0.901 |  | 8.388 | 1.000 |  | 0.000 |  |  |
 | llm_validator__openai_frontier_selector | 78.188 | 76.758 | 0.881 | 0.868 | 10.833 | 1.000 | 0.976 | 0.000 | 0.000 | 0.000 |
+| llm_tools_validator__openai_frontier_selector | 77.688 | 77.209 | 0.873 | 0.866 | 11.334 | 1.000 | 0.994 | 0.000 | 0.000 | 0.000 |
+| llm_tools__openai_frontier_selector | 77.173 | 77.173 | 0.870 | 0.870 | 11.849 | 0.990 | 0.990 | 0.000 | 0.000 | 0.000 |
 | bare_llm__openai_frontier_selector | 75.781 | 75.781 | 0.847 | 0.847 | 13.241 | 0.962 | 0.962 | 0.000 | 0.000 | 0.000 |
+| llm_tools_validator__anthropic_frontier_selector | 74.471 | 62.859 | 0.834 | 0.684 | 14.551 | 1.000 | 0.822 | 0.000 | 0.020 | 0.000 |
+| llm_validator__anthropic_frontier_selector | 74.274 | 55.388 | 0.832 | 0.602 | 14.748 | 1.000 | 0.710 | 0.000 | 0.000 | 0.000 |
 | llm_tools_validator__anthropic_frontier | 73.979 |  | 0.832 |  | 15.043 | 1.000 |  | 0.000 |  |  |
 | llm_validator__anthropic_frontier | 73.739 |  | 0.831 |  | 15.283 | 1.000 |  | 0.000 |  |  |
 | similarity_to_best_active | 73.603 |  | 0.825 |  | 15.418 | 1.000 |  | 0.000 |  |  |
@@ -30,9 +34,11 @@ This report is a computational audit artifact. It ranks provided candidate IDs o
 | rules_only | 66.043 |  | 0.731 |  | 22.979 | 1.000 |  | 0.000 |  |  |
 | llm_tools_validator__openai_frontier | 66.043 |  | 0.731 |  | 22.979 | 1.000 |  | 0.000 |  |  |
 | llm_validator__openai_frontier | 66.043 |  | 0.731 |  | 22.979 | 1.000 |  | 0.000 |  |  |
+| llm_tools__anthropic_frontier_selector | 59.875 | 59.875 | 0.646 | 0.646 | 29.147 | 0.782 | 0.782 | 0.000 | 0.000 | 0.000 |
 | llm_tools__anthropic_frontier | 59.422 |  | 0.622 |  | 29.600 | 0.778 |  | 0.000 |  |  |
 | llm_tools__anthropic_fast | 55.432 |  | 0.610 |  | 33.589 | 0.810 |  | 0.000 |  |  |
 | llm_tools__deepseek_frontier_selector | 55.408 | 55.408 | 0.608 | 0.608 | 33.614 | 0.810 | 0.810 | 0.000 | 0.000 | 0.000 |
+| bare_llm__anthropic_frontier_selector | 53.780 | 53.780 | 0.580 | 0.580 | 35.242 | 0.692 | 0.692 | 0.000 | 0.000 | 0.000 |
 | bare_llm__anthropic_frontier | 53.323 |  | 0.579 |  | 35.699 | 0.682 |  | 0.000 |  |  |
 | llm_tools__openai_fast | 51.390 |  | 0.547 |  | 37.631 | 0.738 |  | 0.000 |  |  |
 | bare_llm__openai_fast | 51.067 |  | 0.557 |  | 37.954 | 0.732 |  | 0.000 |  |  |
