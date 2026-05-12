@@ -159,7 +159,7 @@
 <body>
   <header>
     <h1>SpecGuard-Chem v2 CARA LO Paper-50 Direct-JSON Dashboard</h1>
-    <div class="subtle">Generated at <code>2026-05-12T07:42:03.676757+00:00</code> from <code>paper/tables/cara_lo_paper_50_selector_completed/system_comparison.csv</code></div>
+    <div class="subtle">Generated at <code>2026-05-12T07:52:36.542876+00:00</code> from <code>paper/tables/cara_lo_paper_50_selector_completed/system_comparison.csv</code></div>
   </header>
   <main>
     <section class="grid summary-grid" id="summaryCards"></section>
@@ -4371,22 +4371,32 @@ return Plotly;
       const showRepairLinks = document.getElementById("showRepairLinks").checked;
       const data = rows.filter(row => row[xMetric] !== null && row[yMetric] !== null);
       const traces = [];
+      const repairRows = rows.filter(row => row.raw_feasible_utility !== null && row.raw_compliance_rate !== null && row.feasible_utility !== null && row.compliance_rate !== null);
       if (showRepairLinks && yMetric === "feasible_utility" && xMetric === "compliance_rate") {
-        rows
-          .filter(row => row.raw_feasible_utility !== null && row.raw_compliance_rate !== null)
-          .forEach(row => traces.push({
+        repairRows.forEach((row, index) => traces.push({
             type: "scatter",
             mode: "lines",
             name: "raw -> final repair",
             legendgroup: "repair_links",
-            showlegend: traces.length === 0,
+            showlegend: index === 0,
             hoverinfo: "text",
-            line: {color: "#9aa5a1", width: 1.5},
-            opacity: 0.45,
+            line: {color: "#9aa5a1", width: 1.4, dash: "dot"},
+            opacity: 0.55,
             x: [transformX(row.raw_compliance_rate, xMetric, xMode), transformX(row.compliance_rate, xMetric, xMode)],
             y: [row.raw_feasible_utility, row.feasible_utility],
-            text: [`${row.system_name}<br>raw ${xMetric}: ${fmt(row.raw_compliance_rate)}<br>raw utility: ${fmt(row.raw_feasible_utility)}`, `${row.system_name}<br>final ${xMetric}: ${fmt(row.compliance_rate)}<br>final utility: ${fmt(row.feasible_utility)}`]
-          }));
+            text: [`${row.system_name}<br>raw compliance: ${fmt(row.raw_compliance_rate)}<br>raw utility: ${fmt(row.raw_feasible_utility)}`, `${row.system_name}<br>final compliance: ${fmt(row.compliance_rate)}<br>final utility: ${fmt(row.feasible_utility)}`]
+        }));
+        traces.push({
+          type: "scatter",
+          mode: "markers",
+          name: "raw output",
+          legendgroup: "repair_links",
+          x: repairRows.map(row => transformX(row.raw_compliance_rate, xMetric, xMode)),
+          y: repairRows.map(row => row.raw_feasible_utility),
+          customdata: repairRows.map(row => [row.system_name, row.raw_compliance_rate, row.raw_feasible_utility, row.compliance_rate, row.feasible_utility]),
+          hovertemplate: "<b>%{customdata[0]}</b><br>raw output<br>raw compliance: %{customdata[1]:.3f}<br>raw utility: %{customdata[2]:.3f}<br>final compliance: %{customdata[3]:.3f}<br>final utility: %{customdata[4]:.3f}<extra></extra>",
+          marker: {symbol: "circle-open", size: 11, color: "#64717f", line: {color: "#64717f", width: 2}}
+        });
       }
       for (const group of ["Oracle", "QSAR", "Baseline", "LLM", "Other"]) {
         const groupRows = data.filter(row => row.group === group);
@@ -4409,7 +4419,7 @@ return Plotly;
       layout.xaxis.ticktext = tickValues.map(value => xTickLabel(value, xMode));
       Plotly.react("scatter", traces, layout, plotlyConfig);
       document.getElementById("repairLinkNote").textContent = showRepairLinks
-        ? "Grey segments connect raw LLM outputs to final validator-repaired outputs for the same system. They are diagnostics, not independent systems."
+        ? "Open grey circles are raw LLM outputs. Dotted grey segments connect each raw output to that same system's final validator-repaired point."
         : "Grey raw-to-final repair links are hidden by default; enable them to inspect how validator repair moves LLM rows.";
       document.getElementById("legend").innerHTML = "";
     }
