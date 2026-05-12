@@ -9,6 +9,8 @@ Expected subdirectories:
 - `RESULTS_SUMMARY.md`: generated paper-facing audit summary.
 - `RESULTS_DASHBOARD.html`: generated static quality-control dashboard with
   embedded comparison data, plots, and label definitions.
+- `SUPERVISOR_PACK.md`: short meeting handout for explaining the v2 project
+  framing, current results, and supervisor discussion points.
 
 Generated paper artifacts are ignored by default. Commit only stable manuscript
 assets intentionally.
