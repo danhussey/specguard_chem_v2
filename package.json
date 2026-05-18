@@ -1,0 +1,14 @@
+{
+  "name": "specguard-chem-v2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "slides": "slidev docs/presentations/md-research-paper/slides.md",
+    "slides:build": "slidev build docs/presentations/md-research-paper/slides.md",
+    "slides:export": "slidev export docs/presentations/md-research-paper/slides.md"
+  },
+  "devDependencies": {
+    "@slidev/cli": "^52.15.2",
+    "@slidev/theme-default": "^0.25.0"
+  }
+}
