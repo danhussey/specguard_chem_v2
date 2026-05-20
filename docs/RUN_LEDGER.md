@@ -136,6 +136,56 @@ was run, what happened, and what to do next.
 - Follow-up: use the key paired-delta table for paper prose; keep the full
   pairwise delta table as an audit artifact.
 
+## 2026-05-21 ChEMBL36 expansion uplift audit
+
+- Artifacts: external scratch volume `specguard_chembl36/`; key outputs
+  `derived/chembl36_sql_prefilter_summary.json`,
+  `derived/chembl36_sql_prefilter_tasks.json`,
+  `derived/chembl36_full_uplift_summary.json`,
+  `derived/chembl36_full_uplift_results.csv`, and
+  `derived/chembl36_full_uplift_results.json`.
+- Scope: official ChEMBL36 SQLite archive from EBI
+  `chembl_36_sqlite.tar.gz`; archive bytes `5611751319`, archive SHA256
+  `b25820eef0f0481ad7712bdf4bac3b45f354e3cbacb76be1fdbf4205d6b48fb9`;
+  extracted SQLite DB bytes `29739835392`. Compared ChEMBL36 assay/type keys
+  against the local CARA archive test/support/query split keys and the current
+  50-card paper set.
+- Question: estimate the dataset uplift available from a current ChEMBL-derived
+  SpecGuard card expansion under CARA-style assay/type quality filters.
+- Status: complete audit pass. SQL prefilter streamed ChEMBL36 activities with
+  non-null pChEMBL, canonical SMILES, ChEMBL molecule IDs, single-protein
+  targets with sequence, molecular weight at most `1000`, at least `100`
+  distinct molecules per assay/type, activity range above `2`, and more than
+  `10` unique pChEMBL values. The second pass median-merged molecule labels,
+  used deterministic support/candidate partitioning, applied a ChEMBL-property
+  proxy for SpecGuard constraints, and classified LO/VS by Morgan/Tanimoto
+  median similarity.
+- Headline: `2071` median-merged ChEMBL36 assay/type groups pass the audit's
+  CARA-style quality filters. `1835` groups pass the k=10 SpecGuard viability
+  proxy. Relative to CARA test/support/query keys only, `1554` viable groups
+  are additional; relative to all CARA archive train-or-test keys checked,
+  `1003` viable groups are additional. Restricting endpoint types to CARA's
+  stated examples (`IC50`, `Ki`, `Kd`, `EC50`, `Potency`) yields `1760`
+  viable groups, `955` additional relative to all CARA archive train-or-test
+  keys. Under that stricter endpoint set, additional groups split into `887`
+  LO-like and `68` VS-like groups by the similarity rule, with `142` additional
+  groups having document-year evidence from `2022` or later.
+- Surprise / interpretation: the ChEMBL36 expansion is not a marginal uplift
+  over the current 50-card paper set, but the earlier "novel relative to CARA"
+  framing was too broad if CARA training assay keys are treated as part of the
+  CARA archive. The current counts are audit counts, not finalized card counts,
+  because feasibility used ChEMBL `full_mwt`/`alogp` as a proxy, large-group
+  similarity used a deterministic 500-molecule sample, and the audit has not
+  recreated CARA's protein-cluster-based test-assay selection protocol.
+- Decision / follow-up: pause the ChEMBL36 expansion for the current manuscript.
+  The most conservative denominator is the full CARA archive train-or-test task
+  key universe (`90737` keys), where the stricter ChEMBL36 endpoint-restricted
+  uplift is `955 / 90737 = 1.05%`. That is useful feasibility evidence but not
+  enough to justify adding a new ChEMBL36 benchmark construction and experiment
+  track to the paper. If revisited later, build a reproducible ChEMBL36 card
+  generator with RDKit descriptor recomputation and CARA-like protein-cluster
+  held-out selection before making benchmark claims.
+
 ## Current Standing Interpretation
 
 - Raw metrics measure model behavior.
