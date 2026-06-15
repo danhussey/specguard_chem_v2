@@ -1,9 +1,9 @@
 ---
 theme: default
-title: Compliance Is Not Utility
-info: MD research presentation for SpecGuard-Chem v2
+title: Guarded LLMs for Constrained Compound Prioritisation
+info: Simple accessible SpecGuard-Chem research presentation
 class: text-left
-transition: fade-out
+transition: none
 drawings:
   persist: false
 mdc: true
@@ -11,442 +11,217 @@ mdc: true
 
 <div class="kicker">SpecGuard-Chem v2</div>
 
-# Compliance Is Not Utility
+# Guarded LLMs for constrained compound prioritisation
 
-## Auditing guarded LLM systems for constrained medicinal-chemistry compound prioritisation
-
-<div class="hero-grid">
-  <div>
-    <p class="lead">
-      A system can follow every written rule and still make weak choices.
-      This project asks whether guarded and tool-using LLM systems improve
-      useful top-k decisions, or mostly improve output validity.
-    </p>
-  </div>
-  <div class="metric-stack">
-    <div><b>50</b><span>CARA LO decision cards</span></div>
-    <div><b>10</b><span>candidate IDs per card</span></div>
-    <div><b>2 axes</b><span>utility and compliance</span></div>
-  </div>
-</div>
-
-<!--
-Speaker notes:
-Open with the narrowed claim. This is not a broad drug-design agent benchmark. It is a decision audit for the point in a lead-optimisation project where a team has tested some compounds and must choose what to assay next.
--->
-
----
-
-# The Question
-
-<div class="two-col">
-  <div>
-    <h3>What ordinary validity misses</h3>
-    <p>A recommendation can be perfectly well-formed, valid under constraints, and still unhelpful for the project.</p>
-    <ul>
-      <li>Valid but low-activity candidates</li>
-      <li>High compliance without high utility</li>
-      <li>Validator repair that looks like model improvement</li>
-    </ul>
-  </div>
-  <div>
-    <h3>What activity alone misses</h3>
-    <p>High hidden activity is not enough if the selected compounds violate the written project specification.</p>
-    <ul>
-      <li>Wrong number of candidates</li>
-      <li>Candidate IDs outside the pool</li>
-      <li>Duplicates or support-set leakage</li>
-      <li>Descriptor or alert violations</li>
-    </ul>
-  </div>
-</div>
-
-<div class="thesis">
-  The paper's core move is to evaluate <b>useful valid decisions</b>, not validity or activity in isolation.
-</div>
-
-<!--
-Speaker notes:
-The phrase to make stick is "compliance is not utility." The project is about separating those two axes and then asking which systems are good on both.
--->
-
----
-
-# Lead Optimisation As A Decision Problem
-
-<div class="flow">
-  <div class="node">Already-tested support compounds<br/><span>activity visible</span></div>
-  <div class="arrow">-></div>
-  <div class="node">Candidate pool<br/><span>activity hidden</span></div>
-  <div class="arrow">-></div>
-  <div class="node">Hard constraints<br/><span>schema + chemistry checks</span></div>
-  <div class="arrow">-></div>
-  <div class="node">Ranked top-k IDs<br/><span>next assay priorities</span></div>
-</div>
-
-<div class="panel-grid">
-  <div><b>Systems see</b><br/>support activity, candidate IDs, SMILES, descriptors, budget, constraints</div>
-  <div><b>Scorer sees</b><br/>hidden candidate activity for retrospective utility metrics</div>
-  <div><b>Systems return</b><br/>ranked candidate IDs only, never novel molecules</div>
-</div>
-
-<!--
-Speaker notes:
-CARA starts as an activity-prediction substrate. SpecGuard-Chem converts it into a decision-card substrate: choose the next k compounds from a fixed pool.
--->
-
----
-
-# Paper-50 Dataset Snapshot
-
-<div class="stat-row">
-  <div><b>50</b><span>frozen CARA LO cards</span></div>
-  <div><b>10</b><span>budget k per card</span></div>
-  <div><b>48.8</b><span>mean support compounds</span></div>
-  <div><b>292.2</b><span>mean candidate pool</span></div>
-  <div><b>162.4</b><span>mean feasible candidates</span></div>
-</div>
-
-<div class="caption-box">
-  Card artifact: <code>data/cards/cara_lo_paper_50.jsonl</code><br/>
-  Selection policy: <code>largest_candidate_pool</code><br/>
-  SHA256: <code>9c4e45880dd6fe97643c1bcfd66a16a0f72b4a0e0a60476f12bc58d464d80d03</code>
-</div>
-
-<!--
-Speaker notes:
-The key reassurance is that cards are frozen before interpretation. Activity values for candidate compounds remain hidden from non-oracle systems.
--->
-
----
-
-# Systems Compared
-
-<div class="system-grid">
-  <div>
-    <h3>Controls</h3>
-    <p><b>Oracle upper-bound</b><br/>Uses hidden candidate activity. Sanity check only.</p>
-    <p><b>Random valid</b><br/>Selects feasible candidates at random.</p>
-  </div>
-  <div>
-    <h3>Non-language baselines</h3>
-    <p><b>Rules-only</b><br/>Descriptor desirability after constraints.</p>
-    <p><b>Similarity</b><br/>Nearest to the best active support compound.</p>
-    <p><b>QSAR</b><br/>RF, gradient boosting, linear SVR trained per card on support fingerprints.</p>
-  </div>
-  <div>
-    <h3>LLM conditions</h3>
-    <p><b>Bare LLM</b>, <b>validator</b>, <b>tools</b>, <b>tools + validator</b></p>
-    <p>Run across OpenAI, Anthropic, and DeepSeek fast/frontier/direct-JSON conditions.</p>
-  </div>
-</div>
-
-<!--
-Speaker notes:
-Do not compare LLMs only with LLMs. The key methodological point is that QSAR is a deployable chemistry baseline, while the oracle is not.
--->
-
----
-
-# Metrics: Two Axes, One Decision
-
-<div class="metric-grid">
-  <div>
-    <h3>Utility</h3>
-    <p><b>Feasible utility</b>: hidden activity credited only for valid selected candidates.</p>
-    <p><b>NDCG@k</b>: whether the best candidates are ranked near the top.</p>
-    <p><b>Constrained regret</b>: oracle valid top-k utility minus system utility.</p>
-  </div>
-  <div>
-    <h3>Compliance</h3>
-    <p><b>Compliance rate</b>: valid selected entries divided by k.</p>
-    <p><b>Schema error rate</b>: malformed or contract-breaking outputs.</p>
-    <p><b>Violation counts</b>: pool, duplicate, support, and molecular constraints.</p>
-  </div>
-  <div>
-    <h3>LLM accounting</h3>
-    <p><b>Raw metrics</b>: score what the model returned before repair.</p>
-    <p><b>Final metrics</b>: score guarded output after deterministic repair.</p>
-    <p><b>Repair rate</b>: how much the guardrail changed the output.</p>
-  </div>
-</div>
-
-<!--
-Speaker notes:
-The raw-versus-final split is a major contribution. Validator repair can be operationally useful, but it must not be mistaken for raw model judgement.
--->
-
----
-
-# Headline Result
-
-<div class="bars">
-  <div class="bar-row"><span>Oracle upper-bound</span><div><i style="width:100%"></i></div><b>89.0</b></div>
-  <div class="bar-row"><span>QSAR linear SVR</span><div><i style="width:91.4%"></i></div><b>81.4</b></div>
-  <div class="bar-row"><span>QSAR gradient boosting</span><div><i style="width:90.9%"></i></div><b>80.9</b></div>
-  <div class="bar-row"><span>QSAR random forest</span><div><i style="width:90.6%"></i></div><b>80.6</b></div>
-  <div class="bar-row accent"><span>Best final LLM</span><div><i style="width:87.8%"></i></div><b>78.2</b></div>
-  <div class="bar-row"><span>Similarity baseline</span><div><i style="width:82.7%"></i></div><b>73.6</b></div>
-  <div class="bar-row"><span>Rules-only baseline</span><div><i style="width:74.2%"></i></div><b>66.0</b></div>
-</div>
-
-<div class="result-line">
-  Best deployable family: <b>QSAR</b>. Best LLM rows are useful, but remain below all three QSAR baselines in this LO run.
-</div>
-
-<!--
-Speaker notes:
-The best final LLM is OpenAI gpt-5.5 low reasoning Direct JSON plus validator at 78.188 feasible utility. QSAR SVM is 81.382. The oracle at 89.022 shows remaining headroom.
--->
-
----
-
-# Compliance-Utility Frontier
-
-<div class="frontier-clean">
-  <div class="frontier-axis y">Compliance</div>
-  <div class="frontier-axis x">Feasible utility</div>
-  <div class="frontier-gridline h1"></div>
-  <div class="frontier-gridline h2"></div>
-  <div class="frontier-gridline v1"></div>
-  <div class="frontier-gridline v2"></div>
-  <div class="point rules" style="left: 12%; bottom: 88%"><b>Rules</b><span>66.0 / 1.00</span></div>
-  <div class="point similarity" style="left: 36%; bottom: 88%"><b>Similarity</b><span>73.6 / 1.00</span></div>
-  <div class="point llm" style="left: 58%; bottom: 88%"><b>Best LLM</b><span>78.2 / 1.00</span></div>
-  <div class="point qsar" style="left: 72%; bottom: 88%"><b>QSAR SVR</b><span>81.4 / 1.00</span></div>
-  <div class="point oracle" style="left: 89%; bottom: 88%"><b>Oracle</b><span>89.0 / 1.00</span></div>
-  <div class="point bare" style="left: 50%; bottom: 74%"><b>Bare OpenAI LLM</b><span>75.8 / 0.96</span></div>
-  <div class="frontier-caption">Higher utility -></div>
-</div>
-
-<div class="figure-note">
-  Near-perfect compliance appears across systems with materially different utility. The audit is about moving right without falling down.
-</div>
-
-<!--
-Speaker notes:
-The plot makes the argument visual: moving up on compliance is not the same as moving right on useful prioritisation.
--->
-
----
-
-# Paired Evidence, Same 50 Cards
-
-<div class="delta-grid">
-  <div>
-    <b>+3.19</b>
-    <span>QSAR linear SVR over best final LLM</span>
-    <em>95% paired bootstrap: 1.94 to 4.69</em>
-  </div>
-  <div>
-    <b>+4.59</b>
-    <span>Best final LLM over similarity baseline</span>
-    <em>95% paired bootstrap: 1.94 to 7.27</em>
-  </div>
-  <div>
-    <b>+7.64</b>
-    <span>Oracle upper-bound over QSAR linear SVR</span>
-    <em>95% paired bootstrap: 6.57 to 8.80</em>
-  </div>
-</div>
-
-<p class="body-copy">
-  The aggregate QSAR-over-LLM result persists when resampling paired decision cards,
-  not just when comparing leaderboard means.
+<p class="subtitle">
+Evaluating language-model systems on CARA-derived lead-optimisation decision cards.
 </p>
 
-<!--
-Speaker notes:
-This is the statistical confidence slide. It also keeps the interpretation balanced: LLM beats similarity, but QSAR still beats the best final LLM.
--->
+<div class="fact-row">
+  <div><strong>50</strong><span>frozen cards</span></div>
+  <div><strong>10</strong><span>selections per card</span></div>
+  <div><strong>2</strong><span>reported axes: utility and compliance</span></div>
+</div>
 
 ---
 
-# Raw Model Behavior vs Guarded System Behavior
+# The practical problem
 
-<table class="compact-table">
-  <thead>
-    <tr><th>Condition</th><th>Raw utility</th><th>Final utility</th><th>Repair rate</th></tr>
-  </thead>
-  <tbody>
-    <tr><td>OpenAI gpt-5.5 Direct JSON + validator</td><td>76.76</td><td>78.19</td><td>14%</td></tr>
-    <tr><td>OpenAI gpt-5.5 Direct JSON + tools + validator</td><td>77.21</td><td>77.69</td><td>4%</td></tr>
-    <tr><td>Anthropic Opus Direct JSON + tools + validator</td><td>62.86</td><td>74.47</td><td>58%</td></tr>
-    <tr><td>DeepSeek Pro Direct JSON + validator</td><td>49.20</td><td>67.62</td><td>56%</td></tr>
-  </tbody>
-</table>
+- Lead optimisation often means choosing which existing compounds to test next.
+- This is not de novo molecule generation.
+- It is a constrained top-k selection task:
+  - choose from a fixed candidate pool;
+  - return exactly `k = 10` candidate IDs;
+  - avoid duplicates, support compounds, and out-of-pool IDs;
+  - respect simple molecular constraints.
 
-<div class="callout">
-  Validator-assisted rows answer an operational question: can the guarded system produce a valid list? Raw rows answer a model-quality question.
-</div>
-
-<!--
-Speaker notes:
-This is where to be careful. The validator does not see hidden activity. But when it fills invalid or missing selections, final scores are model plus harness, not pure model behaviour.
--->
+<p class="takeaway">
+The benchmark asks whether systems return useful and valid next-test priorities.
+</p>
 
 ---
 
-# High-Reasoning Failure Was An Interface Failure
+# Decision card structure
 
-<div class="flow vertical">
-  <div class="node">Full-pool prompt<br/><span>large candidate JSON, support set, constraints</span></div>
-  <div class="arrow">-></div>
-  <div class="node">High-reasoning / thinking call<br/><span>large hidden reasoning budget</span></div>
-  <div class="arrow">-></div>
-  <div class="node danger">No visible final JSON<br/><span>schema failure or empty output</span></div>
-  <div class="arrow">-></div>
-  <div class="node">Validator fallback may repair<br/><span>valid final output, but not raw model selection</span></div>
+<div class="steps" aria-label="Decision-card pipeline">
+  <div><span>1</span><p>CARA / ChEMBL-derived task</p></div>
+  <div><span>2</span><p>Visible support compounds and support activity</p></div>
+  <div><span>3</span><p>Visible candidate pool with hidden candidate activity</p></div>
+  <div><span>4</span><p>Systems return ranked candidate IDs</p></div>
+  <div><span>5</span><p>Scorer computes utility and compliance</p></div>
 </div>
 
-<div class="body-copy">
-  Direct JSON kept the task fixed but changed the interface: final JSON first, no prose, no avoidable thinking mode.
-</div>
-
-<!--
-Speaker notes:
-Avoid saying the high-reasoning model "failed chemistry." The observed failure was that the interface consumed the visible output budget and produced no usable JSON on some conditions.
--->
+<p class="note">
+Candidate activity is hidden from evaluated systems and used only for retrospective scoring.
+</p>
 
 ---
 
-# Card-Level Diagnostics
+# Dataset snapshot
 
-<div class="figure-grid plot-slide">
-  <div class="figure-card">
+| Quantity | Value |
+| --- | ---: |
+| Decision cards | `50` |
+| Selection budget | `10` |
+| Mean support compounds | `48.76` |
+| Mean candidate pool | `292.16` |
+| Candidate pool range | `134-967` |
+| Mean feasible candidates | `162.4` |
+| Feasible candidate range | `45-618` |
 
-![QSAR vs LLM scatter](./assets/card_level_qsar_vs_llm_scatter.png)
+<p class="note">
+Dataset contribution: not new assay data; a frozen decision-card benchmark and scoring harness.
+</p>
 
+---
+
+# Systems compared
+
+| Family | What it does |
+| --- | --- |
+| Oracle | Non-deployable upper bound using hidden candidate activity |
+| Random valid | Random feasible candidates |
+| Rules-only | Feasible candidates ranked by descriptor desirability |
+| Similarity | Feasible candidates nearest to best active support compound |
+| QSAR | Per-card models trained on support fingerprints and support activity |
+| LLMs | Direct-JSON prompt/interface conditions, with optional validator repair |
+
+<p class="note">
+QSAR is the key deployable conventional comparator. The oracle is only a ceiling.
+</p>
+
+---
+
+# Metrics
+
+<div class="two-column">
+  <div>
+    <h2>Usefulness</h2>
+    <ul>
+      <li><strong>Feasible utility</strong>: hidden activity summed for valid selected candidates.</li>
+      <li><strong>NDCG@10</strong>: ranking quality with higher weight near the top.</li>
+      <li><strong>Constrained regret</strong>: oracle utility minus system utility.</li>
+    </ul>
   </div>
-  <div class="plot-explain">
-    <h3>How to read it</h3>
-    <p>Each dot is one decision card.</p>
-    <p><b>Above the diagonal:</b> the LLM row had higher feasible utility than QSAR on that card.</p>
-    <p><b>Below the diagonal:</b> QSAR had higher feasible utility.</p>
-    <p>The paired view matters because every system is being scored on the same frozen cards.</p>
+  <div>
+    <h2>Validity</h2>
+    <ul>
+      <li><strong>Compliance</strong>: valid selected entries divided by `k`.</li>
+      <li><strong>Raw metrics</strong>: before deterministic repair.</li>
+      <li><strong>Final metrics</strong>: after validator repair.</li>
+    </ul>
   </div>
 </div>
 
-<!--
-Speaker notes:
-Use this slide if asked whether the headline is only an average. It shows card-level pairings, not independent aggregate means.
--->
+<p class="takeaway">
+Compliance and utility are reported separately because neither is sufficient alone.
+</p>
 
 ---
 
-# Card-Level Utility Distribution
+# Headline leaderboard
 
-<div class="figure-card figure-solo">
-
-![Utility distribution](./assets/card_level_utility_distribution.png)
-
-</div>
-
-<div class="figure-note">
-  This plot shows the spread of feasible utility across the 50 cards for the key systems. Wider spread means performance varies more by assay card.
-</div>
-
-<!--
-Speaker notes:
-This is a distribution across cards, not uncertainty around a single mean. It helps show how stable or variable each system is card by card.
--->
+| System | Feasible utility | NDCG@10 | Compliance |
+| --- | ---: | ---: | ---: |
+| Oracle upper bound | `89.022` | `1.000` | `1.000` |
+| QSAR linear SVR | `81.382` | `0.910` | `1.000` |
+| QSAR gradient boosting | `80.888` | `0.900` | `1.000` |
+| QSAR random forest | `80.634` | `0.901` | `1.000` |
+| Best final LLM | `78.188` | `0.881` | `1.000` |
+| Similarity baseline | `73.603` | `0.825` | `1.000` |
+| Rules-only baseline | `66.043` | `0.764` | `1.000` |
 
 ---
 
-# Card-Level Utility Deltas
+# Main comparison
 
-<div class="figure-card figure-solo">
-
-![Delta distribution](./assets/card_level_delta_distribution.png)
-
+<div class="result">
+  <strong>QSAR linear SVR beat the best final LLM by `+3.194` feasible-utility points.</strong>
+  <span>95% paired bootstrap interval: `1.942` to `4.692`.</span>
 </div>
 
-<div class="figure-note">
-  These are card-level utility differences. The whiskers show the observed card range, not a 95% or 99% confidence interval; the paired bootstrap CIs are reported separately on the paired-evidence slide.
-</div>
+<ul>
+  <li>The best final LLM was OpenAI direct-JSON plus validator.</li>
+  <li>It remained below the strongest QSAR comparator.</li>
+  <li>It still beat the strongest simple non-QSAR baseline.</li>
+</ul>
 
-<!--
-Speaker notes:
-Make clear that this is showing distribution/range across actual cards. Statistical uncertainty is handled by the paired bootstrap slide, not by these whiskers.
--->
+<p class="takeaway">
+The balanced result: guarded LLM systems were useful, but not best-in-class here.
+</p>
 
 ---
 
-# Result Readout
+# Raw versus final LLM outputs
 
-<div class="hypothesis-list">
-  <div><b>1</b><span>Validators reliably improve validity.</span><em>But final guarded scores must be separated from raw model behavior.</em></div>
-  <div><b>2</b><span>QSAR is a serious baseline.</span><em>It is the strongest deployable family in this LO result set.</em></div>
-  <div><b>3</b><span>Tool summaries can help some LLM rows.</span><em>This does not yet test a full agent with callable QSAR, RDKit, or retrieval tools.</em></div>
-  <div><b>4</b><span>Compliance and utility are not interchangeable.</span><em>Several near-perfectly compliant systems have materially different utility.</em></div>
-</div>
+| System row | Raw utility | Final utility | Raw compliance | Final compliance | Repair rate |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| OpenAI validator | `76.758` | `78.188` | `0.976` | `1.000` | `0.140` |
+| OpenAI tools + validator | `77.209` | `77.688` | `0.994` | `1.000` | `0.040` |
+| Anthropic validator | `55.388` | `74.274` | `0.710` | `1.000` | `0.720` |
+| DeepSeek validator | `49.201` | `67.621` | `0.726` | `1.000` | `0.560` |
 
-<!--
-Speaker notes:
-The most defensible paper claim is methodological and empirical, not sweeping. It is a protocol plus a result on this LO paper-50 run.
--->
-
----
-
-# What This Paper Contributes
-
-<div class="contribution-grid">
-  <div><b>1</b><span>A decision-card protocol for constrained top-k prioritisation</span></div>
-  <div><b>2</b><span>Separate utility, compliance, regret, and repair accounting</span></div>
-  <div><b>3</b><span>Strong deployable non-language baselines, especially per-card QSAR</span></div>
-  <div><b>4</b><span>Evidence that interface design can dominate raw LLM behavior</span></div>
-  <div><b>5</b><span>Reproducible paper artifacts: tables, figures, dashboard, logs, and traces</span></div>
-</div>
-
-<div class="result-line">
-  Main claim: SpecGuard-Chem separates medicinal-chemistry decision utility from specification compliance and tests guarded LLM systems against strong baselines.
-</div>
-
-<!--
-Speaker notes:
-This is the slide to use if someone asks "so what is the contribution?" Keep it framed as an empirical audit protocol.
--->
+<p class="note">
+Final guarded-system scores should not be described as raw model ability.
+</p>
 
 ---
 
-# Scope Boundaries
+# Failure modes
 
-<div class="do-not-grid">
-  <div><b>We are claiming</b><br/>A reproducible audit protocol for constrained, finite-budget candidate prioritisation.</div>
-  <div><b>We are not claiming</b><br/>That any selected compound is a real drug candidate.</div>
-  <div><b>We are claiming</b><br/>In this LO paper-50 run, QSAR baselines outperform the best current LLM rows.</div>
-  <div><b>We are not claiming</b><br/>That LLMs are intrinsically poor at medicinal chemistry.</div>
-  <div><b>We are claiming</b><br/>Compliance alone is not enough evidence of useful prioritisation.</div>
-  <div><b>We are not claiming</b><br/>Synthesis feasibility, ADMET, selectivity, safety, clinical relevance, or de novo design.</div>
-</div>
+- Original high-reasoning/full-pool settings had structural interface failures.
+  - Some rows had schema failure on `50/50` cards.
+  - This is an interface/output-budget failure, not a clean chemistry-reasoning result.
 
-<!--
-Speaker notes:
-This should sound like scope discipline, not a warning label. The study is retrospective computational prioritisation.
--->
+- Direct-JSON reduced visible parse failures but did not guarantee task-valid selections.
+  - We did not use strict schema-enforced Structured Outputs.
+  - Deterministic validation still checked exact `k`, pool membership, duplicates, support exclusion, and molecular limits.
+
+- Common failure categories:
+  - wrong number of selections;
+  - out-of-pool IDs;
+  - support-set selections;
+  - hard-constraint violations.
 
 ---
 
-# Backup: Reproducibility Commands
+# Important design caveats
 
-```bash
-uv run pytest
-uv run sgchem validate-cards data/cards/cara_lo_paper_50.jsonl
-uv run sgchem compare-runs \
-  runs/cara_lo_paper_50_baselines/*/scores/summary.json \
-  runs/cara_lo_paper_50_llm_matrix/*/*/scores/summary.json \
-  runs/cara_lo_paper_50_selector_matrix/*/*/scores/summary.json \
-  --out paper/tables/cara_lo_paper_50_direct_json_completed
-uv run sgchem make-figures \
-  paper/tables/cara_lo_paper_50_direct_json_completed/system_comparison.csv \
-  --out paper/figures/cara_lo_paper_50_direct_json_completed
-```
+- `bare_llm` was a minimal JSON-interface baseline.
+  - The hard constraints were present in the JSON payload.
+  - The prompt did not strongly foreground constraint-following.
 
-<div class="caption-box">
-  Default validation uses cached/replayed LLM artifacts. Live LLM calls require <code>--allow-external</code>, cost estimates, and hard gates.
-</div>
+- `llm_tools` is better described as a descriptor-summary prompt.
+  - It added TPSA, HBD, HBA, and rotatable bonds.
+  - It also changed the prompt wording.
+  - This is a confounded interface ablation, not a clean descriptor-only effect.
 
-<!--
-Speaker notes:
-This is a backup slide for methodology questions. It shows the run is traceable and that live-provider cost/spend is controlled.
--->
+- The simplified constraints are not ADMET, toxicity, synthesis feasibility, or selectivity.
+
+---
+
+# What the dataset contributes
+
+- Converts CARA lead-optimisation tasks into constrained decision cards.
+- Freezes support compounds, candidate pools, constraints, and budgets.
+- Hides candidate activity from evaluated systems.
+- Scores both usefulness and validity.
+- Preserves raw and final LLM outputs separately.
+
+<p class="takeaway">
+The contribution is the decision framing and auditability, not new wet-lab assay data.
+</p>
+
+---
+
+# Take-home messages
+
+1. Strong conventional baselines matter.
+2. Utility and compliance answer different questions.
+3. Validator repair can improve final outputs while changing the evaluated object.
+4. Guarded LLMs were useful on this benchmark.
+5. QSAR remained the strongest deployable comparator in the paper-50 result set.
+
+<p class="closing">
+Best conclusion: careful system evaluation, not hype or dismissal.
+</p>
