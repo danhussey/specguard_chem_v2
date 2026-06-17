@@ -62,7 +62,10 @@ best final LLM row by `3.194` feasible-utility points, with a 95% interval of
 `1.942` to `4.692`. The oracle exceeded `qsar_svm` by `7.639` points, leaving
 measurable headroom.
 
-![Compliance and utility frontier for the CARA lead-optimisation 50-card audit](paper/figures/cara_lo_paper_50_direct_json_completed/compliance_utility_frontier.png)
+![Readable utility summary for the CARA lead-optimisation 50-card audit](docs/assets/cara_lo_paper_50_utility_summary.svg)
+
+The full generated frontier plot remains tracked under `paper/figures/`; the
+README uses the simplified SVG above so the headline result is legible on GitHub.
 
 ## What I Built
 
