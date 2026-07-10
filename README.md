@@ -1,6 +1,8 @@
-# SpecGuard-Chem v2
+# Constrained Compound Prioritization
 
-SpecGuard-Chem v2 is a reproducible evaluation harness for a narrow but
+**Compliance vs. Retrospective Utility**
+
+This repository is a reproducible evaluation harness for a narrow but
 important question:
 
 > When an AI system follows all the rules, did it also make a better scientific
@@ -28,7 +30,7 @@ underlying decision. In scientific workflows, that distinction matters. A system
 that is perfectly formatted but chooses weak candidates is not useful; a system
 that chooses strong candidates while breaking hard constraints is not deployable.
 
-SpecGuard-Chem v2 makes that tradeoff measurable. It compares deterministic
+This audit makes that tradeoff measurable. It compares deterministic
 baselines, QSAR models, bare LLMs, tool-augmented LLMs, and validator-repaired
 LLM systems on the same frozen decision cards.
 
@@ -177,7 +179,7 @@ uv run sgchem export-llm-requests data/cards/cara_lo_paper_50.jsonl \
 
 ## Safety Boundary
 
-SpecGuard-Chem v2 ranks provided candidate IDs for retrospective offline audit.
+This project ranks provided candidate IDs for retrospective offline audit.
 It does not make prospective efficacy, toxicity, synthesis, selectivity, safety,
 or clinical claims. See [BENCHMARK_CARD.md](BENCHMARK_CARD.md) and
 [docs/SAFETY.md](docs/SAFETY.md) for the project boundary.
