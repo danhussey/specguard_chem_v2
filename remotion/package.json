@@ -1,0 +1,22 @@
+{
+  "name": "specguard-chem-remotion",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Animated explanatory videos describing SpecGuard-Chem v2",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render ProjectExplainer out/specguard-chem-explainer.mp4",
+    "render:all": "remotion render",
+    "still": "remotion still"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.1",
+    "typescript": "^5.4.0"
+  }
+}
