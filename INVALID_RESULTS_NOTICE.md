@@ -1,6 +1,6 @@
 # Invalid Results Notice
 
-**Status:** active release blocker  
+**Status:** active release blocker
 **Recorded:** 2026-07-16
 
 The previously published CARA `LO_All` paper-50 artifacts in this repository
