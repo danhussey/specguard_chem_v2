@@ -400,6 +400,7 @@ def run_llm_matrix(
 ) -> None:
     names = _expand_llm_systems(systems)
     configs = select_model_configs(load_model_matrix(model_matrix), model_conditions)
+    pricing_config = load_pricing_config(pricing)
     effective_cache_dir = cache_dir or (out / "cache")
     loaded_cards = _select_cli_task(load_evaluation_cards(cards), task_id)
     if allow_external and (
@@ -412,7 +413,7 @@ def run_llm_matrix(
             loaded_cards,
             names,
             configs,
-            pricing=load_pricing_config(pricing),
+            pricing=pricing_config,
             cache_dir=effective_cache_dir,
             run_out=out,
             force=force,
@@ -475,6 +476,7 @@ def run_llm_matrix(
                 run_path,
                 scores_dir,
                 scorer_outcomes_path=scorer_outcomes,
+                pricing=pricing_config,
             )
             manifest["runs"].append(
                 {
@@ -504,6 +506,7 @@ def repair_llm_trace_command(
         help="Optionally score raw and repaired views in the same invocation.",
     ),
     scorer_outcomes: Optional[Path] = typer.Option(None, "--scorer-outcomes"),
+    pricing: Path = typer.Option(Path("configs/provider_pricing.toml"), "--pricing"),
 ) -> None:
     """Apply deterministic harness repair without any new provider calls."""
 
@@ -519,6 +522,7 @@ def repair_llm_trace_command(
             out,
             scores_out,
             scorer_outcomes_path=scorer_outcomes,
+            pricing=load_pricing_config(pricing),
         )
         console.print(
             f"Scored raw and post-hoc repaired views for "
@@ -535,6 +539,7 @@ def score_run_command(
     bootstrap_samples: int = typer.Option(1000, "--bootstrap-samples"),
     seed: int = typer.Option(7, "--seed"),
     scorer_outcomes: Optional[Path] = typer.Option(None, "--scorer-outcomes"),
+    pricing: Optional[Path] = typer.Option(None, "--pricing"),
 ) -> None:
     scores = score_run(
         cards,
@@ -544,6 +549,7 @@ def score_run_command(
         bootstrap_samples=bootstrap_samples,
         seed=seed,
         scorer_outcomes_path=scorer_outcomes,
+        pricing=load_pricing_config(pricing) if pricing is not None else None,
     )
     console.print(f"Scored [green]{len(scores)}[/green] records -> {out}")
 

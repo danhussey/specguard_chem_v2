@@ -102,6 +102,13 @@ matrix cache is mandatory: it prevents the residual run from repurchasing these
 same six requests. The exact offline export and estimate commands are in
 `release/v0.1.0/REPRODUCE.md`.
 
+One missing request is exactly one provider attempt. The live adapters disable
+SDK retries and do not repurchase a response merely because its JSON or action
+contract is invalid. Such a response is preserved, cached, and scored as the
+single raw action. A transport/API exception aborts execution rather than being
+converted into a zero-utility model response. Every successful response must
+record `provider_attempt_count = 1`; otherwise the run is not release evidence.
+
 After all six pilot traces pass review, rerun the complete cost estimate against
 that shared cache. It must report six cached requests and exactly 540 missing
 requests. With the unchanged snapshot, the residual conservative upper bound is
@@ -140,7 +147,8 @@ rerun.
 
 Do not count cached or completed calls twice. Do not overwrite a partial trace
 with an unrelated request configuration. Preserve provider-returned model IDs,
-usage records, errors, and cache keys with the trace.
+verbatim response text and structured content, finish reasons, usage, latency,
+attempt counts, errors, and cache keys with the trace.
 
 ## Cost-Neutral Post-hoc Repair
 

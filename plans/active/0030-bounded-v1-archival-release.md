@@ -93,6 +93,9 @@ candidate IDs should a system select for the next assay batch?
 - [x] Confirm task difficulty and oracle headroom before spending on LLM calls.
 - [x] Export corrected LLM requests and inspect prompt sizes and redaction.
 - [x] Estimate the minimum live rerun cost and define hard call/cost limits.
+- [x] Enforce one provider attempt per request and preserve strict raw-response,
+  model-provenance, usage, latency, and cost evidence.
+- [x] Correct best-raw-system selection and raw-versus-baseline paired metrics.
 - [ ] Run only explicitly approved live conditions and persist replay caches.
 - [ ] Recompute paired uncertainty, raw/final attribution, robustness, and cost.
 - [ ] Build one canonical complete run manifest rather than relying on resumed

@@ -110,6 +110,12 @@ Provider errors, quota failures, overloads, and timeouts are execution failures.
 They must remain explicit in run artifacts and must not be converted into a
 zero-utility model response.
 
+Each missing cache key permits one provider attempt. SDK retries are disabled;
+an invalid JSON/action response is retained and scored rather than silently
+repurchased. Traces and caches preserve the configured model, provider-returned
+model, response ID, exact raw text and structured content, finish reason, token
+usage, latency, and attempt count.
+
 ## Cache and Replay
 
 Live responses are cached by request content. Matrix runs look under
@@ -120,6 +126,8 @@ stale response.
 
 Default tests and offline smoke runs use fixtures or cache/replay only. An
 offline cache miss is a harness diagnostic, not publishable model evidence.
+Scoring writes per-card operational metrics and coverage-safe latency, token,
+attempt, and pricing-derived cost totals alongside scientific metrics.
 
 ## Post-hoc Guarded View
 

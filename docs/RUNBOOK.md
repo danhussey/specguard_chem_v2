@@ -198,7 +198,11 @@ uv run --extra providers sgchem run-llm-matrix \
 ```
 
 The pilot uses the full matrix's cache so those six responses are replayed,
-not repurchased. After reviewing all six pilot traces, rerun
+not repurchased. Before accepting the pilot, require all six cache entries and
+trace rows; one provider attempt per row; the expected configured and returned
+model identifiers; nonempty response IDs; complete usage and latency; retained
+raw response text/content; explicit finish reasons; and raw contract issues that
+agree with the retained response. After reviewing all six pilot traces, rerun
 `estimate-llm-cost` for the complete cards with
 `--cache-dir release/v0.1.0/experiments/llm/matrix/cache` and
 `--out-run-dir release/v0.1.0/experiments/llm/matrix`. Continue only if the

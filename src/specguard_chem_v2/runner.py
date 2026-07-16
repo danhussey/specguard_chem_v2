@@ -12,8 +12,35 @@ from .systems.llm import LLM_SYSTEMS, run_llm_system
 from .systems.providers import LLMModelConfig
 
 
-def validate_output(card: DecisionCard, output: SystemOutput) -> list[ValidationIssue]:
+def _recorded_response_contract_issues(output: SystemOutput) -> list[ValidationIssue]:
+    if output.metadata.get("response_contract_issues_resolved") is True:
+        return []
+    raw_issues = output.metadata.get("response_contract_issues")
+    if raw_issues is None:
+        return []
+    if not isinstance(raw_issues, list):
+        return [
+            ValidationIssue(
+                code="schema_response_contract_issue_metadata",
+                message="Recorded response contract issues must be an array",
+            )
+        ]
     issues: list[ValidationIssue] = []
+    for index, raw_issue in enumerate(raw_issues, start=1):
+        try:
+            issues.append(ValidationIssue.model_validate(raw_issue))
+        except (TypeError, ValueError):
+            issues.append(
+                ValidationIssue(
+                    code="schema_response_contract_issue_metadata",
+                    message=f"Recorded response contract issue {index} is malformed",
+                )
+            )
+    return issues
+
+
+def validate_output(card: DecisionCard, output: SystemOutput) -> list[ValidationIssue]:
+    issues = _recorded_response_contract_issues(output)
     if output.task_id != card.task_id:
         issues.append(
             ValidationIssue(
@@ -26,6 +53,18 @@ def validate_output(card: DecisionCard, output: SystemOutput) -> list[Validation
             ValidationIssue(
                 code="wrong_k",
                 message=f"Expected exactly {card.budget_k} selections, got {len(output.selections)}",
+            )
+        )
+
+    actual_ranks = [item.rank for item in output.selections]
+    expected_ranks = list(range(1, len(output.selections) + 1))
+    if actual_ranks != expected_ranks and not any(
+        issue.code == "schema_rank_order" for issue in issues
+    ):
+        issues.append(
+            ValidationIssue(
+                code="schema_rank_order",
+                message="Selection ranks must be consecutive and match array order starting at 1",
             )
         )
 
@@ -100,6 +139,7 @@ def repair_output(card: DecisionCard, output: SystemOutput) -> SystemOutput:
     metadata["validator_repaired"] = True
     metadata["original_selection_count"] = len(output.selections)
     metadata["repaired_from_empty"] = len(output.selections) == 0
+    metadata["response_contract_issues_resolved"] = True
     return SystemOutput(
         task_id=card.task_id,
         system_name=output.system_name,
@@ -161,8 +201,25 @@ def run_system_on_card(
             "repaired_from_empty": repaired_from_empty,
             "llm_provider": output.metadata.get("llm_provider"),
             "llm_model": output.metadata.get("llm_model"),
+            "configured_model": output.metadata.get("configured_model"),
+            "provider_returned_model": output.metadata.get("provider_returned_model"),
             "llm_model_config_id": output.metadata.get("llm_model_config_id"),
             "request_sha256": output.metadata.get("request_sha256"),
+            "response_id": output.metadata.get("response_id"),
+            "usage": output.metadata.get("usage"),
+            "latency_ms": output.metadata.get("latency_ms"),
+            "provider_attempt_count": output.metadata.get("provider_attempt_count"),
+            "raw_response_text": output.metadata.get("raw_response_text"),
+            "raw_response_content": output.metadata.get("raw_response_content"),
+            "response_parse_error": output.metadata.get("response_parse_error"),
+            "provider_finish_reason": output.metadata.get("provider_finish_reason"),
+            "response_contract_issues": output.metadata.get("response_contract_issues"),
+            "response_contract_issues_resolved": output.metadata.get(
+                "response_contract_issues_resolved"
+            ),
+            "raw_response_task_id": output.metadata.get("raw_response_task_id"),
+            "raw_response_system_name": output.metadata.get("raw_response_system_name"),
+            "raw_response_selection_ranks": output.metadata.get("raw_response_selection_ranks"),
             "max_tokens": output.metadata.get("max_tokens"),
             "temperature": output.metadata.get("temperature"),
             "reasoning_effort": output.metadata.get("reasoning_effort"),

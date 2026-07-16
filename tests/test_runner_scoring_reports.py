@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from specguard_chem_v2.io import load_models
@@ -13,7 +14,7 @@ from specguard_chem_v2.schemas import DecisionCard, RunRecord
 from specguard_chem_v2.scoring import score_record, score_run, summarize_scores
 from specguard_chem_v2.systems.llm import (
     _cache_path,
-    _extract_json_object,
+    _parse_llm_response,
     _request_hash,
     _selection_items_from_payload,
     build_llm_request,
@@ -239,25 +240,39 @@ def test_thinking_budget_changes_cache_identity_and_validates() -> None:
         raise AssertionError("expected provider-specific thinking budget validation")
 
 
-def test_live_payload_selection_normalization_clamps_confidence() -> None:
-    selections = _selection_items_from_payload(
-        {
-            "selections": [
-                {"rank": "1", "candidate_id": "C001", "confidence": 7.0},
-                {"rank": "bad", "candidate_id": "C002", "confidence": "not-a-number"},
-            ]
-        }
+def test_live_payload_selection_normalization_records_invalid_types() -> None:
+    payload = _parse_llm_response(
+        {"task_id": "T1", "system_name": "bare_llm"},
+        json.dumps(
+            {
+                "task_id": "T1",
+                "system_name": "bare_llm",
+                "selections": [
+                    {"rank": "1", "candidate_id": "C001", "confidence": 7.0},
+                    {"rank": "bad", "candidate_id": "C002", "confidence": "not-a-number"},
+                ],
+            }
+        ),
     )
-    assert selections[0].confidence == 1.0
+    selections = _selection_items_from_payload(payload)
+    assert selections[0].confidence is None
     assert selections[1].rank == 2
     assert selections[1].confidence is None
+    issue_codes = {issue["code"] for issue in payload["metadata"]["response_contract_issues"]}
+    assert {"schema_selection_rank_type", "schema_selection_confidence_range"} <= issue_codes
+    assert "schema_selection_confidence_type" in issue_codes
 
 
-def test_json_extraction_ignores_prefix_and_extra_json() -> None:
-    payload = _extract_json_object(
-        'prefix {"task_id": "T1", "selections": []} trailing {"ignored": true}'
+def test_json_extraction_salvages_prefix_and_extra_json_as_raw_issues() -> None:
+    payload = _parse_llm_response(
+        {"task_id": "T1", "system_name": "bare_llm"},
+        'prefix {"task_id": "T1", "system_name": "bare_llm", "selections": []} '
+        'trailing {"ignored": true}',
     )
-    assert payload == {"task_id": "T1", "selections": []}
+    assert payload["task_id"] == "T1"
+    assert payload["selections"] == []
+    issue_codes = {issue["code"] for issue in payload["metadata"]["response_contract_issues"]}
+    assert {"schema_response_envelope", "schema_multiple_json_objects"} <= issue_codes
 
 
 def test_compare_and_frontier_plot(tmp_path: Path) -> None:

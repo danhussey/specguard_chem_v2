@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 from pathlib import Path
 from statistics import mean
-from typing import Iterable
+from typing import TYPE_CHECKING, Iterable
 
 import numpy as np
 import pandas as pd
@@ -11,7 +11,11 @@ import pandas as pd
 from .artifacts import load_evaluation_cards
 from .chem.constraints import is_candidate_feasible
 from .io import load_models, write_json, write_jsonl
+from .operational import write_operational_artifacts
 from .schemas import CardScore, DecisionCard, RunRecord, SystemOutput, ValidationIssue
+
+if TYPE_CHECKING:
+    from .costing import PricingConfig
 
 
 def _activity_values(card: DecisionCard) -> dict[str, float]:
@@ -420,6 +424,7 @@ def score_run(
     bootstrap_samples: int = 1000,
     seed: int = 7,
     scorer_outcomes_path: Path | None = None,
+    pricing: PricingConfig | None = None,
 ) -> list[CardScore]:
     loaded_cards = load_evaluation_cards(cards_path, scorer_outcomes_path)
     missing_outcomes = [
@@ -450,10 +455,9 @@ def score_run(
         scores.append(score_record(cards[record.task_id], record, hit_threshold=hit_threshold))
     out_dir.mkdir(parents=True, exist_ok=True)
     write_jsonl(out_dir / "card_scores.jsonl", scores)
-    write_json(
-        out_dir / "summary.json",
-        summarize_scores(scores, bootstrap_samples=bootstrap_samples, seed=seed),
-    )
+    summary = summarize_scores(scores, bootstrap_samples=bootstrap_samples, seed=seed)
+    summary.update(write_operational_artifacts(records, out_dir, pricing=pricing))
+    write_json(out_dir / "summary.json", summary)
     write_json(out_dir / "metric_denominators.json", metric_denominators(scores))
     failure_taxonomy(records).to_csv(out_dir / "failure_taxonomy.csv", index=False)
     return scores

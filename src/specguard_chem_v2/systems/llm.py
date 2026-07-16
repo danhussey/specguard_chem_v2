@@ -255,48 +255,321 @@ def find_cached_response(cache_dir: Path, request: dict[str, Any]) -> Path | Non
     return None
 
 
-def _extract_json_object(text: str) -> dict[str, Any]:
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        pass
+def _contract_issue(
+    code: str,
+    message: str,
+    *,
+    rank: int | None = None,
+    candidate_id: str | None = None,
+) -> dict[str, Any]:
+    issue: dict[str, Any] = {"code": code, "message": message}
+    if rank is not None:
+        issue["rank"] = rank
+    if candidate_id is not None:
+        issue["candidate_id"] = candidate_id
+    return issue
+
+
+def _first_decodable_json_object(text: str) -> tuple[dict[str, Any], int, int] | None:
     decoder = json.JSONDecoder()
     for match in re.finditer(r"\{", text):
         try:
-            payload, _ = decoder.raw_decode(text[match.start() :])
+            payload, relative_end = decoder.raw_decode(text[match.start() :])
         except json.JSONDecodeError:
             continue
         if isinstance(payload, dict):
-            return payload
-    raise ValueError("LLM response did not contain a valid JSON object")
+            return payload, match.start(), match.start() + relative_end
+    return None
 
 
-def _parse_failure_payload(
-    request: dict[str, Any],
-    *,
-    provider: str,
-    model_config: LLMModelConfig,
+def _extract_json_object(text: str) -> dict[str, Any]:
+    """Legacy permissive extractor retained for non-live compatibility tests.
+
+    Live provider responses use ``_parse_llm_response`` so surrounding prose or
+    multiple objects are always retained as raw contract issues.
+    """
+
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError:
+        decoded = _first_decodable_json_object(text)
+        if decoded is not None:
+            return decoded[0]
+        raise ValueError("LLM response did not contain a valid JSON object") from None
+    if not isinstance(payload, dict):
+        raise ValueError("LLM response did not contain a valid JSON object")
+    return payload
+
+
+def _decode_response_object(
     raw_text: str,
-    error: Exception,
-    response_id: str | None = None,
-    latency_ms: int | None = None,
-    usage: dict[str, Any] | None = None,
+) -> tuple[dict[str, Any], list[dict[str, Any]], str | None]:
+    issues: list[dict[str, Any]] = []
+    try:
+        strict_payload = json.loads(raw_text)
+    except json.JSONDecodeError as strict_error:
+        decoded = _first_decodable_json_object(raw_text)
+        if decoded is None:
+            message = "Response did not contain a JSON object"
+            issues.append(_contract_issue("schema_response_envelope", message))
+            return {}, issues, f"{message}: {strict_error}"
+        payload, start, end = decoded
+        issues.append(
+            _contract_issue(
+                "schema_response_envelope",
+                "Response was not exactly one JSON object with no surrounding content",
+            )
+        )
+        trailing = raw_text[end:]
+        if _first_decodable_json_object(trailing) is not None:
+            issues.append(
+                _contract_issue(
+                    "schema_multiple_json_objects",
+                    "Response contained more than one JSON object",
+                )
+            )
+        if raw_text[:start].strip() or trailing.strip():
+            return payload, issues, None
+        return payload, issues, str(strict_error)
+    if not isinstance(strict_payload, dict):
+        message = "Response JSON must be one object"
+        issues.append(_contract_issue("schema_response_object", message))
+        return {}, issues, message
+    return strict_payload, issues, None
+
+
+def _parse_llm_response(
+    request: dict[str, Any],
+    raw_text: str,
+    *,
+    provider: str | None = None,
+    finish_reason: str | None = None,
 ) -> dict[str, Any]:
+    """Strictly audit one provider response while retaining salvageable selections."""
+
+    payload, issues, parse_error = _decode_response_object(raw_text)
+    expected_task_id = str(request["task_id"])
+    expected_system_name = str(request["system_name"])
+    allowed_output_fields = {"task_id", "system_name", "selections"}
+    for field in sorted(set(payload) - allowed_output_fields):
+        issues.append(
+            _contract_issue(
+                "schema_unexpected_output_field",
+                f"Unexpected top-level response field: {field}",
+            )
+        )
+
+    raw_task_id = payload.get("task_id")
+    if "task_id" not in payload:
+        issues.append(_contract_issue("schema_missing_task_id", "Response omitted task_id"))
+        normalized_task_id = expected_task_id
+    elif not isinstance(raw_task_id, str) or not raw_task_id.strip():
+        issues.append(
+            _contract_issue(
+                "schema_task_id_type",
+                "Response task_id must be a non-empty string",
+            )
+        )
+        normalized_task_id = expected_task_id
+    else:
+        normalized_task_id = raw_task_id
+
+    raw_system_name = payload.get("system_name")
+    if "system_name" not in payload:
+        issues.append(_contract_issue("schema_missing_system_name", "Response omitted system_name"))
+    elif not isinstance(raw_system_name, str) or not raw_system_name.strip():
+        issues.append(
+            _contract_issue(
+                "schema_system_name_type",
+                "Response system_name must be a non-empty string",
+            )
+        )
+    elif raw_system_name != expected_system_name:
+        issues.append(
+            _contract_issue(
+                "schema_system_name_mismatch",
+                f"Response system_name {raw_system_name!r} does not match {expected_system_name!r}",
+            )
+        )
+
+    raw_selections = payload.get("selections")
+    if "selections" not in payload:
+        issues.append(_contract_issue("schema_missing_selections", "Response omitted selections"))
+        raw_selections = []
+    elif not isinstance(raw_selections, list):
+        issues.append(
+            _contract_issue("schema_selections_type", "Response selections must be an array")
+        )
+        raw_selections = []
+
+    normalized_selections: list[dict[str, Any]] = []
+    raw_ranks: list[Any] = []
+    allowed_selection_fields = {"rank", "candidate_id", "confidence", "rationale"}
+    for position, item in enumerate(raw_selections, start=1):
+        if not isinstance(item, dict):
+            raw_ranks.append(None)
+            issues.append(
+                _contract_issue(
+                    "schema_selection_item_type",
+                    f"Selection item {position} must be an object",
+                    rank=position,
+                )
+            )
+            continue
+
+        for field in sorted(set(item) - allowed_selection_fields):
+            issues.append(
+                _contract_issue(
+                    "schema_selection_unexpected_field",
+                    f"Selection item {position} has unexpected field: {field}",
+                    rank=position,
+                )
+            )
+
+        raw_rank = item.get("rank")
+        raw_ranks.append(raw_rank)
+        if "rank" not in item:
+            issues.append(
+                _contract_issue(
+                    "schema_selection_missing_rank",
+                    f"Selection item {position} omitted rank",
+                    rank=position,
+                )
+            )
+        elif isinstance(raw_rank, bool) or not isinstance(raw_rank, int):
+            issues.append(
+                _contract_issue(
+                    "schema_selection_rank_type",
+                    f"Selection item {position} rank must be an integer",
+                    rank=position,
+                )
+            )
+        elif raw_rank < 1:
+            issues.append(
+                _contract_issue(
+                    "schema_selection_rank_value",
+                    f"Selection item {position} rank must be at least 1",
+                    rank=position,
+                )
+            )
+
+        raw_candidate_id = item.get("candidate_id")
+        if "candidate_id" not in item:
+            issues.append(
+                _contract_issue(
+                    "schema_selection_missing_candidate_id",
+                    f"Selection item {position} omitted candidate_id",
+                    rank=position,
+                )
+            )
+            continue
+        if not isinstance(raw_candidate_id, str):
+            issues.append(
+                _contract_issue(
+                    "schema_selection_candidate_id_type",
+                    f"Selection item {position} candidate_id must be a string",
+                    rank=position,
+                )
+            )
+            continue
+        if not raw_candidate_id.strip():
+            issues.append(
+                _contract_issue(
+                    "schema_selection_candidate_id_empty",
+                    f"Selection item {position} candidate_id must be non-empty",
+                    rank=position,
+                )
+            )
+            continue
+
+        confidence = item.get("confidence")
+        normalized_confidence: float | int | None = confidence
+        if confidence is not None:
+            if isinstance(confidence, bool) or not isinstance(confidence, (int, float)):
+                issues.append(
+                    _contract_issue(
+                        "schema_selection_confidence_type",
+                        f"Selection item {position} confidence must be numeric",
+                        rank=position,
+                        candidate_id=raw_candidate_id,
+                    )
+                )
+                normalized_confidence = None
+            elif not 0.0 <= float(confidence) <= 1.0:
+                issues.append(
+                    _contract_issue(
+                        "schema_selection_confidence_range",
+                        f"Selection item {position} confidence must be between 0 and 1",
+                        rank=position,
+                        candidate_id=raw_candidate_id,
+                    )
+                )
+                normalized_confidence = None
+
+        rationale = item.get("rationale")
+        if rationale is not None and not isinstance(rationale, str):
+            issues.append(
+                _contract_issue(
+                    "schema_selection_rationale_type",
+                    f"Selection item {position} rationale must be a string",
+                    rank=position,
+                    candidate_id=raw_candidate_id,
+                )
+            )
+            rationale = None
+
+        normalized_selections.append(
+            {
+                "rank": len(normalized_selections) + 1,
+                "candidate_id": raw_candidate_id,
+                "confidence": normalized_confidence,
+                "rationale": rationale,
+            }
+        )
+
+    expected_ranks = list(range(1, len(raw_selections) + 1))
+    if raw_ranks != expected_ranks:
+        issues.append(
+            _contract_issue(
+                "schema_rank_order",
+                "Selection ranks must be consecutive and match array order starting at 1",
+            )
+        )
+
+    if finish_reason in {"length", "max_tokens"}:
+        issues.append(
+            _contract_issue(
+                "schema_provider_truncation",
+                f"{provider or 'Provider'} response ended because of {finish_reason!r}",
+            )
+        )
+    elif finish_reason is not None and finish_reason not in {
+        "stop",
+        "end_turn",
+        "stop_sequence",
+    }:
+        issues.append(
+            _contract_issue(
+                "schema_provider_finish_reason",
+                f"{provider or 'Provider'} response had nonterminal finish reason "
+                f"{finish_reason!r}",
+            )
+        )
+
+    metadata: dict[str, Any] = {
+        "response_contract_issues": issues,
+        "raw_response_task_id": raw_task_id,
+        "raw_response_system_name": raw_system_name,
+        "raw_response_selection_ranks": raw_ranks,
+        "raw_response_sha256": hashlib.sha256(raw_text.encode("utf-8")).hexdigest(),
+    }
+    if parse_error is not None:
+        metadata["response_parse_error"] = parse_error
     return {
-        "task_id": request["task_id"],
-        "system_name": request["system_name"],
-        "selections": [],
-        "metadata": {
-            "provider": provider,
-            "model": model_config.model,
-            "model_config_id": model_config.id,
-            "response_id": response_id,
-            "latency_ms": latency_ms,
-            "usage": usage,
-            "response_parse_error": str(error),
-            "raw_response_excerpt": raw_text[:1000],
-            "raw_response_sha256": hashlib.sha256(raw_text.encode("utf-8")).hexdigest(),
-        },
+        "task_id": normalized_task_id,
+        "system_name": expected_system_name,
+        "selections": normalized_selections,
+        "metadata": metadata,
     }
 
 
@@ -305,6 +578,7 @@ def _metadata_for_request(request: dict[str, Any], model_config: LLMModelConfig)
     return {
         "llm_provider": model_config.provider,
         "llm_model": model_config.model,
+        "configured_model": model_config.model,
         "llm_model_config_id": model_config.id,
         "request_sha256": _request_hash(request),
         **generation,
@@ -347,6 +621,60 @@ def _usage_payload(value: Any) -> dict[str, Any] | None:
     return None
 
 
+def _jsonable_provider_content(value: Any) -> Any:
+    """Preserve provider-returned content in a JSON-serializable form."""
+
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if hasattr(value, "model_dump"):
+        return value.model_dump(mode="json")
+    if isinstance(value, dict):
+        return {str(key): _jsonable_provider_content(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_jsonable_provider_content(item) for item in value]
+    attributes = getattr(value, "__dict__", None)
+    if isinstance(attributes, dict):
+        return {
+            str(key): _jsonable_provider_content(item)
+            for key, item in attributes.items()
+            if not str(key).startswith("_")
+        }
+    return str(value)
+
+
+def _provider_response_metadata(
+    *,
+    provider: str,
+    model_config: LLMModelConfig,
+    response: Any,
+    latency_ms: int,
+    usage: dict[str, Any] | None,
+    raw_response_text: str,
+    raw_response_content: Any,
+    finish_reason: str | None = None,
+) -> dict[str, Any]:
+    returned_model_value = getattr(response, "model", None)
+    provider_returned_model = (
+        str(returned_model_value) if returned_model_value is not None else None
+    )
+    effective_model = provider_returned_model or model_config.model
+    return {
+        "provider": provider,
+        "model": effective_model,
+        "configured_model": model_config.model,
+        "provider_returned_model": provider_returned_model,
+        "model_config_id": model_config.id,
+        "llm_model": effective_model,
+        "response_id": getattr(response, "id", None),
+        "latency_ms": latency_ms,
+        "usage": usage,
+        "provider_attempt_count": 1,
+        "raw_response_text": raw_response_text,
+        "raw_response_content": raw_response_content,
+        "provider_finish_reason": finish_reason,
+    }
+
+
 def _call_openai(request: dict[str, Any], *, model_config: LLMModelConfig) -> dict[str, Any]:
     try:
         from openai import OpenAI
@@ -356,7 +684,7 @@ def _call_openai(request: dict[str, Any], *, model_config: LLMModelConfig) -> di
     api_key = os.environ.get(api_key_env)
     if not api_key:
         raise RuntimeError(f"{api_key_env} is required for live OpenAI calls")
-    client_kwargs: dict[str, Any] = {"api_key": api_key}
+    client_kwargs: dict[str, Any] = {"api_key": api_key, "max_retries": 0}
     if model_config.request_timeout_seconds is not None:
         client_kwargs["timeout"] = model_config.request_timeout_seconds
     client = OpenAI(**client_kwargs)
@@ -370,40 +698,33 @@ def _call_openai(request: dict[str, Any], *, model_config: LLMModelConfig) -> di
         kwargs["reasoning_effort"] = model_config.reasoning_effort
     if model_config.temperature is not None:
         kwargs["temperature"] = model_config.temperature
-    last_error: Exception | None = None
-    for attempt in range(2):
-        started = time.perf_counter()
-        response = client.chat.completions.create(**kwargs)
-        latency_ms = int((time.perf_counter() - started) * 1000)
-        content = response.choices[0].message.content or "{}"
-        usage = _usage_payload(getattr(response, "usage", None))
-        try:
-            payload = _extract_json_object(content)
-            break
-        except (ValueError, json.JSONDecodeError) as exc:
-            last_error = exc
-            if attempt == 0:
-                continue
-            payload = _parse_failure_payload(
-                request,
-                provider="openai",
-                model_config=model_config,
-                raw_text=content,
-                error=exc,
-                response_id=getattr(response, "id", None),
-                latency_ms=latency_ms,
-                usage=usage,
-            )
-            break
-    else:  # pragma: no cover - loop always breaks
-        raise RuntimeError("unreachable OpenAI parse loop") from last_error
+    started = time.perf_counter()
+    response = client.chat.completions.create(**kwargs)
+    latency_ms = int((time.perf_counter() - started) * 1000)
+    choice = response.choices[0]
+    message = choice.message
+    raw_content = getattr(message, "content", None)
+    content = raw_content if isinstance(raw_content, str) else ""
+    usage = _usage_payload(getattr(response, "usage", None))
+    payload = _parse_llm_response(
+        request,
+        content,
+        provider="openai",
+        finish_reason=getattr(choice, "finish_reason", None),
+    )
     payload.setdefault("metadata", {})
-    payload["metadata"]["provider"] = "openai"
-    payload["metadata"]["model"] = model_config.model
-    payload["metadata"]["model_config_id"] = model_config.id
-    payload["metadata"]["response_id"] = getattr(response, "id", None)
-    payload["metadata"]["latency_ms"] = latency_ms
-    payload["metadata"]["usage"] = usage
+    payload["metadata"].update(
+        _provider_response_metadata(
+            provider="openai",
+            model_config=model_config,
+            response=response,
+            latency_ms=latency_ms,
+            usage=usage,
+            raw_response_text=content,
+            raw_response_content=_jsonable_provider_content(message),
+            finish_reason=getattr(choice, "finish_reason", None),
+        )
+    )
     return payload
 
 
@@ -434,49 +755,39 @@ def _call_anthropic(request: dict[str, Any], *, model_config: LLMModelConfig) ->
             "type": "enabled",
             "budget_tokens": model_config.thinking_budget_tokens,
         }
-    client_kwargs: dict[str, Any] = {"api_key": api_key}
+    client_kwargs: dict[str, Any] = {"api_key": api_key, "max_retries": 0}
     if model_config.request_timeout_seconds is not None:
         client_kwargs["timeout"] = model_config.request_timeout_seconds
     client = Anthropic(**client_kwargs)
-    last_error = None
-    for attempt in range(2):
-        started = time.perf_counter()
-        response = client.messages.create(**kwargs)
-        latency_ms = int((time.perf_counter() - started) * 1000)
-        content_parts = []
-        for block in response.content:
-            if getattr(block, "type", None) == "text":
-                content_parts.append(str(getattr(block, "text", "")))
-        raw_text = "\n".join(content_parts)
-        usage = _usage_payload(getattr(response, "usage", None))
-        try:
-            payload = _extract_json_object(raw_text)
-            break
-        except (ValueError, json.JSONDecodeError) as exc:
-            last_error = exc
-            if attempt == 0:
-                continue
-            payload = _parse_failure_payload(
-                request,
-                provider="anthropic",
-                model_config=model_config,
-                raw_text=raw_text,
-                error=exc,
-                response_id=getattr(response, "id", None),
-                latency_ms=latency_ms,
-                usage=usage,
-            )
-            break
-    else:  # pragma: no cover - loop always breaks
-        raise RuntimeError("unreachable Anthropic parse loop") from last_error
+    started = time.perf_counter()
+    response = client.messages.create(**kwargs)
+    latency_ms = int((time.perf_counter() - started) * 1000)
+    content_parts = []
+    for block in response.content:
+        if getattr(block, "type", None) == "text":
+            content_parts.append(str(getattr(block, "text", "")))
+    raw_text = "\n".join(content_parts)
+    usage = _usage_payload(getattr(response, "usage", None))
+    payload = _parse_llm_response(
+        request,
+        raw_text,
+        provider="anthropic",
+        finish_reason=getattr(response, "stop_reason", None),
+    )
     payload.setdefault("metadata", {})
-    payload["metadata"]["provider"] = "anthropic"
-    payload["metadata"]["model"] = model_config.model
-    payload["metadata"]["model_config_id"] = model_config.id
+    payload["metadata"].update(
+        _provider_response_metadata(
+            provider="anthropic",
+            model_config=model_config,
+            response=response,
+            latency_ms=latency_ms,
+            usage=usage,
+            raw_response_text=raw_text,
+            raw_response_content=_jsonable_provider_content(response.content),
+            finish_reason=getattr(response, "stop_reason", None),
+        )
+    )
     payload["metadata"]["thinking_budget_tokens"] = model_config.thinking_budget_tokens
-    payload["metadata"]["response_id"] = getattr(response, "id", None)
-    payload["metadata"]["latency_ms"] = latency_ms
-    payload["metadata"]["usage"] = usage
     return payload
 
 
@@ -494,6 +805,7 @@ def _call_deepseek(request: dict[str, Any], *, model_config: LLMModelConfig) -> 
     client_kwargs: dict[str, Any] = {
         "api_key": api_key,
         "base_url": model_config.base_url or "https://api.deepseek.com",
+        "max_retries": 0,
     }
     if model_config.request_timeout_seconds is not None:
         client_kwargs["timeout"] = model_config.request_timeout_seconds
@@ -511,42 +823,34 @@ def _call_deepseek(request: dict[str, Any], *, model_config: LLMModelConfig) -> 
         extra_body["thinking"] = {"type": "enabled" if model_config.thinking else "disabled"}
     if extra_body:
         kwargs["extra_body"] = extra_body
-    last_error = None
-    for attempt in range(2):
-        started = time.perf_counter()
-        response = client.chat.completions.create(**kwargs)
-        latency_ms = int((time.perf_counter() - started) * 1000)
-        message = response.choices[0].message
-        content = message.content or "{}"
-        usage = _usage_payload(getattr(response, "usage", None))
-        try:
-            payload = _extract_json_object(content)
-            break
-        except (ValueError, json.JSONDecodeError) as exc:
-            last_error = exc
-            if attempt == 0:
-                continue
-            payload = _parse_failure_payload(
-                request,
-                provider="deepseek",
-                model_config=model_config,
-                raw_text=content,
-                error=exc,
-                response_id=getattr(response, "id", None),
-                latency_ms=latency_ms,
-                usage=usage,
-            )
-            break
-    else:  # pragma: no cover - loop always breaks
-        raise RuntimeError("unreachable DeepSeek parse loop") from last_error
+    started = time.perf_counter()
+    response = client.chat.completions.create(**kwargs)
+    latency_ms = int((time.perf_counter() - started) * 1000)
+    choice = response.choices[0]
+    message = choice.message
+    raw_content = getattr(message, "content", None)
+    content = raw_content if isinstance(raw_content, str) else ""
+    usage = _usage_payload(getattr(response, "usage", None))
+    payload = _parse_llm_response(
+        request,
+        content,
+        provider="deepseek",
+        finish_reason=getattr(choice, "finish_reason", None),
+    )
     payload.setdefault("metadata", {})
-    payload["metadata"]["provider"] = "deepseek"
-    payload["metadata"]["model"] = model_config.model
-    payload["metadata"]["model_config_id"] = model_config.id
+    payload["metadata"].update(
+        _provider_response_metadata(
+            provider="deepseek",
+            model_config=model_config,
+            response=response,
+            latency_ms=latency_ms,
+            usage=usage,
+            raw_response_text=content,
+            raw_response_content=_jsonable_provider_content(message),
+            finish_reason=getattr(choice, "finish_reason", None),
+        )
+    )
     payload["metadata"]["thinking_enabled"] = model_config.thinking
-    payload["metadata"]["response_id"] = getattr(response, "id", None)
-    payload["metadata"]["latency_ms"] = latency_ms
-    payload["metadata"]["usage"] = usage
     payload["metadata"]["reasoning_content_present"] = bool(
         getattr(message, "reasoning_content", None)
     )
@@ -564,37 +868,10 @@ def _call_provider(request: dict[str, Any], *, model_config: LLMModelConfig) -> 
 
 
 def _selection_items_from_payload(payload: dict[str, Any]) -> list[SelectionItem]:
-    selections: list[SelectionItem] = []
     raw_items = payload.get("selections", [])
     if not isinstance(raw_items, list):
-        return selections
-    for index, item in enumerate(raw_items, start=1):
-        if not isinstance(item, dict):
-            continue
-        candidate_id = item.get("candidate_id")
-        if candidate_id is None:
-            continue
-        try:
-            rank = int(item.get("rank", index))
-        except (TypeError, ValueError):
-            rank = index
-        confidence = item.get("confidence")
-        try:
-            normalized_confidence = None if confidence is None else float(confidence)
-        except (TypeError, ValueError):
-            normalized_confidence = None
-        if normalized_confidence is not None:
-            normalized_confidence = max(0.0, min(1.0, normalized_confidence))
-        rationale = item.get("rationale")
-        selections.append(
-            SelectionItem(
-                rank=max(1, rank),
-                candidate_id=str(candidate_id),
-                confidence=normalized_confidence,
-                rationale=str(rationale) if rationale is not None else None,
-            )
-        )
-    return selections
+        return []
+    return [SelectionItem.model_validate(item) for item in raw_items]
 
 
 def run_llm_system(
@@ -619,8 +896,8 @@ def run_llm_system(
             response = payload.get("response", payload)
             output = SystemOutput.model_validate(response)
             metadata = {
-                **output.metadata,
                 **_metadata_for_request(request, model_config),
+                **output.metadata,
                 "cache_path": str(candidate_path),
             }
             if run_label is not None:
@@ -641,13 +918,14 @@ def run_llm_system(
 
     response_payload = _call_provider(request, model_config=model_config)
     response_metadata = {
-        **dict(response_payload.get("metadata") or {}),
         **_metadata_for_request(request, model_config),
+        **dict(response_payload.get("metadata") or {}),
     }
     if run_label is not None:
         response_metadata["base_system_name"] = system_name
+    response_task_id = response_payload.get("task_id")
     output = SystemOutput(
-        task_id=str(response_payload.get("task_id", card.task_id)),
+        task_id=response_task_id if isinstance(response_task_id, str) else card.task_id,
         system_name=run_label or system_name,
         selections=_selection_items_from_payload(response_payload),
         metadata=response_metadata,

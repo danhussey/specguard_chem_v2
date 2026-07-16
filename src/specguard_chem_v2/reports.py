@@ -250,15 +250,27 @@ def _paired_metric_row(
     *,
     comparison: str,
     seed: int,
+    system_a_metric: str | None = None,
+    system_b_metric: str | None = None,
 ) -> dict[str, object] | None:
-    if metric not in scores.columns:
+    left_metric = system_a_metric or metric
+    right_metric = system_b_metric or metric
+    if left_metric not in scores.columns or right_metric not in scores.columns:
         return None
-    left = scores.loc[scores["system_name"] == system_a, ["task_id", metric]].dropna()
-    right = scores.loc[scores["system_name"] == system_b, ["task_id", metric]].dropna()
-    merged = left.merge(right, on="task_id", suffixes=("_a", "_b"))
+    left = (
+        scores.loc[scores["system_name"] == system_a, ["task_id", left_metric]]
+        .dropna()
+        .rename(columns={left_metric: "metric_a"})
+    )
+    right = (
+        scores.loc[scores["system_name"] == system_b, ["task_id", right_metric]]
+        .dropna()
+        .rename(columns={right_metric: "metric_b"})
+    )
+    merged = left.merge(right, on="task_id")
     if merged.empty:
         return None
-    stats = _paired_bootstrap_delta(merged[f"{metric}_a"], merged[f"{metric}_b"], seed=seed)
+    stats = _paired_bootstrap_delta(merged["metric_a"], merged["metric_b"], seed=seed)
     if stats["n_cards"] == 0:
         return None
     return {
@@ -283,6 +295,21 @@ def _best_system(frame: pd.DataFrame, group: str | None, metric: str) -> str | N
     if metric_frame.empty:
         return None
     return str(metric_frame.sort_values(metric, ascending=False).iloc[0]["system_name"])
+
+
+def _is_primary_raw_llm_system(system_name: object) -> bool:
+    """Return whether a row is one of the release's directly recorded LLM systems."""
+
+    name = str(system_name)
+    return _base_system_name(name) in {"bare_llm", "llm_tools"} and not name.endswith(
+        "__posthoc_repair"
+    )
+
+
+def _primary_raw_llm_rows(frame: pd.DataFrame) -> pd.DataFrame:
+    if frame.empty or "system_name" not in frame.columns:
+        return frame.iloc[0:0]
+    return frame.loc[frame["system_name"].map(_is_primary_raw_llm_system)].copy()
 
 
 def _write_paired_bootstrap_tables(
@@ -343,24 +370,27 @@ def _write_paired_bootstrap_tables(
     oracle = _best_system(enriched_frame, "Oracle", "feasible_utility")
     best_qsar = _best_system(enriched_frame, "QSAR", "feasible_utility")
     best_llm = _best_system(enriched_frame, "LLM", "feasible_utility")
-    best_raw_llm = _best_system(enriched_frame, "LLM", "raw_feasible_utility")
+    best_raw_llm = _best_system(
+        _primary_raw_llm_rows(enriched_frame), "LLM", "raw_feasible_utility"
+    )
     similarity = (
         "similarity_to_best_active" if "similarity_to_best_active" in ordered_systems else None
     )
     rules = "rules_only" if "rules_only" in ordered_systems else None
     key_specs = [
-        ("oracle_minus_best_qsar", oracle, best_qsar),
-        ("best_qsar_minus_best_final_llm", best_qsar, best_llm),
-        ("best_qsar_minus_similarity", best_qsar, similarity),
-        ("best_final_llm_minus_similarity", best_llm, similarity),
-        ("best_final_llm_minus_rules", best_llm, rules),
-        ("best_raw_llm_minus_similarity", best_raw_llm, similarity),
+        ("oracle_minus_best_qsar", oracle, best_qsar, False),
+        ("best_qsar_minus_best_final_llm", best_qsar, best_llm, False),
+        ("best_qsar_minus_similarity", best_qsar, similarity, False),
+        ("best_final_llm_minus_similarity", best_llm, similarity, False),
+        ("best_final_llm_minus_rules", best_llm, rules, False),
+        ("best_raw_llm_minus_similarity", best_raw_llm, similarity, True),
     ]
     key_rows: list[dict[str, object]] = []
-    for comparison, system_a, system_b in key_specs:
+    for comparison, system_a, system_b, use_raw_system_a in key_specs:
         if system_a is None or system_b is None or system_a == system_b:
             continue
-        for metric in ["feasible_utility", "ndcg_at_k", "action_validity"]:
+        for base_metric in ["feasible_utility", "ndcg_at_k", "action_validity"]:
+            metric = f"raw_{base_metric}" if use_raw_system_a else base_metric
             row = _paired_metric_row(
                 scores,
                 labels,
@@ -369,6 +399,8 @@ def _write_paired_bootstrap_tables(
                 metric,
                 comparison=comparison,
                 seed=13,
+                system_a_metric=metric,
+                system_b_metric=base_metric,
             )
             if row is not None and int(row["n_cards"]) >= 2:
                 key_rows.append(row)
@@ -380,11 +412,12 @@ def _write_paired_bootstrap_tables(
 
 def _card_series_specs(frame: pd.DataFrame) -> list[tuple[str, str | None, str]]:
     enriched = _add_display_columns(frame)
+    raw_llm_rows = _primary_raw_llm_rows(enriched)
     return [
         ("Oracle upper-bound", _best_system(enriched, "Oracle", "feasible_utility"), "final"),
         ("Best QSAR", _best_system(enriched, "QSAR", "feasible_utility"), "final"),
         ("Best final LLM", _best_system(enriched, "LLM", "feasible_utility"), "final"),
-        ("Best raw LLM", _best_system(enriched, "LLM", "raw_feasible_utility"), "raw"),
+        ("Best raw LLM", _best_system(raw_llm_rows, "LLM", "raw_feasible_utility"), "raw"),
         ("Similarity baseline", "similarity_to_best_active", "final"),
         ("Rules-only baseline", "rules_only", "final"),
     ]
@@ -1100,6 +1133,7 @@ def _dashboard_rows(frame: pd.DataFrame) -> list[dict[str, object]]:
         output: dict[str, object] = {
             "system_name": system_name,
             "base_system": base,
+            "is_primary_raw_llm": _is_primary_raw_llm_system(system_name),
             "display_name": str(row.get("display_label") or _system_display_label_from_row(row)),
             "condition": _condition_name(system_name),
             "condition_label": str(row.get("condition_label") or _condition_label_from_row(row)),
@@ -1645,7 +1679,7 @@ def write_results_dashboard(
     function renderSummary() {{
       const oracle = bestBy("feasible_utility", row => row.group === "Oracle");
       const primary = bestBy("feasible_utility", row => row.group !== "Oracle");
-      const rawLlm = bestBy("raw_feasible_utility", row => row.group === "LLM");
+      const rawLlm = bestBy("raw_feasible_utility", row => row.is_primary_raw_llm);
       const repairSensitive = rows.filter(row => row.repaired_rate !== null && row.repaired_rate >= 0.1).length;
       const cards = [
         [metricTerm("feasible_utility", "Best primary utility"), primary ? fmt(primary.feasible_utility) : "", primary ? escapeHtml(labelFor(primary)) : ""],
@@ -1682,7 +1716,7 @@ def write_results_dashboard(
       const bestPrimary = bestRow("feasible_utility", row => row.group !== "Oracle");
       const bestQsar = bestRow("feasible_utility", row => row.group === "QSAR");
       const bestLlmFinal = bestRow("feasible_utility", row => row.group === "LLM");
-      const bestRawLlm = bestRow("raw_feasible_utility", row => row.group === "LLM");
+      const bestRawLlm = bestRow("raw_feasible_utility", row => row.is_primary_raw_llm);
       const similarity = rowByName("similarity_to_best_active");
       const representationPairs = rows
         .filter(row => row.base_system === "bare_llm" && row.condition && row.feasible_utility !== null)
@@ -2600,7 +2634,7 @@ def write_results_summary(
 
     best_qsar = _best_row(primary, "feasible_utility", group="QSAR")
     best_llm = _best_row(primary, "feasible_utility", group="LLM")
-    best_raw_llm = _best_row(primary, "raw_feasible_utility", group="LLM")
+    best_raw_llm = _best_row(_primary_raw_llm_rows(primary), "raw_feasible_utility", group="LLM")
     best_primary = _best_row(primary, "feasible_utility")
     best_similarity = (
         primary[primary["system_name"] == "similarity_to_best_active"].iloc[0]

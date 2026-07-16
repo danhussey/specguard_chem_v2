@@ -101,6 +101,14 @@ The v0.1.0 design calls only `bare_llm` and `llm_tools`, then applies
 `llm_validator` and `llm_tools_validator` matrix is not part of the release
 comparison.
 
+Raw-action validation is performed before normalization. Surrounding prose,
+multiple JSON objects, missing or wrong task/system fields, malformed selection
+items, invalid confidence values, rank gaps, and provider truncation remain
+explicit raw issues. Salvageable candidate IDs may still contribute partial
+utility and selection-compliance diagnostics, but they cannot make the whole
+raw action valid. The exact response text and structured provider content are
+retained so this audit can be replayed.
+
 ## Required Run Checks
 
 Before live execution:
@@ -116,7 +124,8 @@ Before live execution:
 After execution:
 
 1. require 91 trace rows for each of the six raw conditions;
-2. record exact model IDs, generation settings, usage, retries, and failures;
+2. record configured and provider-returned model IDs, exact raw responses,
+   generation settings, usage, latency, the one-attempt count, and failures;
 3. validate raw issues against the current contract;
 4. derive repaired traces without network access;
 5. score with the hash-bound v0.1.0 scorer outcomes; and
