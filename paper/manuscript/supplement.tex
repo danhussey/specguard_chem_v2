@@ -18,7 +18,7 @@
 \title{\textbf{Supplementary Methods and Artifact Record}\\
 SpecGuard-Chem 0.1.0}
 \author{Daniel Hussey}
-\date{Pre-run draft, 16 July 2026}
+\date{Pilot-audited pre-run draft, 16 July 2026}
 
 \begin{document}
 \maketitle
@@ -27,9 +27,14 @@ SpecGuard-Chem 0.1.0}
 
 This supplement accompanies the pre-run manuscript \emph{Before the Lab Acts:
 Benchmarking Language Models for Constrained Compound Selection}. The corrected
-data and deterministic baselines are complete. The paper-facing provider run is
-pending explicit authorization; no historical paper-50 response or score is
-reported here.
+data and deterministic baselines are complete. A fixed one-card, six-request
+provider pilot is complete as an execution and provenance check. The residual
+540-call paper-facing run remains pending separate explicit authorization; no
+historical paper-50 response or score is reported here.
+Those artifacts are invalid because positional split references were previously
+misread as dataframe labels; they remain only as immutable provenance.
+Tagging also remains blocked on the final paper, licensing, clean-checkout
+verification, and bundle checksums.
 
 \section{Artifact visibility contract}
 
@@ -144,6 +149,12 @@ contract and an explicit instruction that pChEMBL is higher-is-better. The
 conservative uncached pre-run estimate is \$106.06, with maximum estimated
 input 158,274 tokens and a planned hard cost ceiling of \$120.
 
+The one-card pilot completed all six calls with one recorded attempt each, full
+provenance, and \$0.449700535 aggregate cost; cache-only replay reproduced every
+score artifact. Six calls are cached and 540 remain, with a \$105.122676615
+residual upper bound. The pilot is operational evidence only and is not used for
+model ranking, representation inference, or a paper headline result.
+
 \section{Deterministic post-hoc repair}
 
 Repair is computed from the same raw response and adds zero provider calls:
@@ -160,19 +171,5 @@ Repair is computed from the same raw response and adds zero provider calls:
 
 Raw metrics characterize model behavior. Repaired metrics characterize the
 model-plus-harness system and must never be relabeled as unaided model ability.
-
-\section{Historical invalidation}
-
-The historical paper-50 import treated CARA's positional split references as
-dataframe labels. All cards, prompts, caches, responses, tables, figures, and
-claims downstream of that import are invalid. They remain in immutable Git tags
-for provenance but are absent from the 0.1.0 release branch. They are not an
-earlier comparable benchmark version.
-
-\section{Remaining release gates}
-
-Before tagging: finish the authorized provider matrix and repaired/paired
-analyses; regenerate the paper; confirm license and authorship; build package
-distributions; and verify final checksums from a clean checkout.
 
 \end{document}

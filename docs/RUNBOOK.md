@@ -20,7 +20,7 @@ outcomes stored separately.
 | `data/releases/v0.1.0/system_input_cards.meta.json` | Build config, provenance, hashes, and ordered task IDs. |
 | `data/releases/v0.1.0/system_input_cards.audit.json` | All 100 source-task inclusion/exclusion decisions. |
 | `release/v0.1.0/experiments/baselines/` | Corrected deterministic traces, scores, and comparisons. |
-| `release/v0.1.0/experiments/llm/` | Exact requests, pre-run cost estimate, and eventual provider matrix. |
+| `release/v0.1.0/experiments/llm/` | Exact requests, pre/post-pilot estimates, six pilot traces/caches/scores, and eventual full matrix. |
 | `paper/manuscript/` | Manuscript sources and derived paper assets. |
 
 ## Setup and Tests
@@ -177,8 +177,8 @@ USD 0.936717455, with a maximum 25,817 conservatively estimated input tokens
 for one request. The offline export and estimate commands are recorded in
 `release/v0.1.0/REPRODUCE.md`.
 
-The following command is the fixed pilot shape, not authorization to execute
-it:
+The following command was explicitly authorized and executed once. It is the
+fixed pilot record, not standing authorization to execute it again:
 
 ```bash
 uv run --extra providers sgchem run-llm-matrix \
@@ -197,24 +197,24 @@ uv run --extra providers sgchem run-llm-matrix \
   --max-input-tokens-per-call 30000
 ```
 
-The pilot uses the full matrix's cache so those six responses are replayed,
-not repurchased. Before accepting the pilot, require all six cache entries and
-trace rows; one provider attempt per row; the expected configured and returned
-model identifiers; nonempty response IDs; complete usage and latency; retained
-raw response text/content; explicit finish reasons; and raw contract issues that
-agree with the retained response. After reviewing all six pilot traces, rerun
+The pilot passed its acceptance audit: all six cache entries and trace rows are
+present; each records one provider attempt, the expected configured and returned
+model identifiers, a nonempty response ID, complete usage and latency, retained
+raw response text/content, an explicit finish reason, and raw issues that agree
+with the retained response. Actual aggregate cost was USD 0.449700535, and an
+offline cache replay reproduced all six score artifacts. Rerun
 `estimate-llm-cost` for the complete cards with
 `--cache-dir release/v0.1.0/experiments/llm/matrix/cache` and
-`--out-run-dir release/v0.1.0/experiments/llm/matrix`. Continue only if the
-fresh estimate reports six cached requests and 540 missing requests. At the
-unchanged pricing snapshot the residual upper-bound estimate is USD
-105.122676615. Abort if any pilot request is not cached.
+`--out-run-dir release/v0.1.0/experiments/llm/matrix`. The recorded post-pilot
+estimate reports six cached requests, 540 missing requests, USD 0.449700535
+actual cached cost, and a USD 105.122676615 residual upper bound. A fresh
+estimate must agree before execution; abort if any pilot request is not cached.
 
 ## Live LLM Execution
 
-No external call is authorized merely by this runbook. After explicit approval,
-run the fixed pilot above and review its six traces before using the full-run
-command shape:
+No external call is authorized merely by this runbook. The fixed pilot is
+complete. After separate explicit approval, and only if a fresh residual
+estimate still passes, use the full-run command shape:
 
 ```bash
 uv run --extra providers sgchem run-llm-matrix \

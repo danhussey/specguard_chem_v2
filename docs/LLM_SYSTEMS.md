@@ -10,6 +10,10 @@ No v0.1.0 live LLM result should be claimed until the frozen matrix has complete
 provider traces. The exact requests and pre-run cost estimate are release
 artifacts; they are not model-performance results.
 
+A fixed one-card, six-request pilot has completed. It validates the execution,
+provenance, caching, scoring, and raw-versus-repaired paths only; one card cannot
+support model ranking, representation claims, or a paper-facing benchmark result.
+
 ## System-visible Input
 
 LLM systems consume only

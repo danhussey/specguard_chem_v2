@@ -5,9 +5,10 @@ SpecGuard-Chem release. It intentionally does not import any historical
 paper-50 result, figure, table, or response cache.
 
 `main.tex` is a compileable version-aligned pre-run manuscript. Corrected data and
-deterministic baseline evidence are populated. The provider experiment remains
-visibly marked as pending until the cost-gated live run is explicitly approved,
-completed, scored, and audited.
+deterministic baseline evidence are populated. A six-request, one-card provider
+pilot has been completed as an execution/provenance check, but the full 91-card
+experiment remains visibly marked as pending until its separately authorized
+residual run is completed, scored, and audited.
 
 `generated_results.tex` is the single result-status switch, and
 `../tables/v0.1.0/deterministic_baseline_rows.tex` supplies the numerical rows

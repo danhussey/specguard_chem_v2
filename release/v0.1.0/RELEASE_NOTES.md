@@ -62,14 +62,18 @@ Full details are in
 ## Current experimental status
 
 Corrected deterministic baselines have been generated. Exact requests and a
-pre-run cost estimate have been generated for the proposed LLM matrix, but **no
-live provider call has been made for this release candidate**. Therefore there
-is no final LLM comparison, raw-versus-repaired result, or conference-paper
-headline result yet. Historical model responses and caches will not be reused.
+pre-run cost estimate have been generated for the proposed LLM matrix. A fixed
+one-card pilot has also completed across three providers and two interfaces,
+with all six raw responses, replay caches, scores, deterministic repaired views,
+and operational provenance retained. This pilot is an execution and attribution
+check only. The residual 540-call, 91-card matrix has not been authorized, so
+there is no final LLM comparison or conference-paper headline result yet.
+Historical model responses and caches are not reused.
 
 ## Still required before release
 
-- Explicit approval and cost-gated execution of the paper-facing live LLM run.
+- Separate explicit approval and cost-gated execution of the residual 540-call
+  paper-facing LLM matrix.
 - Corrected uncertainty, attribution, robustness, latency, token, and monetary
   analyses from those runs.
 - Final manuscript, supplement, tables, figures, and paper licensing decision.

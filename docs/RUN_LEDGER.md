@@ -303,3 +303,34 @@ was run, what happened, and what to do next.
 - Follow-up: obtain explicit authorization before the six-call pilot, confirm
   the manuscript license/authorship route, then complete provider results,
   final checksums, clean-checkout verification, and the annotated tag.
+
+## 2026-07-16 fixed one-card LLM pilot
+
+- Artifacts: `release/v0.1.0/experiments/llm/pilot/`,
+  `release/v0.1.0/experiments/llm/matrix/cache/`, and
+  `release/v0.1.0/experiments/llm/post_pilot_cost_estimate.json`.
+- Scope: exact task `CARA_LO_CHEMBL1006579_IC50_0001`, two raw interfaces,
+  three frozen provider conditions, six live requests, and six zero-call
+  deterministic post-hoc views.
+- Question: verify that the corrected provider path preserves one-attempt raw
+  evidence, provenance, scoring, operational accounting, cache replay, and
+  raw-versus-guarded attribution before any full-matrix spend.
+- Status: complete. Six of six trace rows and cache entries exist; every row
+  records one provider attempt, matching configured/returned model IDs,
+  response ID, finish reason, usage, latency, verbatim text, structured content,
+  and 100% cost coverage. The full 91-card provider matrix has not started.
+- Headline: actual pilot cost was `$0.449700535` for 106,128 input and 3,024
+  output tokens. Four of six raw actions were executable. DeepSeek basic had
+  eight cLogP violations and DeepSeek descriptor-enriched selected nine support
+  compounds; deterministic repair made both actions valid by replacing eight
+  and nine positions, respectively. A cache-only replay reproduced all score
+  artifacts. The post-pilot estimate records six cached, 540 missing, and a
+  `$105.122676615` residual upper bound.
+- Surprise / interpretation: all six responses were parseable, exact-size JSON,
+  yet two were operationally unusable. The pilot therefore validates the need
+  to separate response syntax, whole-action validity, valid-selection fraction,
+  scientific utility, and model-plus-harness behavior. It is one assay task and
+  cannot support model ranking or a descriptor-effect claim.
+- Follow-up: retain the pilot as operational case-study evidence, require
+  separate explicit approval before the residual 540 calls, then perform the
+  prespecified 91-card paired uncertainty and raw-versus-repaired analysis.

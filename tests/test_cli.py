@@ -365,6 +365,8 @@ def test_release_pilot_no_call_commands_match_canonical_rows(tmp_path: Path) -> 
             "configs/provider_pricing.toml",
             "--task-id",
             PILOT_TASK_ID,
+            "--cache-dir",
+            str(tmp_path / "pilot_cache"),
             "--out-run-dir",
             "release/v0.1.0/experiments/llm/matrix",
             "--out",

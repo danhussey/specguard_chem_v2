@@ -42,10 +42,12 @@ The corrected import has now passed an exhaustive local integrity audit:
 
 The corrected `0.1.0` data artifact is now frozen as separate system-input
 and scorer-only files, with deterministic build/audit manifests and checksums.
-Corrected deterministic baselines have also been rerun on all 91 cards. The
-paper-facing LLM matrix is specified and costed but has **not** made live
-provider calls, so no cross-model paper result is yet final. No historical
-response cache will be reused.
+Corrected deterministic baselines have also been rerun on all 91 cards. A fixed
+one-card, six-request LLM pilot has now been executed and audited across the two
+interfaces and three provider conditions. It is an execution and provenance
+check, not a cross-model result: the remaining 540 calls and full 91-card
+paper-facing comparison have not been authorized or run. No historical response
+cache is reused.
 
 ## The evaluated action
 

@@ -47,8 +47,9 @@ record the change as a new condition/version.
 ## Pre-Pilot Whole-Matrix Ceiling
 
 The following records the pre-pilot ceiling for all 546 unique requests. The
-staged procedure below uses tighter pilot and residual gates. Do not execute
-either command without explicit authorization and valid provider credentials.
+staged procedure below uses tighter pilot and residual gates. The six-call pilot
+has since been authorized and completed; the residual command still requires
+separate explicit authorization and valid provider credentials.
 
 ```bash
 uv run --extra providers sgchem run-llm-matrix \
@@ -77,8 +78,8 @@ three model conditions, so its call limit is exactly six. At the frozen pricing
 snapshot its no-call estimate is USD 0.936717455 and the largest conservative
 input estimate is 25,817 tokens.
 
-This command remains unauthorized until the user explicitly approves live
-provider calls:
+This exact command was explicitly authorized and executed once. It is retained
+as the run record, not as standing authorization to repurchase the responses:
 
 ```bash
 uv run --extra providers sgchem run-llm-matrix \
@@ -102,6 +103,12 @@ matrix cache is mandatory: it prevents the residual run from repurchasing these
 same six requests. The exact offline export and estimate commands are in
 `release/v0.1.0/REPRODUCE.md`.
 
+The pilot completed six of six requests with one provider attempt per request,
+complete usage/latency/model/raw-response provenance, and actual aggregate cost
+USD 0.449700535. Its raw traces, deterministic repaired views, scores, and audit
+record are under `release/v0.1.0/experiments/llm/pilot/`. A cache-only replay
+reproduced every score artifact without provider access.
+
 One missing request is exactly one provider attempt. The live adapters disable
 SDK retries and do not repurchase a response merely because its JSON or action
 contract is invalid. Such a response is preserved, cached, and scored as the
@@ -109,13 +116,14 @@ single raw action. A transport/API exception aborts execution rather than being
 converted into a zero-utility model response. Every successful response must
 record `provider_attempt_count = 1`; otherwise the run is not release evidence.
 
-After all six pilot traces pass review, rerun the complete cost estimate against
-that shared cache. It must report six cached requests and exactly 540 missing
-requests. With the unchanged snapshot, the residual conservative upper bound is
-USD 105.122676615. The cached-cost field records pilot spend already incurred.
-Abort if the counts differ.
+The post-pilot estimate has passed review: it reports six cached requests,
+exactly 540 missing requests, a residual conservative upper bound of USD
+105.122676615, and USD 0.449700535 of cached actual pilot cost. Recompute it
+immediately before any residual run and abort if the counts or current pricing
+differ.
 
-Only after that check passes, use the residual gates:
+The check passing does not itself authorize spend. Only after separate explicit
+approval may the residual gates be used:
 
 ```bash
 uv run --extra providers sgchem run-llm-matrix \

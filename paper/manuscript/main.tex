@@ -32,7 +32,7 @@
 
 \title{\textbf{Before the Lab Acts: Benchmarking Language Models for Constrained Compound Selection}}
 \author{Daniel Hussey\\The University of Sydney}
-\date{SpecGuard-Chem 0.1.0 pre-run manuscript draft, 16 July 2026}
+\date{SpecGuard-Chem 0.1.0 pilot-audited pre-run manuscript, 16 July 2026}
 
 \begin{document}
 \maketitle
@@ -60,8 +60,9 @@ The strongest LLM condition, \BestLLMLabel{}, achieved utility
 \BestLLMUtility{}, NDCG@10 \BestLLMNDCG{}, and raw action validity
 \BestLLMActionValidity{}.
 \else
-Provider results are intentionally withheld from this pre-run draft
-until the cost-gated corrected run is explicitly authorized and complete.
+A fixed one-card provider pilot has completed as an execution and provenance
+check but is excluded from model comparison. Provider results are intentionally
+withheld until the separately authorized 91-card run is complete.
 \fi
 SpecGuard-Chem does not claim a new biological dataset or a complete model of
 drug discovery. It contributes a reproducible action-evaluation layer over
@@ -367,12 +368,14 @@ The strongest LLM system was \BestLLMLabel{}, with feasible utility
 best QSAR comparator, raw-versus-repaired attribution, and cost are reported in
 the canonical generated tables.
 \else
-This subsection is a declared pre-run placeholder. The 546 exact
-requests and conservative cost estimate are frozen, but no live provider call
-has been made. Consequently, this manuscript does not reuse or report any
-historical paper-50 LLM number. The final paper will lead with paired per-task
-utility and regret versus QSAR, followed by representation, raw validity,
-post-hoc repair, latency, tokens, and cost.
+This subsection is a declared pre-run placeholder. The 546 exact requests and
+conservative cost estimate are frozen. Six responses for one fixed card have
+been acquired and audited solely to verify execution, provenance, scoring, and
+raw-versus-repaired attribution; they are not a model comparison and cannot
+open the paper's 91-card result gate. Consequently, this manuscript does not
+reuse or report any historical paper-50 LLM number. The final paper will lead
+with paired per-task utility and regret versus QSAR, followed by representation,
+raw validity, post-hoc repair, latency, tokens, and cost.
 \fi
 
 \section{Discussion}

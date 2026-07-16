@@ -1,8 +1,10 @@
 # SpecGuard-Chem paper workspace
 
-> **Status: in preparation.** The corrected data artifact and deterministic
-> baselines exist, but the paper-facing live LLM run has not occurred. No final
-> LLM comparison or conference-paper headline result is available yet.
+> **Status: in preparation.** The corrected data artifact, deterministic
+> baselines, and a one-card provider pilot exist. The pilot verifies execution,
+> provenance, and raw-versus-repaired attribution but is not used as a model
+> comparison. The full paper-facing LLM matrix has not occurred, so no final
+> LLM headline result is available yet.
 
 ## Working paper identity
 

@@ -96,7 +96,9 @@ candidate IDs should a system select for the next assay batch?
 - [x] Enforce one provider attempt per request and preserve strict raw-response,
   model-provenance, usage, latency, and cost evidence.
 - [x] Correct best-raw-system selection and raw-versus-baseline paired metrics.
-- [ ] Run only explicitly approved live conditions and persist replay caches.
+- [x] Run the explicitly approved fixed six-request pilot and persist audited
+  replay caches, raw traces, operational evidence, and zero-call repaired views.
+- [ ] Run the residual 540-call matrix only after separate explicit approval.
 - [ ] Recompute paired uncertainty, raw/final attribution, robustness, and cost.
 - [ ] Build one canonical complete run manifest rather than relying on resumed
   per-command manifests.

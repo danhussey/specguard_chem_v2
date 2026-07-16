@@ -116,12 +116,12 @@ Before live execution:
 1. verify the exact 546 request rows and their system-input hashes;
 2. confirm candidate activities are absent;
 3. re-check model availability, context limits, and pricing;
-4. run the fixed six-request task-ID pilot with its shared matrix cache and hard
-   spend gates; and
+4. verify the completed fixed six-request task-ID pilot, its six shared-cache
+   entries, one-attempt records, and hard spend-gate evidence; and
 5. confirm provider errors remain distinguishable from valid empty/malformed
    responses.
 
-After execution:
+After residual execution:
 
 1. require 91 trace rows for each of the six raw conditions;
 2. record configured and provider-returned model IDs, exact raw responses,
