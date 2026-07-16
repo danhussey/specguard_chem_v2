@@ -1,7 +1,5 @@
 # Technical Debt
 
-- Validate CARA importer against the official downloaded dataset layout.
-- Add source-specific CARA tests after the first real download.
 - Add full provider metadata capture for live LLM calls.
 - Add a resumable per-card trace writer so failed live matrix batches preserve
   partial traces, not only provider caches.
@@ -12,3 +10,5 @@
   it into the direct-selector frontier comparison.
 - Add manuscript-grade statistical wording after deciding which paired
   bootstrap deltas belong in the final paper tables.
+- Add a second independent implementation of the CARA positional-import audit
+  if the benchmark expands beyond the frozen v0.1.0 dataset.

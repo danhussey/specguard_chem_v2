@@ -1,120 +1,126 @@
 # LLM Failure Modes
 
-This note records the observed LLM-interface failure modes from the paper-50
-runs. It is part of the methods record: these are not chemistry conclusions by
-themselves, but they explain why raw and repaired outputs must be separated.
+> **Historical-evidence warning.** The former paper-50 LLM runs used invalid
+> cards produced by the pre-v0.1.0 importer. Their numerical results and
+> model-comparison claims are not evidence for this benchmark. The engineering
+> risks observed while running them informed the safeguards below, but v0.1.0
+> LLM outcomes must come from new traces over the corrected 91-card artifacts.
 
-## Validator Terminology
+## What Must Be Kept Separate
 
-In this repository, a `*_validator` system is not just a passive validator. It is
-a guarded system with two deterministic stages:
+Every publishable condition has three conceptually distinct outcomes:
 
-1. Check the raw model output against the task contract: schema, candidate-pool
-   membership, duplicates, support-set exclusion, and hard constraints such as
-   RDKit-computed property bounds or alert rules.
-2. If the raw output is invalid, repair it by keeping valid selections and
-   filling missing slots with the deterministic fallback ranking.
+1. **Execution status:** did the provider return a complete response for the
+   frozen request?
+2. **Raw model behavior:** did that response satisfy the action contract, and
+   how useful was its unaided ranking?
+3. **Guarded-system behavior:** after deterministic post-hoc repair of the same
+   response, can the combined model-plus-harness system produce a valid list?
 
-The checker is not an oracle. It does not see hidden activity values and cannot
-know the best compounds. The repair fallback is harness behavior, not model
-behavior. For paper claims, report:
+Transport failure is not a low-utility model decision, and repaired output is
+not raw model ability.
 
-- raw LLM metrics from `raw_output` and `raw_issues`;
-- final guarded-system metrics from `output` and `issues`;
-- `repaired_rate` and `repaired_from_empty_rate`.
+## Failure Taxonomy
 
-The repair fallback is useful as an operational guardrail condition, but it must
-not be described as raw LLM medicinal-chemistry performance.
+### Provider and execution failures
 
-## Original High-Reasoning Failure Mode
+- missing credentials, quota or credit exhaustion;
+- provider overload, timeout, or connection failure;
+- context-limit rejection;
+- truncated response or no visible final answer; and
+- incomplete trace/cache write.
 
-```mermaid
-flowchart TD
-    A["Decision card"] --> B["Full-pool prompt"]
-    B --> B1["Support set with activities"]
-    B --> B2["Candidate IDs, SMILES, descriptors"]
-    B --> B3["Hard constraints"]
-    B --> B4["JSON output contract"]
+These are run-feasibility failures. Preserve them explicitly, retry only under a
+documented policy, and do not score synthetic empty selections as if the model
+chose them.
 
-    B --> C["High-reasoning / thinking model call"]
-    C --> D1["Good path: visible JSON"]
-    C --> D2["Failure: reasoning-token sink"]
-    C --> D3["Failure: malformed or partial answer"]
-    C --> D4["Failure: provider quota, credit, overload, timeout"]
+### Contract failures
 
-    D1 --> E1["Raw selections can be scored"]
-    D2 --> E2["Visible response is empty or {}"]
-    D3 --> E3["Wrong k, duplicate IDs, bad IDs, prose, invalid JSON"]
-    D4 --> E4["No complete trace for that condition"]
+- malformed JSON, prose, markdown, or multiple objects;
+- wrong `task_id` or `system_name`;
+- fewer or more than `k` selections;
+- duplicate, unknown, or support-set candidate IDs;
+- rank gaps or inconsistent rank order; and
+- selection of candidates that violate deterministic hard constraints.
 
-    E2 --> F2["Raw utility = 0 or schema failure"]
-    E3 --> F3["Raw compliance/utility degraded"]
-    F2 --> G["Validator-repair condition may fill missing IDs"]
-    F3 --> G
-    G --> H["Final guarded score can look valid"]
-```
+Whole-action validity requires zero validation issues across the complete
+output. `compliance_rate` is only the valid-selection fraction and can still be
+`1.0` when another contract issue, such as a wrong task ID, invalidates the
+action. Neither measure establishes that selected compounds are useful.
 
-The key observed OpenAI high-reasoning failure was not that the model selected
-bad compounds; it often failed to produce visible final JSON at all. The output
-budget was consumed by reasoning tokens, leaving no usable candidate list.
+### Utility failures
 
-## Why Repair Can Mislead
+A response can be perfectly valid yet rank weak candidates, fail to transfer
+from the support set, collapse to a generic descriptor heuristic, or
+underperform similarity/QSAR. Utility, whole-action validity, and partial
+selection compliance therefore remain separate views rather than being
+collapsed into one success rate.
+
+### Interface and scale failures
+
+The benchmark sends the full candidate pool. The largest conservative v0.1.0
+request estimate is 158,274 input tokens. Large prompts can magnify latency,
+tokenization differences, quota pressure, and output truncation. Explicit
+reasoning/thinking modes may also consume output budget without yielding a
+machine-readable final object.
+
+The frozen release mitigates these risks by using a direct-JSON profile, a 4,096
+output-token cap, no extended thinking where avoidable, exact request export,
+and pre-run cost/context gates. Reasoning-budget variants are separate pilots,
+not substitutions for the primary matrix.
+
+## Why Post-hoc Repair Can Mislead
 
 ```mermaid
 flowchart LR
-    A["Raw model response"] --> B["Contract checker"]
-    B --> C["Raw score"]
-    B --> D["Repair fallback, only for *_validator systems"]
-    D --> E["Final guarded-system score"]
-
-    C --> F["Measures model behavior"]
-    E --> G["Measures model + deterministic harness behavior"]
+    A["One recorded provider response"] --> B["Contract validation"]
+    B --> C["Raw output and raw issues"]
+    C --> D["Raw whole-action validity, selection compliance, and utility"]
+    B --> E["Deterministic repair, if invalid"]
+    E --> F["Separate post-hoc repaired trace"]
+    F --> G["Guarded-system validity, selection compliance, and utility"]
 ```
 
-A repaired final score answers an operational question: "Can this guarded system
-produce a valid list?" It does not answer the model-quality question by itself:
-"Did the model choose useful valid compounds unaided?"
+The repair policy keeps valid selections and deterministically fills missing
+slots from a label-free fallback ranking. It cannot see hidden candidate
+activities and is not an oracle. Even so, it can materially increase
+whole-action validity, valid-selection fraction, or utility, particularly when
+the raw response is empty or malformed.
 
-## Current Direct-JSON Mitigation
+For that reason:
 
-The direct-JSON interface keeps the same cards, full candidate pool, constraints,
-and systems. It changes the model interface so the model is asked to emit the
-final JSON object immediately, without explicit high/extended-thinking mode
-where avoidable.
+- never overwrite the raw trace;
+- never make another provider request under the name of repair;
+- bind the repaired view to the source-trace SHA256 and named repair policy;
+- report `repaired_rate` and `repaired_from_empty_rate`;
+- report raw metrics before guarded-system metrics; and
+- label guarded results as model plus deterministic harness, not model-only.
 
-```mermaid
-flowchart TD
-    A["Same decision card"] --> B["Same full candidate-pool payload"]
-    B --> C["json_first prompt profile"]
-    C --> C1["Return one JSON object only"]
-    C --> C2["No prose, markdown, rationale, or preamble"]
-    C --> C3["No explicit thinking mode where avoidable"]
+The v0.1.0 design calls only `bare_llm` and `llm_tools`, then applies
+`repair-llm-trace` to each response after the fact. The old prompt-level
+`llm_validator` and `llm_tools_validator` matrix is not part of the release
+comparison.
 
-    C --> D["Model call"]
-    D --> E["Raw output persisted"]
-    E --> F["Contract checker"]
-    F --> G["Raw metrics"]
-    F --> H{"Validator system?"}
-    H -->|No| I["Final output = raw output"]
-    H -->|Yes, raw invalid| J["Deterministic repair fallback"]
-    H -->|Yes, raw valid| I
-    J --> K["Final guarded metrics"]
-    I --> K
-```
+## Required Run Checks
 
-This mitigation does not change the benchmark task. It is an interface ablation:
-direct final-answer JSON versus high-reasoning/thinking interface.
+Before live execution:
 
-## Cost And Feasibility Failure
+1. verify the exact 546 request rows and their system-input hashes;
+2. confirm candidate activities are absent;
+3. re-check model availability, context limits, and pricing;
+4. run the fixed six-request task-ID pilot with its shared matrix cache and hard
+   spend gates; and
+5. confirm provider errors remain distinguishable from valid empty/malformed
+   responses.
 
-The full-pool prompt is itself large. A single tool-summary decision card can
-contain more than 100k prompt tokens depending on provider tokenization. Provider
-quota failures therefore need to be treated as run-feasibility failures, not as
-model-performance scores.
+After execution:
 
-Before future live runs, use cheap pilots and explicit budget gates. A full run
-should not start unless estimated calls, tokens, and cost are acceptable. See
-`docs/COST_CONTROL.md`.
+1. require 91 trace rows for each of the six raw conditions;
+2. record exact model IDs, generation settings, usage, retries, and failures;
+3. validate raw issues against the current contract;
+4. derive repaired traces without network access;
+5. score with the hash-bound v0.1.0 scorer outcomes; and
+6. present paired-card uncertainty and failure counts alongside averages.
 
-For high-reasoning/thinking interface redesign options, see
-`docs/HIGH_REASONING_INTERFACE_OPTIONS.md`.
+See `docs/COST_CONTROL.md` for spend gates and `docs/POSTHOC_REPAIR.md` for the
+repair artifact contract.

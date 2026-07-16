@@ -4,6 +4,27 @@ from typing import Any, Literal
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator, model_validator
 
+SHA256_PATTERN = r"^[0-9a-f]{64}$"
+
+
+class ArtifactProvenance(BaseModel):
+    """Version and content identity shared by paired benchmark artifacts."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    benchmark_version: str
+    data_version: str
+    source_sha256: str = Field(pattern=SHA256_PATTERN)
+    config_sha256: str = Field(pattern=SHA256_PATTERN)
+
+    @field_validator("benchmark_version", "data_version")
+    @classmethod
+    def _non_empty_version(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("must be non-empty")
+        return value
+
 
 class AssayContext(BaseModel):
     model_config = ConfigDict(extra="allow")
@@ -12,6 +33,8 @@ class AssayContext(BaseModel):
     assay_type: str | None = None
     assay_id: str | None = None
     source: str | None = None
+    activity_scale: str | None = None
+    activity_direction: Literal["higher_is_better", "lower_is_better"] | None = None
 
 
 class ConstraintSpec(BaseModel):
@@ -57,6 +80,8 @@ class CompoundRecord(BaseModel):
 class DecisionCard(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    schema_version: str | None = None
+    provenance: ArtifactProvenance | None = None
     task_id: str
     assay_context: AssayContext = Field(default_factory=AssayContext)
     support_set: list[CompoundRecord]
@@ -74,8 +99,22 @@ class DecisionCard(BaseModel):
             raise ValueError("task_id must be non-empty")
         return value
 
+    @field_validator("schema_version")
+    @classmethod
+    def _schema_version_non_empty(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        if not value:
+            raise ValueError("schema_version must be non-empty")
+        return value
+
     @model_validator(mode="after")
     def _validate_ids(self) -> "DecisionCard":
+        if (self.schema_version is None) != (self.provenance is None):
+            raise ValueError(
+                "schema_version and provenance must either both be present or both be absent"
+            )
         support_ids = [compound.id for compound in self.support_set]
         candidate_ids = [compound.id for compound in self.candidate_pool]
         if len(set(candidate_ids)) != len(candidate_ids):
@@ -91,6 +130,51 @@ class DecisionCard(BaseModel):
     @property
     def support_ids(self) -> set[str]:
         return {compound.id for compound in self.support_set}
+
+
+class CandidateOutcome(BaseModel):
+    """One scorer-only candidate outcome, keyed to a system-input candidate ID."""
+
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
+
+    candidate_id: str
+    activity_value: float
+    activity_type: str = "pIC50"
+
+    @field_validator("candidate_id", "activity_type")
+    @classmethod
+    def _non_empty(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("must be non-empty")
+        return value
+
+
+class ScorerOutcomes(BaseModel):
+    """Scorer-only outcomes cryptographically bound to one system-input card."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: str
+    provenance: ArtifactProvenance
+    task_id: str
+    system_input_sha256: str = Field(pattern=SHA256_PATTERN)
+    outcomes: list[CandidateOutcome]
+
+    @field_validator("schema_version", "task_id")
+    @classmethod
+    def _non_empty(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("must be non-empty")
+        return value
+
+    @model_validator(mode="after")
+    def _unique_candidate_ids(self) -> "ScorerOutcomes":
+        candidate_ids = [outcome.candidate_id for outcome in self.outcomes]
+        if len(set(candidate_ids)) != len(candidate_ids):
+            raise ValueError("scorer outcome candidate IDs must be unique")
+        return self
 
 
 class SelectionItem(BaseModel):
@@ -154,6 +238,7 @@ class CardScore(BaseModel):
     feasible_utility: float
     oracle_utility: float
     constrained_regret: float
+    action_validity: float = Field(ge=0.0, le=1.0)
     compliance_rate: float
     schema_error_rate: float
     wrong_k: bool
@@ -164,6 +249,7 @@ class CardScore(BaseModel):
     valid_selected_count: int
     raw_ndcg_at_k: float | None = None
     raw_feasible_utility: float | None = None
+    raw_action_validity: float | None = Field(default=None, ge=0.0, le=1.0)
     raw_compliance_rate: float | None = None
     raw_schema_error_rate: float | None = None
     raw_valid_selected_count: int | None = None

@@ -31,6 +31,16 @@ max_tokens = 4096
 prompt_profile = "json_first"
 notes = "OpenAI direct-JSON condition. Minimal effort was rejected in preflight; low is the predefined fallback."
 
+[models.openai_gpt_5_5_2026_04_23_selector]
+provider = "openai"
+model = "gpt-5.5-2026-04-23"
+tier = "frontier"
+reasoning_effort = "low"
+api_key_env = "OPENAI_API_KEY"
+max_tokens = 4096
+prompt_profile = "json_first"
+notes = "Release-candidate direct-JSON condition pinned to the GPT-5.5 snapshot available on 2026-07-16."
+
 [models.openai_frontier_reasoning_budget]
 provider = "openai"
 model = "gpt-5.5"
@@ -65,6 +75,15 @@ api_key_env = "ANTHROPIC_API_KEY"
 max_tokens = 4096
 prompt_profile = "json_first"
 notes = "Anthropic direct-JSON condition without extended thinking."
+
+[models.anthropic_opus_4_8_selector]
+provider = "anthropic"
+model = "claude-opus-4-8"
+tier = "frontier"
+api_key_env = "ANTHROPIC_API_KEY"
+max_tokens = 4096
+prompt_profile = "json_first"
+notes = "Release-candidate Claude Opus 4.8 direct-JSON condition, selected and checked on 2026-07-16."
 
 [models.anthropic_frontier_thinking_8k]
 provider = "anthropic"
@@ -107,6 +126,17 @@ thinking = false
 max_tokens = 4096
 prompt_profile = "json_first"
 notes = "DeepSeek direct-JSON condition with thinking disabled."
+
+[models.deepseek_v4_pro_2026_07_16_selector]
+provider = "deepseek"
+model = "deepseek-v4-pro"
+tier = "frontier"
+base_url = "https://api.deepseek.com"
+api_key_env = "DEEPSEEK_API_KEY"
+thinking = false
+max_tokens = 4096
+prompt_profile = "json_first"
+notes = "Release-candidate direct-JSON condition using the DeepSeek V4 Pro alias as checked on 2026-07-16; the provider-returned model identifier must be preserved in traces."
 
 [models.deepseek_frontier_thinking_32k]
 provider = "deepseek"

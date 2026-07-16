@@ -92,14 +92,23 @@ def load_pricing_config(path: Path) -> PricingConfig:
     )
 
 
-def trace_is_complete(trace_path: Path, expected_rows: int) -> bool:
+def trace_is_complete(
+    trace_path: Path,
+    expected_rows: int,
+    *,
+    expected_task_ids: list[str] | None = None,
+) -> bool:
     if not trace_path.exists():
         return False
     try:
         rows = read_jsonl(trace_path)
     except ValueError:
         return False
-    return len(rows) == expected_rows
+    if len(rows) != expected_rows:
+        return False
+    if expected_task_ids is None:
+        return True
+    return [row.get("task_id") for row in rows] == expected_task_ids
 
 
 def estimate_message_tokens(
@@ -126,7 +135,9 @@ def _usage_value(usage: dict[str, Any], *keys: str) -> int:
     return total
 
 
-def _actual_usage_from_cache(cache_path: Path, entry: PricingEntry) -> dict[str, int | float] | None:
+def _actual_usage_from_cache(
+    cache_path: Path, entry: PricingEntry
+) -> dict[str, int | float] | None:
     payload = read_json(cache_path)
     response = payload.get("response", payload)
     metadata = response.get("metadata") if isinstance(response, dict) else None
@@ -173,6 +184,7 @@ def estimate_llm_matrix_cost(
 ) -> dict[str, Any]:
     rows: list[CostEstimateRow] = []
     expected_rows = len(cards)
+    expected_task_ids = [card.task_id for card in cards]
     for model_config in model_configs:
         entry = pricing.entry_for(model_config.id)
         chars_per_token = entry.chars_per_token or pricing.default_chars_per_token
@@ -185,7 +197,13 @@ def estimate_llm_matrix_cost(
                 else None
             )
             completed_trace = (
-                False if force or trace_path is None else trace_is_complete(trace_path, expected_rows)
+                False
+                if force or trace_path is None
+                else trace_is_complete(
+                    trace_path,
+                    expected_rows,
+                    expected_task_ids=expected_task_ids,
+                )
             )
             for card in cards:
                 request = build_llm_request(card, system_name, model_config=model_config)
@@ -193,17 +211,18 @@ def estimate_llm_matrix_cost(
                 request_sha256 = request_hash(request)
                 # The request hash is not embedded in the request itself; use the cache path basename as
                 # the stable external identifier when present.
-                cached_path = find_cached_response(cache_dir / model_config.id / system_name, request)
+                cached_path = find_cached_response(
+                    cache_dir / model_config.id / system_name, request
+                )
                 estimated_input_tokens = estimate_message_tokens(
                     messages,
                     chars_per_token=chars_per_token,
                     safety_multiplier=safety_multiplier,
                 )
                 estimated_output_tokens = model_config.max_tokens
-                estimated_cost = (
-                    (estimated_input_tokens / 1_000_000) * entry.input_per_1m_usd
-                    + (estimated_output_tokens / 1_000_000) * entry.output_per_1m_usd
-                )
+                estimated_cost = (estimated_input_tokens / 1_000_000) * entry.input_per_1m_usd + (
+                    estimated_output_tokens / 1_000_000
+                ) * entry.output_per_1m_usd
                 status = "missing_live_call"
                 incremental_cost = estimated_cost
                 actual: dict[str, int | float] | None = None

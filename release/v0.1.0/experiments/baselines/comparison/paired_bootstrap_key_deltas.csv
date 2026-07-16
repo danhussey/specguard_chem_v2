@@ -1,0 +1,7 @@
+comparison,metric,system_a,system_a_label,system_b,system_b_label,direction,n_cards,mean_delta,ci_low,ci_high,probability_delta_gt_zero
+oracle_minus_best_qsar,feasible_utility,oracle_valid_topk,Oracle upper-bound,qsar_svm,QSAR linear SVR,system_a_minus_system_b,91,4.596263736263736,4.028495879120878,5.199851648351649,1.0
+oracle_minus_best_qsar,ndcg_at_k,oracle_valid_topk,Oracle upper-bound,qsar_svm,QSAR linear SVR,system_a_minus_system_b,91,0.06246771378894356,0.05467463171802006,0.07065553200868228,1.0
+oracle_minus_best_qsar,action_validity,oracle_valid_topk,Oracle upper-bound,qsar_svm,QSAR linear SVR,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+best_qsar_minus_similarity,feasible_utility,qsar_svm,QSAR linear SVR,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,1.6781318681318684,1.03439697802198,2.3653365384615372,1.0
+best_qsar_minus_similarity,ndcg_at_k,qsar_svm,QSAR linear SVR,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,0.018815828082858414,0.010617444586498817,0.02740735871614072,1.0
+best_qsar_minus_similarity,action_validity,qsar_svm,QSAR linear SVR,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0

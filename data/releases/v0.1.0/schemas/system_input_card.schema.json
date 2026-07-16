@@ -1,0 +1,338 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:specguard-chem:schema:decision-card-input:v1",
+  "$comment": "Derived from DecisionCard and the strict system_input_payload projection in specguard_chem_v2 0.1.0. Candidate activity is intentionally absent.",
+  "title": "SpecGuard-Chem system-input decision card",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "provenance",
+    "task_id",
+    "assay_context",
+    "support_set",
+    "candidate_pool",
+    "budget_k",
+    "hard_constraints",
+    "output_schema",
+    "metadata"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "specguard.decision-card-input.v1"
+    },
+    "provenance": {
+      "$ref": "#/$defs/artifact_provenance"
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "assay_context": {
+      "$ref": "#/$defs/assay_context"
+    },
+    "support_set": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/support_compound"
+      }
+    },
+    "candidate_pool": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/candidate_compound"
+      }
+    },
+    "budget_k": {
+      "type": "integer",
+      "exclusiveMinimum": 0
+    },
+    "hard_constraints": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/constraint"
+      }
+    },
+    "output_schema": {
+      "$ref": "#/$defs/output_schema"
+    },
+    "metadata": {
+      "$ref": "#/$defs/card_metadata"
+    }
+  },
+  "$defs": {
+    "artifact_provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "benchmark_version",
+        "data_version",
+        "source_sha256",
+        "config_sha256"
+      ],
+      "properties": {
+        "benchmark_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "data_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "config_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "assay_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target",
+        "assay_type",
+        "assay_id",
+        "source",
+        "activity_scale",
+        "activity_direction"
+      ],
+      "properties": {
+        "target": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "assay_type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "assay_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "activity_scale": {
+          "const": "pChEMBL"
+        },
+        "activity_direction": {
+          "const": "higher_is_better"
+        }
+      }
+    },
+    "descriptors": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "valid_smiles": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "canonical_smiles": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "mw": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "clogp": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "tpsa": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "hbd": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "hba": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "rotatable_bonds": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "heavy_atoms": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      }
+    },
+    "support_compound": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "smiles",
+        "activity_value",
+        "activity_type",
+        "descriptors"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "smiles": {
+          "type": "string",
+          "minLength": 1
+        },
+        "activity_value": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "activity_type": {
+          "const": "pChEMBL"
+        },
+        "descriptors": {
+          "$ref": "#/$defs/descriptors"
+        }
+      }
+    },
+    "candidate_compound": {
+      "$comment": "No activity_value or free-form metadata property is permitted here.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "smiles",
+        "activity_type",
+        "descriptors"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "smiles": {
+          "type": "string",
+          "minLength": 1
+        },
+        "activity_type": {
+          "const": "pChEMBL"
+        },
+        "descriptors": {
+          "$ref": "#/$defs/descriptors"
+        }
+      }
+    },
+    "constraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "check",
+        "params"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "candidate",
+            "output"
+          ]
+        },
+        "check": {
+          "type": "string",
+          "minLength": 1
+        },
+        "params": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "output_schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rank",
+        "candidate_id",
+        "confidence"
+      ],
+      "properties": {
+        "rank": {
+          "const": "integer"
+        },
+        "candidate_id": {
+          "const": "string"
+        },
+        "confidence": {
+          "const": "optional number"
+        }
+      }
+    },
+    "card_metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "type": "string"
+        },
+        "assay_id": {
+          "type": "string"
+        },
+        "support_size": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "candidate_pool_size": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "seed": {
+          "type": "integer"
+        },
+        "selection_policy": {
+          "type": "string"
+        },
+        "feasible_candidate_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

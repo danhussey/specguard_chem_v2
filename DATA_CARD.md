@@ -1,193 +1,172 @@
 # Data Card
 
-This data card explains what data SpecGuard-Chem v2 expects, how CARA-derived
-files are transformed, and which fields are visible to systems versus reserved
-for scoring.
+This card documents the corrected CARA-derived SpecGuard-Chem 0.1.0 frozen
+artifact, its construction, and the boundary between system-visible evidence
+and scorer-only outcomes.
 
-## Short Glossary
+## Source and license
 
-| Term | Meaning in this project |
-| --- | --- |
-| CARA | Public compound-activity benchmark built from ChEMBL-derived assay data. It is the main substrate for v2 decision cards. |
-| VS | Virtual screening. In CARA, VS tasks evaluate finding active compounds from a broader candidate set. VS is useful context but is not the first v2 focus. |
-| LO | Lead optimisation. This is the letter `O`, not the number `0`. In CARA, LO tasks are closer to medicinal-chemistry follow-up around known active matter. |
-| `LO_All` | CARA split name meaning the combined lead-optimisation task set used by the first v2 pipeline. |
-| Support set | Compounds treated as already measured at the start of the decision card. Systems may use their activity values. |
-| Query set / candidate pool | Compounds available for selection. Their activity values are hidden from systems and used only during scoring. |
-| Decision card | Frozen benchmark instance: support compounds, candidate pool, scorer-only activity values, hard constraints, and budget `k`. |
+The data substrate is CARA v1.0.1, specifically the official `LO_All`
+lead-optimization task table and support/query split files. CARA is distributed
+under CC BY 4.0. Source URLs, byte counts, and SHA256 checksums are recorded in
+`data/releases/v0.1.0/source_provenance.json`; attribution and derived-data
+terms are described in `DATA_LICENSE.md` and `THIRD_PARTY_NOTICES.md`.
 
-## Primary Source
+CARA is principally derived from ChEMBL compound-activity data and organizes
+records into assay-local tasks. SpecGuard-Chem preserves CARA as the named data
+substrate rather than presenting these records as a new molecular dataset.
 
-The intended primary substrate is CARA lead-optimisation few-shot data. CARA
-organizes compound activity records by assay and provides support/query splits.
-SpecGuard-Chem v2 reuses those splits but changes the evaluated action:
+## Data role in the benchmark
 
 ```text
-CARA activity-prediction view:
-  support compounds + query compounds -> predict/rank query activity
+CARA activity-prediction view
+  support measurements + query compounds -> predict query activity
 
-SpecGuard-Chem v2 decision view:
-  support compounds + candidate pool + constraints + budget k -> choose top-k candidate IDs
+SpecGuard-Chem action view
+  support measurements + candidate pool + constraints + budget
+  -> issue a ranked top-k assay batch
 ```
 
-The project starts with LO rather than VS because constrained top-k selection is
-meant to resemble a small follow-up testing decision after some active compounds
-are already known. VS can be added later as a separate stress or breadth module.
+The scientific label is CARA's supplied `pChEMBL Value`: a standardized
+negative-log molar activity measure for which higher values indicate greater
+potency. What changes is the evaluated output: a finite, actioned selection
+whose opportunity cost and executability can be measured.
 
-## Local Artifact Layers
+## Corrected positional import
 
-| Layer | Path | What it stores | Should it be committed? |
-| --- | --- | --- | --- |
-| Raw source | `data/raw/` | Downloaded CARA archives, extracted source files, source metadata. | Usually no; keep large/public raw files out of Git. |
-| Interim records | `data/interim/` | Normalized CARA-like JSONL records and layout summaries. | Usually no; regenerate from raw source. |
-| Frozen cards | `data/cards/` | Decision-card JSONL/parquet artifacts used by experiments. | Usually no for full CARA; yes for tiny fixtures or explicitly frozen small samples. |
-| Fixtures | `tests/fixtures/` | Small committed examples for tests and smoke runs. | Yes, when intentionally curated. |
+CARA split JSON files map task identifiers to integer row positions in
+`Task/LO_All.tsv`. The corrected importer:
 
-Raw and derived data artifacts are ignored by default except `.gitkeep` files.
-Commit only small fixtures or deliberately frozen public samples.
+1. resolves every integer with positional indexing;
+2. verifies that the resolved source row's `Task ID` equals the split key;
+3. fails on any out-of-range position or task mismatch;
+4. preserves the official support/query role; and
+5. rejects duplicate candidate identities or support/query identity overlap.
 
-## Source To Card Flow
+The exhaustive v0.1.0 audit resolved 24,588 of 24,588 references: 5,000 support
+rows and 19,588 query rows across 100 task keys, with no task, target, endpoint,
+or support/query identity mismatch.
 
-```text
-download-cara
-  -> data/raw/cara/
+The earlier importer used label-based lookup and invalidated the historical
+paper-50 artifacts. Those outputs are not a prior version of this dataset; they
+are retired erroneous results.
 
-inspect-cara
-  -> data/interim/cara_layout.json
+## Frozen artifacts
 
-import-cara
-  -> data/interim/cara_records.jsonl
+| Artifact | Visibility | Purpose |
+| --- | --- | --- |
+| `data/releases/v0.1.0/system_input_cards.jsonl` | Public/system-facing | Allowlisted assay context, support evidence, candidate features, constraints, budget, and provenance |
+| `data/releases/v0.1.0/scorer_outcomes.jsonl` | Evaluator only during selection | Hidden candidate activity, keyed to the canonical public-card hash |
+| `data/releases/v0.1.0/system_input_cards.meta.json` | Public | Build configuration, versions, counts, and artifact hashes |
+| `data/releases/v0.1.0/system_input_cards.audit.json` | Public | Included tasks, explicit exclusions, and quality checks |
+| `data/releases/v0.1.0/source_provenance.json` | Public | Upstream source identity, license, sizes, and checksums |
+| `data/releases/v0.1.0/import_audit.json` | Public | Exhaustive split-resolution integrity evidence |
 
-build-cards
-  -> data/cards/cara_lo_cards.jsonl
+SHA256 values for the two evaluation artifacts are:
 
-run-system / run-suite
-  -> runs/<experiment>/<system>/trace.jsonl
+- system input: `c18e66c726bb26f8afc3ba8422b21ec327444560d92750421f0dc44a2f393d9e`
+- scorer outcomes: `96b5d6060e3c75dda34d835fd166fd074ca5621c18924aa0ea2714acba173ff4`
 
-score-run
-  -> runs/<experiment>/<system>/scores/
-```
+## Visibility contract
 
-Each layer has a different job. Raw data preserves the source. Interim records
-make CARA parsing auditable. Cards freeze the benchmark input. Run traces record
-system behavior. Score outputs evaluate that behavior without changing the card.
+Systems may receive:
 
-## CARA Import Shape
+- task, target, assay endpoint, source, and activity-scale identifiers;
+- support IDs, structures, descriptors, and measured pChEMBL activity, with
+  the higher-is-better direction stated explicitly;
+- candidate IDs, structures, and permitted descriptors;
+- hard constraints and `budget_k`; and
+- benchmark/data/config provenance.
 
-For official CARA imports, split JSON files map assay task IDs to row indices in
-task tables. The default split is `LO_All`, matching the project’s
-lead-optimisation focus.
+Systems must not receive:
 
-Representative source layout:
+- candidate activity outcomes;
+- candidate labels embedded in free-form metadata;
+- raw source paths or construction-only fields; or
+- scorer artifact contents or hashes that expose outcomes.
 
-```text
-Task/LO_All.tsv
-Split/LO_All_support.json
-Split/LO_All_query.json
-```
+The executable runner reconstructs a strict public projection even if a legacy
+monolithic fixture is loaded. Oracle execution and scoring require the separate
+outcome artifact for v0.1.0 cards. LLM request exports carry the public card hash
+and provenance, not candidate outcomes.
 
-The importer normalizes those files into one record per compound-assay row. A
-representative interim record looks like:
+## Card construction
 
-```json
-{
-  "assay_id": "CHEMBL_assay_001",
-  "compound_id": "CHEMBL123",
-  "smiles": "CCOc1ccc...",
-  "activity_value": 6.42,
-  "role": "support",
-  "target": "CHEMBL_target_001",
-  "task_kind": "LO",
-  "source_file": "Task/LO_All.tsv",
-  "source_split": "LO_All",
-  "row_index": 128
-}
-```
+Version 0.1.0 uses a prespecified deterministic build:
 
-## Normalized Record Fields
+- split: `LO_All`;
+- support size: 50;
+- budget: `k = 10`;
+- candidate policy: retain the full official query pool;
+- task policy: include every task with at least ten feasible candidates;
+- constraints: `configs/default_constraints.json`; and
+- benchmark/data versions: `0.1.0` and `cara-lo-all/0.1.0`.
 
-| Field | Meaning |
-| --- | --- |
-| `assay_id` | Assay/task identifier used to group records into decision cards. |
-| `compound_id` | Stable compound identifier from the source row when available. |
-| `smiles` | Molecular structure string used for descriptors and constraints. |
-| `activity_value` | Measured activity value normalized for scoring, typically pIC50/pChEMBL-like when available. |
-| `role` | `support` if visible to systems; `query` if hidden candidate activity. |
-| `target` | Target/context metadata when provided by CARA. |
-| `task_kind` | CARA task family, such as `LO` or `VS`. |
-| `source_file` | Raw CARA table used to create the record. |
-| `source_split` | CARA split name, for example `LO_All`. |
-| `row_index` | Source table row index referenced by the split file. |
+All 100 official task keys were considered. Ninety-one meet the feasibility
+criterion. The nine exclusions and their feasible counts (`0`, `0`, `0`, `0`,
+`0`, `0`, `0`, `6`, and `8`) are named in the audit artifact. No hidden outcome
+was used to choose a subset among eligible tasks.
 
-## Decision-Card Fields
+Two independent final builds produced byte-identical system input, scorer outcome,
+metadata, and audit files.
 
-A decision card is the unit consumed by systems and scorers:
+## v0.1.0 composition
 
-```json
-{
-  "task_id": "CHEMBL_assay_001",
-  "assay_context": {
-    "target": "CHEMBL_target_001",
-    "task_kind": "LO"
-  },
-  "support_set": [
-    {"id": "S001", "smiles": "CCO...", "pIC50": 6.42}
-  ],
-  "candidate_pool": [
-    {
-      "id": "C001",
-      "smiles": "CCN...",
-      "activity_value": 7.11,
-      "descriptors": {"mw": 318.4, "clogp": 2.7}
-    }
-  ],
-  "budget_k": 10,
-  "hard_constraints": [
-    {"id": "mw_max_500", "type": "candidate", "check": "descriptor_max", "params": {"descriptor": "mw", "max": 500}}
-  ]
-}
-```
+| Property | Value |
+| --- | ---: |
+| Included cards | 91 |
+| Support compounds per card | 50 |
+| Candidate-pool range | 52--967 |
+| Mean candidate-pool size | 200.055 |
+| Feasible-candidate range | 12--579 |
+| Mean feasible-candidate count | 110.165 |
+| Budget per card | 10 |
 
-Systems may see `support_set`, `candidate_pool`, `budget_k`, and
-`hard_constraints`, but candidate `activity_value` is scorer-only information.
-System adapters, LLM prompt builders, and exported LLM requests must redact or
-ignore candidate activity values. They exist in the frozen card file so offline
-scoring can be deterministic and self-contained.
+Each card retains CARA's target and endpoint fields as minimal biological
+context. These fields support task-coherence checks and stratified analysis;
+they do not make the task a multi-objective biological benchmark.
 
-## Decision-Card Inclusion
+## Transform and descriptor policy
 
-Cards require enough support records and enough feasible candidate records to
-satisfy `budget_k` after hard constraints.
+Normalized records preserve source task, target, endpoint, activity scale,
+compound identity, structure, role, and source row position. The public card
+states `activity_scale = pChEMBL` and `activity_direction = higher_is_better`;
+all support and scorer outcome records use `activity_type = pChEMBL`.
+RDKit-derived descriptors and constraint outcomes are deterministic under the
+locked software environment.
+Canonical ordering and hash serialization are defined in the artifact code.
 
-Typical exclusion reasons:
+Build configuration SHA256:
+`425a40d3b64ac8398c49dfc04508e1c66522754c4e07e75e69810bc2517d9a6a`.
 
-- Too few support compounds to train or summarize an early project state.
-- Too few candidate/query compounds after descriptor parsing.
-- Too few feasible candidates after hard constraints.
-- Missing or unusable activity values for scoring.
-- Invalid or duplicate molecular structures that cannot be resolved safely.
+Normalized-record source SHA256:
+`cec651b6e97f044bf82820c465b441763cafa18a34b12361a33e79ab30faf438`.
 
-When inclusion thresholds change, record the transform config and make a new
-card artifact. Do not silently overwrite a card set used for a reported run.
+## Appropriate use
 
-## Provenance
+- Retrospective comparison of candidate-selection systems on identical cards.
+- Analysis of ranking utility, regret, action validity, repair, and operational
+  cost.
+- Reproducible development and testing of constrained scientific agents.
 
-Download provenance includes source URL, timestamp, archive path, SHA256, and
-extraction path. Import provenance includes source files, layout summary path,
-record counts, and assay counts.
+## Inappropriate use and limitations
 
-The downloader validates the server `Content-Length` or `Content-Range` when
-available and rejects invalid zip archives. A failed download may leave
-`CARA.zip.part`; it is ignored by Git and can be resumed by rerunning
-`download-cara`.
+- Do not interpret selected compounds as prospective biological, safety, or
+  clinical recommendations.
+- Do not infer synthesis feasibility, selectivity, ADMET, or toxicity from the
+  current constraints.
+- Do not train on or otherwise expose scorer outcomes during selection.
+- Do not merge results across card versions without explicit version labels.
+- Do not claim that retrospective potency alone represents full drug-project
+  value.
+- CARA/ChEMBL measurement and curation heterogeneity remains present.
+- The one-shot assay-local task omits sequential learning and cross-assay
+  portfolio trade-offs.
 
-The first local CARA audit is recorded in `docs/CARA_LOCAL_AUDIT.md`.
+## Rebuilding and validation
 
-## Leakage Rules
-
-- Do not include candidate `activity_value` in LLM prompts, exported LLM
-  requests, or non-oracle system feature summaries.
-- Do not train a system on query/candidate activity from the same card.
-- Do not compare systems across different card artifacts without naming the
-  card artifact and transform config.
-- Do not treat CARA retrospective measurements as prospective validation.
+Exact commands, source locations, and run evidence are recorded in
+`plans/logs/2026-07-16-0033-bounded-v1-correctness-recovery.md` and
+`docs/RUN_LEDGER.md`. The release bundle will include machine-readable manifests
+and checksums so a reviewer can validate the frozen artifacts without access to
+candidate outcomes during system execution.

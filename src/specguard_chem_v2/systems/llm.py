@@ -9,6 +9,7 @@ import time
 from pathlib import Path
 from typing import Any
 
+from ..artifacts import canonical_sha256, system_input_payload
 from ..io import ensure_parent, read_json, write_json
 from ..schemas import DecisionCard, SelectionItem, SystemOutput
 from .providers import LLMModelConfig, default_openai_config
@@ -72,7 +73,16 @@ def build_llm_request(
 ) -> dict[str, Any]:
     model_config = model_config or default_openai_config("gpt-4.1-mini")
     include_tool_fields = system_name in {"llm_tools", "llm_tools_validator"}
-    return {
+    activity_scale = card.assay_context.activity_scale
+    if activity_scale is None:
+        support_activity_types = {
+            compound.activity_type for compound in card.support_set if compound.activity_type
+        }
+        activity_scale = (
+            next(iter(support_activity_types)) if len(support_activity_types) == 1 else "activity"
+        )
+    higher_is_better = card.assay_context.activity_direction != "lower_is_better"
+    request = {
         "task_id": card.task_id,
         "system_name": system_name,
         "model_config_id": model_config.id,
@@ -89,11 +99,22 @@ def build_llm_request(
         },
         "budget_k": card.budget_k,
         "assay_context": card.assay_context.model_dump(mode="json"),
+        "activity_semantics": {
+            "support_activity_field": "activity_value",
+            "scale": activity_scale,
+            "higher_is_better": higher_is_better,
+            "objective": (
+                f"rank candidates to maximize predicted {activity_scale}"
+                if higher_is_better
+                else f"rank candidates to minimize predicted {activity_scale}"
+            ),
+        },
         "support_set": [
             {
                 "id": compound.id,
                 "smiles": compound.smiles,
                 "activity_value": compound.activity_value,
+                "activity_type": compound.activity_type,
             }
             for compound in card.support_set
         ],
@@ -109,6 +130,10 @@ def build_llm_request(
             ],
         },
     }
+    if card.provenance is not None:
+        request["artifact_provenance"] = card.provenance.model_dump(mode="json")
+        request["system_input_sha256"] = canonical_sha256(system_input_payload(card))
+    return request
 
 
 def build_llm_messages(request: dict[str, Any]) -> list[dict[str, str]]:
@@ -122,6 +147,18 @@ def build_llm_messages(request: dict[str, Any]) -> list[dict[str, str]]:
         "prioritisation audit. Return only valid JSON. Do not invent molecules or "
         "candidate IDs. Do not make synthesis, safety, selectivity, or clinical claims."
     )
+    activity_semantics = request.get("activity_semantics") or {}
+    activity_scale = str(activity_semantics.get("scale") or "activity_value")
+    if activity_semantics.get("higher_is_better", True):
+        system_prompt += (
+            f" Support activity_value is on the {activity_scale} scale; higher values are "
+            f"better. Rank candidates to maximize predicted {activity_scale}."
+        )
+    else:
+        system_prompt += (
+            f" Support activity_value is on the {activity_scale} scale; lower values are "
+            f"better. Rank candidates to minimize predicted {activity_scale}."
+        )
     if prompt_profile == "json_first":
         system_prompt += (
             " Your entire response must be one JSON object. Do not include markdown, "

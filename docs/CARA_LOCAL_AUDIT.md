@@ -1,87 +1,119 @@
 # CARA Local Audit
 
-Date: 2026-05-10
+Release candidate: SpecGuard-Chem v0.1.0 (unreleased)
 
-## Download
+Audit date: 2026-07-16
 
+> **Validity notice.** Counts and results from the former paper-50 build are
+> invalid because that importer treated CARA split positions as data-frame
+> labels. They are retained only in historical plans and the run ledger. This
+> document describes the corrected v0.1.0 artifacts.
+
+## Upstream Source
+
+- Dataset: CARA v1.0.1
+- DOI: `10.5281/zenodo.14740896`
+- License: CC BY 4.0
 - Source: `https://zenodo.org/records/14740896/files/CARA.zip?download=1`
-- Local archive: `data/raw/cara/CARA.zip`
 - Archive bytes: `103511135`
-- SHA256: `87a71c2040d1a1434348d35691242ab1327b846cf06a46f1d64cd060867de12c`
-- Extracted root: `data/raw/cara/extracted/CARA`
+- Archive SHA256:
+  `87a71c2040d1a1434348d35691242ab1327b846cf06a46f1d64cd060867de12c`
+- Local archive: `data/raw/cara/CARA.zip` (ignored by Git)
 
-Raw downloaded data are ignored by Git.
+The release records the source details in
+`data/releases/v0.1.0/source_provenance.json`. Relevant members are:
 
-## Observed Layout
+| Member | Size/count | SHA256 |
+| --- | ---: | --- |
+| `CARA/Task/LO_All.tsv` | 1,187,136 data rows; 185,008,770 bytes | `d83f9936c907635143d047af547db1f2b332375e4f930082b75c9c61a81ddf6a` |
+| `CARA/Split/LO_All_support.json` | 100 task keys | `273c01297977bf82b9c983ad7616cb3e5f3ca318df6c75a040204611ef742f8a` |
+| `CARA/Split/LO_All_query.json` | 100 task keys | `5c2c7c0908dd87d3a5d2fc5139dd6a1283affb1b2050d4ac8360228a859993bd` |
 
-Official CARA v1.0.1 archive contains:
+## Correct Split Semantics
 
-- `CARA/Task/LO_All.tsv`
-- `CARA/Task/LO_GPCR.tsv`
-- `CARA/Task/LO_Kinase.tsv`
-- `CARA/Task/VS_All.tsv`
-- `CARA/Task/VS_GPCR.tsv`
-- `CARA/Task/VS_Kinase.tsv`
-- paired split JSON files under `CARA/Split`, such as
-  `LO_All_support.json` and `LO_All_query.json`
+The support/query JSON values are zero-based row positions in
+`Task/LO_All.tsv`. The corrected importer:
 
-The split JSON files map assay task IDs to row indices in the corresponding task
-TSV. The implemented importer resolves those indices into normalized records.
+1. resolves every reference positionally;
+2. rejects out-of-range positions;
+3. requires the resolved source row's `Task ID` to equal the split key;
+4. rejects duplicate compound identities within a role and support/candidate
+   identity overlap within a task; and
+5. preserves target and endpoint context for task-coherence checks.
 
-## Local Import
+The import resolves all 24,588 official split references: 5,000 support records
+and 19,588 candidate records across 100 tasks, with exactly 50 support records
+per task. The audit found zero task-key mismatches, out-of-range positions,
+silently dropped rows, mixed-target tasks, mixed-endpoint tasks, duplicate
+within-role identities, or support/candidate identity overlaps.
 
-Command:
-
-```bash
-uv run sgchem import-cara data/raw/cara --split-name LO_All --out data/interim/cara_lo_all_records.jsonl
-```
-
-Result:
-
-- importer: `official_cara_split`
-- split: `LO_All`
-- normalized records: `23777`
-- assay tasks: `100`
-
-## Local Card Build
-
-Command:
+## Reconstruct the v0.1.0 Artifacts
 
 ```bash
-uv run sgchem build-cards data/interim/cara_lo_all_records.jsonl --out data/cards/cara_lo_all_cards.jsonl --target-cards 20 --budget-k 10 --support-size 50 --selection-policy first
-uv run sgchem validate-cards data/cards/cara_lo_all_cards.jsonl
-uv run sgchem summarize-cards data/cards/cara_lo_all_cards.jsonl --out data/cards/cara_lo_all_cards.summary.json
+uv run sgchem import-cara data/raw/cara \
+  --split-name LO_All \
+  --out data/interim/cara_lo_all_records.jsonl
+
+uv run sgchem build-cards data/interim/cara_lo_all_records.jsonl \
+  --out data/releases/v0.1.0/system_input_cards.jsonl \
+  --scorer-outcomes-out data/releases/v0.1.0/scorer_outcomes.jsonl \
+  --benchmark-version 0.1.0 \
+  --data-version cara-lo-all/0.1.0 \
+  --target-cards 100 \
+  --budget-k 10 \
+  --support-size 50 \
+  --selection-policy first \
+  --constraints configs/default_constraints.json
+
+uv run sgchem validate-cards \
+  data/releases/v0.1.0/system_input_cards.jsonl \
+  --scorer-outcomes data/releases/v0.1.0/scorer_outcomes.jsonl
 ```
 
-Result:
+The normalized interim records are rebuild inputs, not part of the release
+bundle. Their SHA256 is
+`cec651b6e97f044bf82820c465b441763cafa18a34b12361a33e79ab30faf438`.
 
-- cards built: `20`
-- budget: `10`
-- support size: `50`
-- selection policy: `first`
-- validation: passed
+## Frozen Build
 
-## Deterministic Smoke
+The builder considers all 100 tasks under the explicit v0.1.0 constraints. A
+task is included only if it has at least `k=10` feasible candidates. The final
+artifact contains:
 
-Command:
+- 91 decision cards, each with 50 support examples and budget `k=10`;
+- candidate pools from 52 to 967 compounds (mean 200.055);
+- feasible pools from 12 to 579 compounds (mean 110.165); and
+- nine exclusions, all recorded as `insufficient_feasible_candidates` in
+  `system_input_cards.audit.json`.
 
-```bash
-uv run sgchem run-suite data/cards/cara_lo_all_cards.jsonl --systems oracle_valid_topk,random_valid,rules_only,similarity_to_best_active,qsar_rf,qsar_gbt,qsar_svm --out runs/cara_lo_all_local
-uv run sgchem compare-runs runs/cara_lo_all_local/*/scores/summary.json --out runs/cara_lo_all_local/compare
-```
+Two independent final builds produced byte-identical system inputs, scorer outcomes,
+build metadata, and inclusion audit.
 
-Headline comparison on the 20-card local smoke:
+| Release artifact | SHA256 |
+| --- | --- |
+| `system_input_cards.jsonl` | `c18e66c726bb26f8afc3ba8422b21ec327444560d92750421f0dc44a2f393d9e` |
+| `scorer_outcomes.jsonl` | `96b5d6060e3c75dda34d835fd166fd074ca5621c18924aa0ea2714acba173ff4` |
+| `system_input_cards.meta.json` | `d986ba96589032c59dac2dcc24cadf9aa3325616fa2a395cec682ece7220af54` |
+| `system_input_cards.audit.json` | `abb80ad110ef71d69a2cea2f09cc456399a81d431bc9e365320ab8b27064812c` |
 
-| System | Feasible utility | NDCG@k | Constrained regret | Compliance |
-|---|---:|---:|---:|---:|
-| oracle_valid_topk | 86.706 | 1.000 | 0.000 | 1.000 |
-| qsar_gbt | 81.215 | 0.929 | 5.491 | 1.000 |
-| qsar_svm | 81.198 | 0.928 | 5.508 | 1.000 |
-| qsar_rf | 80.997 | 0.929 | 5.709 | 1.000 |
-| similarity_to_best_active | 74.007 | 0.850 | 12.699 | 1.000 |
-| random_valid | 68.285 | 0.779 | 18.421 | 1.000 |
-| rules_only | 67.083 | 0.764 | 19.624 | 1.000 |
+Candidate activity labels occur only in the scorer-outcome artifact. Per-card
+input hashes prevent an outcome record from being silently paired with a
+different public input.
 
-This is a smoke result, not a paper result. It confirms the harness can import
-real CARA data, construct decision cards, run strong baselines, and report the
-compliance-utility frontier.
+## Corrected Deterministic Evidence
+
+The complete baseline run is under
+`release/v0.1.0/experiments/baselines/`. Across all 91 cards:
+
+| System | Feasible utility | NDCG@k | Constrained regret | Action-valid | Valid-selection fraction |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| oracle_valid_topk | 79.5626 | 1.0000 | 0.0000 | 1.000 | 1.000 |
+| qsar_svm | 74.9664 | 0.9375 | 4.5963 | 1.000 | 1.000 |
+| qsar_rf | 74.9580 | 0.9382 | 4.6047 | 1.000 | 1.000 |
+| qsar_gbt | 74.7499 | 0.9352 | 4.8127 | 1.000 | 1.000 |
+| similarity_to_best_active | 73.2882 | 0.9187 | 6.2744 | 1.000 | 1.000 |
+| random_valid | 68.4688 | 0.8547 | 11.0938 | 1.000 | 1.000 |
+| rules_only | 66.9215 | 0.8276 | 12.6411 | 1.000 | 1.000 |
+
+These corrected baselines demonstrate ranking headroom after filtering. They do
+not yet constitute a completed cross-model LLM comparison.

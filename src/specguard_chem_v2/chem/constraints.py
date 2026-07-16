@@ -137,12 +137,16 @@ def is_candidate_feasible(card: DecisionCard, compound: CompoundRecord) -> bool:
 
 
 def feasible_candidates(card: DecisionCard) -> list[CompoundRecord]:
-    return [candidate for candidate in card.candidate_pool if is_candidate_feasible(card, candidate)]
+    return [
+        candidate for candidate in card.candidate_pool if is_candidate_feasible(card, candidate)
+    ]
 
 
 def valid_candidate_ids(card: DecisionCard) -> set[str]:
     return {candidate.id for candidate in feasible_candidates(card)}
 
 
-def filter_feasible(card: DecisionCard, compounds: Iterable[CompoundRecord]) -> list[CompoundRecord]:
+def filter_feasible(
+    card: DecisionCard, compounds: Iterable[CompoundRecord]
+) -> list[CompoundRecord]:
     return [compound for compound in compounds if is_candidate_feasible(card, compound)]

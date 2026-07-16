@@ -1,132 +1,155 @@
 # LLM Systems
 
-LLM systems are evaluated as systems, not standalone medicinal-chemistry oracles.
-They consume structured decision cards and return ranked candidate IDs.
+SpecGuard-Chem evaluates an LLM as the decision component of a bounded
+experimental workflow. Given sparse project-local assay evidence and a fixed
+candidate pool, it must return exactly `k=10` valid candidate IDs in ranked
+order. The benchmark does not ask the model to invent molecules, syntheses, or
+assays.
 
-## Conditions
+No v0.1.0 live LLM result should be claimed until the frozen matrix has complete
+provider traces. The exact requests and pre-run cost estimate are release
+artifacts; they are not model-performance results.
 
-- `bare_llm`: support set, candidate IDs, SMILES, minimal descriptors, hard
-  constraints, and output schema.
-- `llm_validator`: same as `bare_llm`, followed by deterministic contract
-  checking and repair fallback where possible.
-- `llm_tools`: includes computed descriptor/tool-summary fields for each
-  candidate.
-- `llm_tools_validator`: tool-summary request plus deterministic contract
-  checking and repair fallback where possible.
+## System-visible Input
 
-The `*_validator` conditions are guarded systems, not raw model-only behavior.
-See `docs/LLM_FAILURE_MODES.md` for the distinction between raw output, contract
-checking, and repair fallback.
+LLM systems consume only
+`data/releases/v0.1.0/system_input_cards.jsonl`. It contains support activities,
+candidate identities/structures, assay context, constraints, and the benchmark
+provenance needed to bind a request to the frozen artifact. Candidate activity
+labels and local source paths are absent. Hidden labels remain in
+`scorer_outcomes.jsonl` and enter only validation/scoring paths.
 
-## Cache And Replay
+The release compares two raw interfaces:
 
-Live calls are disabled unless `--allow-external` is passed to run commands.
-Replay cache files may be content-addressed files written by live runs or stable
-fixture files named `{system_name}__{task_id}.json`. Model-matrix runs also
-check stable files named `{system_name}__{model_config_id}__{task_id}.json`.
-Generation settings such as token budget, temperature, reasoning effort,
-thinking mode, thinking budget, prompt profile, and request timeout are included
-in new request hashes so interface or budget changes do not replay stale
-provider responses.
+| Interface | System-visible representation |
+| --- | --- |
+| `bare_llm` | Support examples, candidate IDs and SMILES, minimal descriptors, hard constraints, and output schema. |
+| `llm_tools` | The same task plus deterministic computed descriptor/tool-summary fields for candidates. |
 
-## Provider Model Matrix
+Both use the `json_first` profile: one JSON object, no rationale, markdown, or
+preamble. The interface comparison asks whether deterministic chemical tooling
+improves selection from the same fixed pool.
 
-Provider/model conditions are configured in `configs/model_matrix.toml`. The
-default matrix has one frontier/reasoning condition and one fast condition for
-each supported provider:
+`llm_validator` and `llm_tools_validator` remain available for historical
+replay and small engineering tests, but they are not provider-call conditions
+in v0.1.0. The release derives a guarded view post hoc from each raw response,
+which avoids paying for and confounding a second prompt.
+Accordingly, the export, estimate, and matrix-run CLI defaults include only
+`bare_llm,llm_tools`; historical prompt variants require an explicit
+`--systems` value.
 
-| Condition | Provider | Model | Intended role |
-| --- | --- | --- | --- |
-| `openai_frontier` | OpenAI | `gpt-5.5` | Frontier reasoning/professional-work condition. |
-| `openai_fast` | OpenAI | `gpt-5.4-mini` | Lower-latency OpenAI condition. |
-| `anthropic_frontier` | Anthropic | `claude-opus-4-7` | Anthropic most capable condition. |
-| `anthropic_fast` | Anthropic | `claude-haiku-4-5-20251001` | Anthropic fastest condition. |
-| `deepseek_frontier` | DeepSeek | `deepseek-v4-pro` | DeepSeek pro condition with thinking enabled. |
-| `deepseek_fast` | DeepSeek | `deepseek-v4-flash` | DeepSeek fast condition with thinking disabled. |
-| `openai_frontier_selector` | OpenAI | `gpt-5.5` | Direct-JSON condition: low reasoning, `json_first` prompting. |
-| `anthropic_frontier_selector` | Anthropic | `claude-opus-4-7` | Direct-JSON condition: no extended thinking, `json_first` prompting. |
-| `deepseek_frontier_selector` | DeepSeek | `deepseek-v4-pro` | Direct-JSON condition: thinking disabled, `json_first` prompting. |
-| `openai_frontier_reasoning_budget` | OpenAI | `gpt-5.5` | Pilot-only reasoning-budget condition. |
-| `anthropic_frontier_thinking_8k` | Anthropic | `claude-opus-4-7` | Pilot-only extended-thinking condition with explicit budget. |
-| `deepseek_frontier_thinking_32k` | DeepSeek | `deepseek-v4-pro` | Pilot-only thinking condition with long budget and timeout. |
+## Frozen Provider Matrix
 
-List the configured conditions with:
+The three release condition IDs are immutable experiment identifiers:
+
+| Condition ID | Provider model | Interface settings |
+| --- | --- | --- |
+| `openai_gpt_5_5_2026_04_23_selector` | `gpt-5.5-2026-04-23` | Low reasoning, 4,096 output-token cap, direct JSON. |
+| `anthropic_opus_4_8_selector` | `claude-opus-4-8` | No extended-thinking mode, 4,096 output-token cap, direct JSON. |
+| `deepseek_v4_pro_2026_07_16_selector` | `deepseek-v4-pro` alias checked 2026-07-16 | Thinking disabled, 4,096 output-token cap, direct JSON; preserve provider-returned model ID. |
+
+This produces `91 cards × 2 interfaces × 3 conditions = 546` raw requests.
+Other frontier, fast, and reasoning-budget conditions in
+`configs/model_matrix.toml` are exploratory or historical; they must not be
+silently substituted into the v0.1.0 matrix.
+
+Inspect all configured conditions with:
 
 ```bash
 uv run sgchem list-model-matrix configs/model_matrix.toml
 ```
 
-## Request Export
+## Exact Request Export
 
-Use request export to inspect prompts before live provider runs:
-
-```bash
-uv run sgchem export-llm-requests data/cards/cara_lo_all_cards.jsonl --systems bare_llm,llm_tools --out runs/llm_requests.jsonl
-uv run sgchem export-llm-requests data/cards/cara_lo_all_cards.jsonl --systems llm_tools --model-matrix configs/model_matrix.toml --out runs/llm_matrix_requests.jsonl
-```
-
-The export includes both the structured request and the exact chat messages sent
-to the provider path.
-
-## Matrix Runs
-
-Use `run-llm-matrix` to run the same LLM system condition across multiple
-provider/model conditions:
+Request export performs no network call:
 
 ```bash
-uv run sgchem run-llm-matrix data/cards/cara_lo_all_cards.jsonl \
-  --systems llm_tools,llm_tools_validator \
-  --model-conditions openai_frontier,openai_fast,anthropic_frontier,anthropic_fast,deepseek_frontier,deepseek_fast \
-  --out runs/cara_lo_llm_matrix
+uv run sgchem export-llm-requests \
+  data/releases/v0.1.0/system_input_cards.jsonl \
+  --systems bare_llm,llm_tools \
+  --model-matrix configs/model_matrix.toml \
+  --model-conditions openai_gpt_5_5_2026_04_23_selector,anthropic_opus_4_8_selector,deepseek_v4_pro_2026_07_16_selector \
+  --out release/v0.1.0/experiments/llm/exact_requests.jsonl
 ```
 
-Use `--workers N` for bounded card-level concurrency during live matrix runs.
-This changes execution throughput only; it does not alter prompts, cache keys,
-model conditions, or scoring.
+The export contains the structured request, exact provider messages, public
+artifact provenance, canonical per-card input hash, and response cache key.
+Review it for hidden-field exclusion and prompt size before any live execution.
+Each request must state that support `activity_value` is pChEMBL and that higher
+values are better; an export lacking those semantics is invalid for v0.1.0.
 
-Use the direct-JSON conditions for the fair cross-provider comparison. The
-condition IDs still contain `frontier_selector` for reproducibility, but
-reader-facing labels should use provider, exact model, reasoning/thinking
-setting, and Direct JSON profile instead of the shorthand ID:
+## Live Matrix
+
+External calls are disabled unless `--allow-external` is present. They also
+require explicit authorization and the staged pilot/cost gates in
+`docs/COST_CONTROL.md`. The command below is the residual run after all six
+fixed pilot requests are present in the shared cache and a fresh estimate
+reports exactly 540 missing requests.
 
 ```bash
-uv run --extra providers sgchem run-llm-matrix data/cards/cara_lo_paper_50.jsonl \
-  --systems bare_llm,llm_validator,llm_tools,llm_tools_validator \
-  --model-conditions openai_frontier_selector,anthropic_frontier_selector,deepseek_frontier_selector \
-  --out runs/cara_lo_paper_50_selector_matrix \
-  --allow-external
+uv run --extra providers sgchem run-llm-matrix \
+  data/releases/v0.1.0/system_input_cards.jsonl \
+  --scorer-outcomes data/releases/v0.1.0/scorer_outcomes.jsonl \
+  --systems bare_llm,llm_tools \
+  --model-matrix configs/model_matrix.toml \
+  --model-conditions openai_gpt_5_5_2026_04_23_selector,anthropic_opus_4_8_selector,deepseek_v4_pro_2026_07_16_selector \
+  --cache-dir release/v0.1.0/experiments/llm/matrix/cache \
+  --out release/v0.1.0/experiments/llm/matrix \
+  --allow-external \
+  --require-cost-estimate \
+  --max-estimated-cost-usd 119 \
+  --max-live-calls 540 \
+  --max-input-tokens-per-call 175000
 ```
 
-Reasoning-budget conditions are exploratory. Run them on a small fixed subset
-first and promote only if raw outputs reliably contain final JSON rather than
-being mostly repaired from empty responses.
+`--workers N` changes throughput only. It does not alter prompts, cache keys,
+conditions, or scoring. Provider credentials default to `OPENAI_API_KEY`,
+`ANTHROPIC_API_KEY`, and `DEEPSEEK_API_KEY`.
 
-## Raw Versus Repaired Outputs
+Provider errors, quota failures, overloads, and timeouts are execution failures.
+They must remain explicit in run artifacts and must not be converted into a
+zero-utility model response.
 
-New traces store `raw_output` and `raw_issues` before validator repair. The
-existing `output` and `issues` fields remain the final scored artifact after
-repair. Reports include raw and final metrics so a validator fallback can raise
-final utility without being mistaken for raw LLM decision quality.
+## Cache and Replay
 
-Without `--allow-external`, missing replay cache entries produce explicit empty
-offline outputs and validator systems repair them where applicable. Live calls
-require:
+Live responses are cached by request content. Matrix runs look under
+`release/v0.1.0/experiments/llm/matrix/cache/CONDITION_ID/INTERFACE_NAME/` and skip
+complete traces unless `--force` is passed. Hash inputs include prompt and
+generation settings so a reasoning, budget, or profile change cannot replay a
+stale response.
+
+Default tests and offline smoke runs use fixtures or cache/replay only. An
+offline cache miss is a harness diagnostic, not publishable model evidence.
+
+## Post-hoc Guarded View
+
+For every complete raw trace, create a separate, attributable repaired view:
 
 ```bash
-uv run sgchem run-llm-matrix data/cards/cara_lo_all_cards.jsonl \
-  --systems llm_tools,llm_tools_validator \
-  --model-conditions openai_fast \
-  --out runs/cara_lo_llm_pilot \
-  --allow-external
+uv run sgchem repair-llm-trace \
+  data/releases/v0.1.0/system_input_cards.jsonl \
+  release/v0.1.0/experiments/llm/matrix/CONDITION_ID/INTERFACE_NAME/trace.jsonl \
+  --out release/v0.1.0/experiments/llm/matrix/CONDITION_ID/INTERFACE_NAME/posthoc_repair.trace.jsonl \
+  --scores-out release/v0.1.0/experiments/llm/matrix/CONDITION_ID/INTERFACE_NAME/posthoc_scores \
+  --scorer-outcomes data/releases/v0.1.0/scorer_outcomes.jsonl
 ```
 
-Provider keys are read from `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, and
-`DEEPSEEK_API_KEY` unless overridden in the model matrix.
+The transform copies `raw_output` and `raw_issues`, validates them against the
+current contract, and places deterministic repair in the final `output` view.
+Its system name ends in `__posthoc_repair`, its metadata binds it to the source
+trace hash and repair policy, and `provider_calls_added` is always zero. It
+refuses validator traces, already repaired traces, and in-place overwrite.
 
-## Safety Boundary
+Report raw LLM metrics and post-hoc guarded-system metrics as distinct outcomes.
+See `docs/POSTHOC_REPAIR.md` and `docs/LLM_FAILURE_MODES.md`.
 
-Prompts instruct systems not to invent molecules or candidate IDs and not to make
-synthesis, safety, selectivity, or clinical claims. These are prompt guardrails
-only; scoring still relies on deterministic schema and constraint validation.
-Candidate activity values in the frozen card are scorer-only and are not included
-in exported LLM request candidate summaries.
+## Safety and Claim Boundary
+
+Prompt instructions prohibit new molecule IDs and unsupported synthesis,
+safety, selectivity, or clinical claims. Deterministic validation—not prompt
+obedience—enforces candidate membership, exact budget, uniqueness, support-set
+exclusion, and candidate constraints.
+
+Success on v0.1.0 is evidence about bounded compound selection under a fixed
+action contract. It is not evidence that a model can autonomously design,
+execute, or interpret a wet-lab campaign.

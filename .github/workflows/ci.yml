@@ -6,10 +6,18 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: test (py${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -26,10 +34,16 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Install package
-        run: uv pip install --system -e ".[dev]"
+        run: uv sync --locked --extra dev
 
       - name: Lint
-        run: ruff check src tests
+        run: uv run --no-sync ruff check src tests
+
+      - name: Check formatting
+        run: uv run --no-sync ruff format --check src tests
 
       - name: Run tests
-        run: pytest
+        run: uv run --no-sync pytest --cov=specguard_chem_v2 --cov-report=term-missing --cov-fail-under=75
+
+      - name: Validate offline fixture cards
+        run: uv run --no-sync sgchem validate-cards tests/fixtures/cards.jsonl

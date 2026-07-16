@@ -1,0 +1,8 @@
+system_name,display_label,system_group,failure_type,num_cards,cards_with_type,card_rate,total_issue_count,mean_issue_count_per_card
+oracle_valid_topk,Oracle upper-bound,Oracle,none,91,91,1.0,0.0,0.0
+qsar_gbt,QSAR gradient boosting,QSAR,none,91,91,1.0,0.0,0.0
+qsar_rf,QSAR random forest,QSAR,none,91,91,1.0,0.0,0.0
+qsar_svm,QSAR linear SVR,QSAR,none,91,91,1.0,0.0,0.0
+random_valid,Random valid baseline,Baseline,none,91,91,1.0,0.0,0.0
+rules_only,Rule/desirability baseline,Baseline,none,91,91,1.0,0.0,0.0
+similarity_to_best_active,Similarity-to-best-active baseline,Baseline,none,91,91,1.0,0.0,0.0

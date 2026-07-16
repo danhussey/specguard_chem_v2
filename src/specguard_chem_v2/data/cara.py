@@ -12,12 +12,20 @@ from typing import Any, Iterable
 
 import pandas as pd
 
+from ..artifacts import write_split_card_artifacts
 from ..chem.constraints import default_constraints, feasible_candidates
 from ..chem.descriptors import compute_descriptors
 from ..io import ensure_parent, read_jsonl, write_json, write_jsonl
-from ..schemas import AssayContext, CompoundRecord, ConstraintSpec, DecisionCard
+from ..schemas import (
+    ArtifactProvenance,
+    AssayContext,
+    CompoundRecord,
+    ConstraintSpec,
+    DecisionCard,
+)
 
 DEFAULT_CARA_URL = "https://zenodo.org/records/14740896/files/CARA.zip?download=1"
+CARD_SCHEMA_VERSION = "1.0.0"
 
 
 def sha256_file(path: Path) -> str:
@@ -84,7 +92,11 @@ def _download_with_resume(
         bytes_written = partial_path.stat().st_size if partial_path.exists() else 0
         if expected_bytes is not None and bytes_written >= expected_bytes:
             return bytes_written, expected_bytes, attempts_used
-    return partial_path.stat().st_size if partial_path.exists() else 0, expected_bytes, attempts_used
+    return (
+        partial_path.stat().st_size if partial_path.exists() else 0,
+        expected_bytes,
+        attempts_used,
+    )
 
 
 def download_cara(
@@ -236,8 +248,17 @@ def _candidate_record_from_row(
         "compound_id": str(compound_id),
         "smiles": str(smiles),
         "activity_value": activity_value,
+        "activity_type": (
+            "pChEMBL"
+            if "pchembl" in str(activity_col).lower()
+            else "pIC50"
+            if "pic50" in str(activity_col).lower()
+            else str(activity_col)
+        ),
         "role": role,
-        "target": str(row.get(target_col)) if target_col and not pd.isna(row.get(target_col)) else None,
+        "target": str(row.get(target_col))
+        if target_col and not pd.isna(row.get(target_col))
+        else None,
         "task_kind": _task_kind_from_path(source),
         "source_file": str(source),
     }
@@ -279,12 +300,30 @@ def _load_split_indices(path: Path) -> dict[str, list[int]]:
     return result
 
 
-def _row_lookup(frame: pd.DataFrame) -> pd.DataFrame:
-    if "Unnamed: 0" not in frame.columns:
-        return frame
-    indexed = frame.set_index("Unnamed: 0", drop=False)
-    indexed.index = indexed.index.astype(int)
-    return indexed
+def _official_row_at_position(
+    frame: pd.DataFrame,
+    *,
+    row_index: int,
+    assay_id: str,
+    split_path: Path,
+) -> pd.Series:
+    """Resolve a CARA split index as a positional row and verify its task."""
+    if row_index < 0 or row_index >= len(frame):
+        raise ValueError(
+            "CARA split position is out of range: "
+            f"{row_index} for {assay_id!r} in {split_path} "
+            f"(task table has {len(frame)} rows)"
+        )
+
+    row = frame.iloc[row_index]
+    source_task_id = row.get("Task ID")
+    if pd.isna(source_task_id) or str(source_task_id).strip() != assay_id.strip():
+        raise ValueError(
+            "CARA split/task mismatch at positional row "
+            f"{row_index}: split key {assay_id!r}, "
+            f"task table value {source_task_id!r} in {split_path}"
+        )
+    return row
 
 
 def _record_from_official_row(
@@ -311,8 +350,11 @@ def _record_from_official_row(
         "compound_id": compound_id,
         "smiles": str(smiles),
         "activity_value": activity_value,
+        "activity_type": "pChEMBL",
         "role": role,
-        "target": str(row.get("Target ChEMBL ID")) if not pd.isna(row.get("Target ChEMBL ID")) else None,
+        "target": str(row.get("Target ChEMBL ID"))
+        if not pd.isna(row.get("Target ChEMBL ID"))
+        else None,
         "task_kind": str(row.get("Task Type")) if not pd.isna(row.get("Task Type")) else None,
         "assay_chembl_id": str(row.get("Assay ChEMBL ID"))
         if not pd.isna(row.get("Assay ChEMBL ID"))
@@ -325,7 +367,9 @@ def _record_from_official_row(
     }
 
 
-def import_official_cara_records(raw_dir: Path, *, split_name: str = "LO_All") -> list[dict[str, Any]]:
+def import_official_cara_records(
+    raw_dir: Path, *, split_name: str = "LO_All"
+) -> list[dict[str, Any]]:
     root = _find_official_cara_root(raw_dir)
     if root is None:
         return []
@@ -335,7 +379,7 @@ def import_official_cara_records(raw_dir: Path, *, split_name: str = "LO_All") -
     if task_path is None or support_path is None or query_path is None:
         return []
 
-    frame = _row_lookup(pd.read_csv(task_path, sep="\t"))
+    frame = pd.read_csv(task_path, sep="\t")
     role_files = {
         "support": support_path,
         "candidate": query_path,
@@ -345,13 +389,17 @@ def import_official_cara_records(raw_dir: Path, *, split_name: str = "LO_All") -
         split_indices = _load_split_indices(split_path)
         for assay_id, indices in sorted(split_indices.items()):
             for row_index in indices:
-                if row_index not in frame.index:
-                    continue
+                row = _official_row_at_position(
+                    frame,
+                    row_index=row_index,
+                    assay_id=assay_id,
+                    split_path=split_path,
+                )
                 record = _record_from_official_row(
-                    row=frame.loc[row_index],
+                    row=row,
                     assay_id=assay_id,
                     role=role,
-                    source_file=task_path,
+                    source_file=task_path.relative_to(root),
                     row_index=row_index,
                     split_name=split_name,
                 )
@@ -495,13 +543,17 @@ def import_cara_records(raw_dir: Path) -> list[dict[str, Any]]:
     return rows
 
 
-def write_imported_records(raw_dir: Path, out: Path, *, split_name: str = "LO_All") -> list[dict[str, Any]]:
+def write_imported_records(
+    raw_dir: Path, out: Path, *, split_name: str = "LO_All"
+) -> list[dict[str, Any]]:
     records = import_official_cara_records(raw_dir, split_name=split_name)
     importer = "official_cara_split" if records else "generic_tables"
     if not records:
         records = import_cara_records(raw_dir)
     write_jsonl(out, records)
-    source_files = sorted({str(record.get("source_file")) for record in records if record.get("source_file")})
+    source_files = sorted(
+        {str(record.get("source_file")) for record in records if record.get("source_file")}
+    )
     metadata = {
         "imported_at": datetime.now(timezone.utc).isoformat(),
         "raw_dir": str(raw_dir),
@@ -532,6 +584,39 @@ def _load_constraints(path: Path | None) -> list[ConstraintSpec]:
     return [ConstraintSpec.model_validate(row) for row in payload]
 
 
+def _canonical_sha256(payload: Any) -> str:
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _resolved_build_config(
+    *,
+    target_cards: int,
+    budget_k: int,
+    support_size: int,
+    min_support: int,
+    min_candidates: int,
+    seed: int,
+    selection_policy: str,
+    constraints: list[ConstraintSpec],
+    benchmark_version: str | None = None,
+    data_version: str | None = None,
+) -> dict[str, Any]:
+    return {
+        "card_schema_version": CARD_SCHEMA_VERSION,
+        "target_cards": target_cards,
+        "budget_k": budget_k,
+        "support_size": support_size,
+        "min_support": min_support,
+        "min_candidates": min_candidates,
+        "seed": seed,
+        "selection_policy": selection_policy,
+        "constraints": [constraint.model_dump(mode="json") for constraint in constraints],
+        "benchmark_version": benchmark_version,
+        "data_version": data_version,
+    }
+
+
 def _compound_from_record(record: dict[str, Any], prefix: str, index: int) -> CompoundRecord | None:
     smiles = str(record["smiles"])
     descriptors = compute_descriptors(smiles)
@@ -542,6 +627,7 @@ def _compound_from_record(record: dict[str, Any], prefix: str, index: int) -> Co
         id=compound_id,
         smiles=smiles,
         activity_value=float(record["activity_value"]),
+        activity_type=str(record.get("activity_type") or "pIC50"),
         descriptors=descriptors,
         metadata={
             "source_file": record.get("source_file"),
@@ -563,6 +649,9 @@ def build_decision_cards(
     seed: int = 7,
     constraints_path: Path | None = None,
     selection_policy: str = "first",
+    source_records_sha256: str | None = None,
+    build_config_sha256: str | None = None,
+    audit_rows: list[dict[str, Any]] | None = None,
 ) -> list[DecisionCard]:
     # Deterministic grouping/sorting is used; seed is retained in metadata for reproducibility.
     min_candidates = min_candidates or budget_k
@@ -572,10 +661,13 @@ def build_decision_cards(
         grouped[str(record.get("assay_id") or "unknown")].append(record)
 
     cards: list[DecisionCard] = []
+
     def _group_sort_key(item: tuple[str, list[dict[str, Any]]]) -> tuple[Any, ...]:
         assay_id, assay_records = item
         candidate_count = sum(1 for row in assay_records if row.get("role") == "candidate")
-        activities = [float(row["activity_value"]) for row in assay_records if row.get("role") == "candidate"]
+        activities = [
+            float(row["activity_value"]) for row in assay_records if row.get("role") == "candidate"
+        ]
         spread = (max(activities) - min(activities)) if activities else 0.0
         if selection_policy == "largest_candidate_pool":
             return (-candidate_count, assay_id)
@@ -590,7 +682,13 @@ def build_decision_cards(
     for assay_id, assay_records in sorted(grouped.items(), key=_group_sort_key):
         sorted_records = sorted(
             assay_records,
-            key=lambda row: (str(row.get("role") or ""), str(row.get("compound_id") or "")),
+            key=lambda row: (
+                str(row.get("role") or ""),
+                str(row.get("compound_id") or ""),
+                int(row.get("row_index", -1)),
+                str(row.get("smiles") or ""),
+                float(row.get("activity_value", 0.0)),
+            ),
         )
         explicit_support = [row for row in sorted_records if row.get("role") == "support"]
         explicit_candidates = [row for row in sorted_records if row.get("role") == "candidate"]
@@ -601,7 +699,23 @@ def build_decision_cards(
             support_rows = sorted_records[:support_size]
             candidate_rows = sorted_records[support_size:]
 
+        audit_row: dict[str, Any] = {
+            "assay_id": assay_id,
+            "source_record_count": len(assay_records),
+            "source_support_count": len(explicit_support),
+            "source_candidate_count": len(explicit_candidates),
+            "selected_support_count": len(support_rows),
+            "selected_candidate_count": len(candidate_rows),
+        }
         if len(support_rows) < min_support or len(candidate_rows) < min_candidates:
+            audit_row.update(
+                {
+                    "status": "excluded",
+                    "reason": "insufficient_source_rows",
+                }
+            )
+            if audit_rows is not None:
+                audit_rows.append(audit_row)
             continue
 
         support: list[CompoundRecord] = []
@@ -617,17 +731,65 @@ def build_decision_cards(
             compound = _compound_from_record(record, "C", index)
             if compound is None:
                 continue
-            if compound.id in seen_candidate_ids or compound.id in support_ids:
-                compound = compound.model_copy(update={"id": f"{compound.id}_{index:06d}"})
+            if compound.id in support_ids:
+                raise ValueError(
+                    f"Compound ID {compound.id!r} occurs in both support and candidate "
+                    f"rows for assay {assay_id!r}"
+                )
+            if compound.id in seen_candidate_ids:
+                raise ValueError(
+                    f"Duplicate candidate compound ID {compound.id!r} for assay {assay_id!r}"
+                )
             seen_candidate_ids.add(compound.id)
             candidates.append(compound)
 
         if len(support) < min_support or len(candidates) < min_candidates:
+            audit_row.update(
+                {
+                    "parsed_support_count": len(support),
+                    "parsed_candidate_count": len(candidates),
+                    "status": "excluded",
+                    "reason": "insufficient_parsed_rows",
+                }
+            )
+            if audit_rows is not None:
+                audit_rows.append(audit_row)
             continue
 
+        targets = sorted(
+            {
+                str(row["target"])
+                for row in assay_records
+                if row.get("target") is not None and str(row["target"]).strip()
+            }
+        )
+        value_types = sorted(
+            {
+                str(row["value_type"])
+                for row in assay_records
+                if row.get("value_type") is not None and str(row["value_type"]).strip()
+            }
+        )
+        activity_scales = sorted(
+            {
+                str(row["activity_type"])
+                for row in assay_records
+                if row.get("activity_type") is not None and str(row["activity_type"]).strip()
+            }
+        )
+        if len(activity_scales) > 1:
+            raise ValueError(f"Mixed activity scales for assay {assay_id!r}: {activity_scales}")
+        activity_scale = activity_scales[0] if activity_scales else None
         card = DecisionCard(
             task_id=f"CARA_LO_{_sanitize_id(assay_id)}_{len(cards) + 1:04d}",
-            assay_context=AssayContext(assay_id=str(assay_id), source="CARA"),
+            assay_context=AssayContext(
+                assay_id=str(assay_id),
+                source="CARA",
+                target=targets[0] if len(targets) == 1 else None,
+                assay_type=value_types[0] if len(value_types) == 1 else None,
+                activity_scale=activity_scale,
+                activity_direction="higher_is_better" if activity_scale else None,
+            ),
             support_set=support,
             candidate_pool=candidates,
             budget_k=budget_k,
@@ -640,7 +802,9 @@ def build_decision_cards(
             metadata={
                 "source": "CARA",
                 "assay_id": assay_id,
-                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "card_schema_version": CARD_SCHEMA_VERSION,
+                "source_records_sha256": source_records_sha256,
+                "build_config_sha256": build_config_sha256,
                 "support_size": len(support),
                 "candidate_pool_size": len(candidates),
                 "seed": seed,
@@ -649,11 +813,46 @@ def build_decision_cards(
         )
         feasible_count = len(feasible_candidates(card))
         card.metadata["feasible_candidate_count"] = feasible_count
+        audit_row.update(
+            {
+                "parsed_support_count": len(support),
+                "parsed_candidate_count": len(candidates),
+                "feasible_candidate_count": feasible_count,
+                "target_values": targets,
+                "assay_type_values": value_types,
+                "activity_scales": activity_scales,
+            }
+        )
         if feasible_count < budget_k:
+            audit_row.update(
+                {
+                    "status": "excluded",
+                    "reason": "insufficient_feasible_candidates",
+                }
+            )
+            if audit_rows is not None:
+                audit_rows.append(audit_row)
+            continue
+        if len(cards) >= target_cards:
+            audit_row.update(
+                {
+                    "status": "excluded",
+                    "reason": "target_card_limit",
+                }
+            )
+            if audit_rows is not None:
+                audit_rows.append(audit_row)
             continue
         cards.append(card)
-        if len(cards) >= target_cards:
-            break
+        audit_row.update(
+            {
+                "status": "included",
+                "reason": None,
+                "task_id": card.task_id,
+            }
+        )
+        if audit_rows is not None:
+            audit_rows.append(audit_row)
     return cards
 
 
@@ -666,7 +865,31 @@ def build_cards_from_jsonl(
     support_size: int = 50,
     constraints_path: Path | None = None,
     selection_policy: str = "first",
+    scorer_outcomes_out: Path | None = None,
+    benchmark_version: str | None = None,
+    data_version: str | None = None,
 ) -> list[DecisionCard]:
+    if scorer_outcomes_out is not None and (benchmark_version is None or data_version is None):
+        raise ValueError(
+            "benchmark_version and data_version are required when writing split artifacts"
+        )
+    min_candidates = budget_k
+    constraints = _load_constraints(constraints_path)
+    build_config = _resolved_build_config(
+        target_cards=target_cards,
+        budget_k=budget_k,
+        support_size=support_size,
+        min_support=3,
+        min_candidates=min_candidates,
+        seed=7,
+        selection_policy=selection_policy,
+        constraints=constraints,
+        benchmark_version=benchmark_version,
+        data_version=data_version,
+    )
+    records_sha256 = sha256_file(records_path)
+    build_config_sha256 = _canonical_sha256(build_config)
+    audit_rows: list[dict[str, Any]] = []
     cards = build_decision_cards(
         read_jsonl(records_path),
         target_cards=target_cards,
@@ -674,20 +897,58 @@ def build_cards_from_jsonl(
         support_size=support_size,
         constraints_path=constraints_path,
         selection_policy=selection_policy,
+        source_records_sha256=records_sha256,
+        build_config_sha256=build_config_sha256,
+        audit_rows=audit_rows,
     )
     ensure_parent(out)
-    write_jsonl(out, cards)
+    artifact_hashes: dict[str, str]
+    if scorer_outcomes_out is None:
+        write_jsonl(out, cards)
+        artifact_hashes = {"cards_sha256": sha256_file(out)}
+        artifact_mode = "monolithic_evaluator_cards"
+    else:
+        provenance = ArtifactProvenance(
+            benchmark_version=benchmark_version,
+            data_version=data_version,
+            source_sha256=records_sha256,
+            config_sha256=build_config_sha256,
+        )
+        write_split_card_artifacts(
+            cards,
+            out,
+            scorer_outcomes_out,
+            provenance=provenance,
+        )
+        artifact_hashes = {
+            "system_inputs_sha256": sha256_file(out),
+            "scorer_outcomes_sha256": sha256_file(scorer_outcomes_out),
+        }
+        artifact_mode = "split_system_inputs_and_scorer_outcomes"
+    audit_path = out.with_suffix(".audit.json")
+    write_json(
+        audit_path,
+        {
+            "card_schema_version": CARD_SCHEMA_VERSION,
+            "records_sha256": records_sha256,
+            "build_config_sha256": build_config_sha256,
+            "included_count": sum(row["status"] == "included" for row in audit_rows),
+            "excluded_count": sum(row["status"] == "excluded" for row in audit_rows),
+            "tasks": audit_rows,
+        },
+    )
+    audit_sha256 = sha256_file(audit_path)
     write_json(
         out.with_suffix(".meta.json"),
         {
-            "built_at": datetime.now(timezone.utc).isoformat(),
-            "records_path": str(records_path),
+            "card_schema_version": CARD_SCHEMA_VERSION,
+            "artifact_mode": artifact_mode,
+            "records_sha256": records_sha256,
+            **artifact_hashes,
+            "audit_sha256": audit_sha256,
+            "build_config_sha256": build_config_sha256,
+            "build_config": build_config,
             "num_cards": len(cards),
-            "target_cards": target_cards,
-            "budget_k": budget_k,
-            "support_size": support_size,
-            "constraints_path": str(constraints_path) if constraints_path else None,
-            "selection_policy": selection_policy,
             "task_ids": [card.task_id for card in cards],
         },
     )

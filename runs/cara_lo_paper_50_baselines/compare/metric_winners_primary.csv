@@ -1,6 +1,0 @@
-metric,winner,value,lower_is_better
-feasible_utility,qsar_svm,81.3823,False
-ndcg_at_k,qsar_svm,0.9095927114580383,False
-compliance_rate,qsar_svm,1.0,False
-constrained_regret,qsar_svm,7.639400000000001,True
-schema_error_rate,qsar_svm,0.0,True

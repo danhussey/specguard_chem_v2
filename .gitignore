@@ -1,6 +1,10 @@
 .venv/
 .pytest_cache/
 .ruff_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -27,8 +31,13 @@ data/cards/*
 # Stray generated output from running inspect-cara/import-cara into the test tree
 tests/fixtures/data/
 
-paper/figures/
-paper/tables/
+paper/figures/*
+!paper/figures/v0.1.0/
+!paper/figures/v0.1.0/**
+paper/tables/*
+!paper/tables/v0.1.0/
+!paper/tables/v0.1.0/**
 paper/RESULTS_SUMMARY.md
+paper/manuscript/build/
 
 .DS_Store

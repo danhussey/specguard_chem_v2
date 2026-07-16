@@ -1,0 +1,2300 @@
+{
+  "build_config_sha256": "425a40d3b64ac8398c49dfc04508e1c66522754c4e07e75e69810bc2517d9a6a",
+  "card_schema_version": "1.0.0",
+  "excluded_count": 9,
+  "included_count": 91,
+  "records_sha256": "cec651b6e97f044bf82820c465b441763cafa18a34b12361a33e79ab30faf438",
+  "tasks": [
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL1006579_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 73,
+      "parsed_candidate_count": 119,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 119,
+      "selected_support_count": 50,
+      "source_candidate_count": 119,
+      "source_record_count": 169,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL5491"
+      ],
+      "task_id": "CARA_LO_CHEMBL1006579_IC50_0001"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL1048115_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 38,
+      "parsed_candidate_count": 54,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 54,
+      "selected_support_count": 50,
+      "source_candidate_count": 54,
+      "source_record_count": 104,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL4439"
+      ],
+      "task_id": "CARA_LO_CHEMBL1048115_IC50_0002"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL1243978_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 113,
+      "parsed_candidate_count": 116,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 116,
+      "selected_support_count": 50,
+      "source_candidate_count": 116,
+      "source_record_count": 166,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL5147"
+      ],
+      "task_id": "CARA_LO_CHEMBL1243978_IC50_0003"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL1614295_Potency",
+      "assay_type_values": [
+        "Potency"
+      ],
+      "feasible_candidate_count": 76,
+      "parsed_candidate_count": 87,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 87,
+      "selected_support_count": 50,
+      "source_candidate_count": 87,
+      "source_record_count": 137,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL1293226"
+      ],
+      "task_id": "CARA_LO_CHEMBL1614295_Potency_0004"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL1827734_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 0,
+      "parsed_candidate_count": 59,
+      "parsed_support_count": 50,
+      "reason": "insufficient_feasible_candidates",
+      "selected_candidate_count": 59,
+      "selected_support_count": 50,
+      "source_candidate_count": 59,
+      "source_record_count": 109,
+      "source_support_count": 50,
+      "status": "excluded",
+      "target_values": [
+        "CHEMBL225"
+      ]
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL2032586_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 30,
+      "parsed_candidate_count": 52,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 52,
+      "selected_support_count": 50,
+      "source_candidate_count": 52,
+      "source_record_count": 102,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL2409"
+      ],
+      "task_id": "CARA_LO_CHEMBL2032586_IC50_0005"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL2038596_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 19,
+      "parsed_candidate_count": 115,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 115,
+      "selected_support_count": 50,
+      "source_candidate_count": 115,
+      "source_record_count": 165,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL3979"
+      ],
+      "task_id": "CARA_LO_CHEMBL2038596_IC50_0006"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL2046255_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 57,
+      "parsed_candidate_count": 58,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 58,
+      "selected_support_count": 50,
+      "source_candidate_count": 58,
+      "source_record_count": 108,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL4681"
+      ],
+      "task_id": "CARA_LO_CHEMBL2046255_IC50_0007"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL2328568_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 224,
+      "parsed_candidate_count": 967,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 967,
+      "selected_support_count": 50,
+      "source_candidate_count": 967,
+      "source_record_count": 1017,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL4296"
+      ],
+      "task_id": "CARA_LO_CHEMBL2328568_IC50_0008"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3431931_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 136,
+      "parsed_candidate_count": 214,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 214,
+      "selected_support_count": 50,
+      "source_candidate_count": 214,
+      "source_record_count": 264,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL3238"
+      ],
+      "task_id": "CARA_LO_CHEMBL3431931_IC50_0009"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705123_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 209,
+      "parsed_candidate_count": 698,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 698,
+      "selected_support_count": 50,
+      "source_candidate_count": 698,
+      "source_record_count": 748,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL2998"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705123_IC50_0010"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705125_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 38,
+      "parsed_candidate_count": 203,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 203,
+      "selected_support_count": 50,
+      "source_candidate_count": 203,
+      "source_record_count": 253,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL2534"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705125_IC50_0011"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705142_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 12,
+      "parsed_candidate_count": 119,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 119,
+      "selected_support_count": 50,
+      "source_candidate_count": 119,
+      "source_record_count": 169,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL1792"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705142_IC50_0012"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705264_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 79,
+      "parsed_candidate_count": 247,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 247,
+      "selected_support_count": 50,
+      "source_candidate_count": 247,
+      "source_record_count": 297,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL4599"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705264_IC50_0013"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705271_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 60,
+      "parsed_candidate_count": 61,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 61,
+      "selected_support_count": 50,
+      "source_candidate_count": 61,
+      "source_record_count": 111,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL1641358"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705271_IC50_0014"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705332_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 0,
+      "parsed_candidate_count": 102,
+      "parsed_support_count": 50,
+      "reason": "insufficient_feasible_candidates",
+      "selected_candidate_count": 102,
+      "selected_support_count": 50,
+      "source_candidate_count": 102,
+      "source_record_count": 152,
+      "source_support_count": 50,
+      "status": "excluded",
+      "target_values": [
+        "CHEMBL3892"
+      ]
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705334_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 80,
+      "parsed_candidate_count": 90,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 90,
+      "selected_support_count": 50,
+      "source_candidate_count": 90,
+      "source_record_count": 140,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL5203"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705334_IC50_0015"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705357_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 407,
+      "parsed_candidate_count": 534,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 534,
+      "selected_support_count": 50,
+      "source_candidate_count": 534,
+      "source_record_count": 584,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL4501"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705357_IC50_0016"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705358_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 40,
+      "parsed_candidate_count": 74,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 74,
+      "selected_support_count": 50,
+      "source_candidate_count": 74,
+      "source_record_count": 124,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL1293255"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705358_IC50_0017"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705399_Ki",
+      "assay_type_values": [
+        "Ki"
+      ],
+      "feasible_candidate_count": 152,
+      "parsed_candidate_count": 156,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 156,
+      "selected_support_count": 50,
+      "source_candidate_count": 156,
+      "source_record_count": 206,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL2176813"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705399_Ki_0018"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705467_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 75,
+      "parsed_candidate_count": 95,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 95,
+      "selected_support_count": 50,
+      "source_candidate_count": 95,
+      "source_record_count": 145,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL1075293"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705467_IC50_0019"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705476_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 579,
+      "parsed_candidate_count": 612,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 612,
+      "selected_support_count": 50,
+      "source_candidate_count": 612,
+      "source_record_count": 662,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL4829"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705476_IC50_0020"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705480_Ki",
+      "assay_type_values": [
+        "Ki"
+      ],
+      "feasible_candidate_count": 298,
+      "parsed_candidate_count": 320,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 320,
+      "selected_support_count": 50,
+      "source_candidate_count": 320,
+      "source_record_count": 370,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL5112"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705480_Ki_0021"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705486_Ki",
+      "assay_type_values": [
+        "Ki"
+      ],
+      "feasible_candidate_count": 41,
+      "parsed_candidate_count": 228,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 228,
+      "selected_support_count": 50,
+      "source_candidate_count": 228,
+      "source_record_count": 278,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL3638342"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705486_Ki_0022"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705705_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 71,
+      "parsed_candidate_count": 125,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 125,
+      "selected_support_count": 50,
+      "source_candidate_count": 125,
+      "source_record_count": 175,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL1865"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705705_IC50_0023"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705715_Ki",
+      "assay_type_values": [
+        "Ki"
+      ],
+      "feasible_candidate_count": 76,
+      "parsed_candidate_count": 79,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 79,
+      "selected_support_count": 50,
+      "source_candidate_count": 79,
+      "source_record_count": 129,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL209"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705715_Ki_0024"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705825_Ki",
+      "assay_type_values": [
+        "Ki"
+      ],
+      "feasible_candidate_count": 127,
+      "parsed_candidate_count": 179,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 179,
+      "selected_support_count": 50,
+      "source_candidate_count": 179,
+      "source_record_count": 229,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL3045"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705825_Ki_0025"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705860_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 72,
+      "parsed_candidate_count": 173,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 173,
+      "selected_support_count": 50,
+      "source_candidate_count": 173,
+      "source_record_count": 223,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL5855"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705860_IC50_0026"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705868_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 99,
+      "parsed_candidate_count": 392,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 392,
+      "selected_support_count": 50,
+      "source_candidate_count": 392,
+      "source_record_count": 442,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL4158"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705868_IC50_0027"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705882_Ki",
+      "assay_type_values": [
+        "Ki"
+      ],
+      "feasible_candidate_count": 51,
+      "parsed_candidate_count": 57,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 57,
+      "selected_support_count": 50,
+      "source_candidate_count": 57,
+      "source_record_count": 107,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL3717"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705882_Ki_0028"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705899_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 362,
+      "parsed_candidate_count": 716,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 716,
+      "selected_support_count": 50,
+      "source_candidate_count": 716,
+      "source_record_count": 766,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL2176771"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705899_IC50_0029"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705917_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 131,
+      "parsed_candidate_count": 154,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 154,
+      "selected_support_count": 50,
+      "source_candidate_count": 154,
+      "source_record_count": 204,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL4198"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705917_IC50_0030"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705960_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 343,
+      "parsed_candidate_count": 430,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 430,
+      "selected_support_count": 50,
+      "source_candidate_count": 430,
+      "source_record_count": 480,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL331"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705960_IC50_0031"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705963_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 37,
+      "parsed_candidate_count": 115,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 115,
+      "selected_support_count": 50,
+      "source_candidate_count": 115,
+      "source_record_count": 165,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL1844"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705963_IC50_0032"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3705983_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 219,
+      "parsed_candidate_count": 353,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 353,
+      "selected_support_count": 50,
+      "source_candidate_count": 353,
+      "source_record_count": 403,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL6115"
+      ],
+      "task_id": "CARA_LO_CHEMBL3705983_IC50_0033"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3706272_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 127,
+      "parsed_candidate_count": 128,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 128,
+      "selected_support_count": 50,
+      "source_candidate_count": 128,
+      "source_record_count": 178,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL3227"
+      ],
+      "task_id": "CARA_LO_CHEMBL3706272_IC50_0034"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3706298_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 32,
+      "parsed_candidate_count": 185,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 185,
+      "selected_support_count": 50,
+      "source_candidate_count": 185,
+      "source_record_count": 235,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL5080"
+      ],
+      "task_id": "CARA_LO_CHEMBL3706298_IC50_0035"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3706356_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 98,
+      "parsed_candidate_count": 162,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 162,
+      "selected_support_count": 50,
+      "source_candidate_count": 162,
+      "source_record_count": 212,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL3629"
+      ],
+      "task_id": "CARA_LO_CHEMBL3706356_IC50_0036"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3706360_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 48,
+      "parsed_candidate_count": 104,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 104,
+      "selected_support_count": 50,
+      "source_candidate_count": 104,
+      "source_record_count": 154,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL2321627"
+      ],
+      "task_id": "CARA_LO_CHEMBL3706360_IC50_0037"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3707497_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 93,
+      "parsed_candidate_count": 124,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 124,
+      "selected_support_count": 50,
+      "source_candidate_count": 124,
+      "source_record_count": 174,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL1795186"
+      ],
+      "task_id": "CARA_LO_CHEMBL3707497_IC50_0038"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3707531_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 0,
+      "parsed_candidate_count": 71,
+      "parsed_support_count": 50,
+      "reason": "insufficient_feasible_candidates",
+      "selected_candidate_count": 71,
+      "selected_support_count": 50,
+      "source_candidate_count": 71,
+      "source_record_count": 121,
+      "source_support_count": 50,
+      "status": "excluded",
+      "target_values": [
+        "CHEMBL1255126"
+      ]
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3707783_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 106,
+      "parsed_candidate_count": 111,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 111,
+      "selected_support_count": 50,
+      "source_candidate_count": 111,
+      "source_record_count": 161,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL5462"
+      ],
+      "task_id": "CARA_LO_CHEMBL3707783_IC50_0039"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3707789_Ki",
+      "assay_type_values": [
+        "Ki"
+      ],
+      "feasible_candidate_count": 77,
+      "parsed_candidate_count": 90,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 90,
+      "selected_support_count": 50,
+      "source_candidate_count": 90,
+      "source_record_count": 140,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL224"
+      ],
+      "task_id": "CARA_LO_CHEMBL3707789_Ki_0040"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3707834_Ki",
+      "assay_type_values": [
+        "Ki"
+      ],
+      "feasible_candidate_count": 74,
+      "parsed_candidate_count": 90,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 90,
+      "selected_support_count": 50,
+      "source_candidate_count": 90,
+      "source_record_count": 140,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL234"
+      ],
+      "task_id": "CARA_LO_CHEMBL3707834_Ki_0041"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3707951_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 136,
+      "parsed_candidate_count": 268,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 268,
+      "selected_support_count": 50,
+      "source_candidate_count": 268,
+      "source_record_count": 318,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL2148"
+      ],
+      "task_id": "CARA_LO_CHEMBL3707951_IC50_0042"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3707962_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 42,
+      "parsed_candidate_count": 267,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 267,
+      "selected_support_count": 50,
+      "source_candidate_count": 267,
+      "source_record_count": 317,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL2127"
+      ],
+      "task_id": "CARA_LO_CHEMBL3707962_IC50_0043"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3734174_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 156,
+      "parsed_candidate_count": 352,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 352,
+      "selected_support_count": 50,
+      "source_candidate_count": 352,
+      "source_record_count": 402,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL4691"
+      ],
+      "task_id": "CARA_LO_CHEMBL3734174_IC50_0044"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3734552_EC50",
+      "assay_type_values": [
+        "EC50"
+      ],
+      "feasible_candidate_count": 229,
+      "parsed_candidate_count": 345,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 345,
+      "selected_support_count": 50,
+      "source_candidate_count": 345,
+      "source_record_count": 395,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL4227"
+      ],
+      "task_id": "CARA_LO_CHEMBL3734552_EC50_0045"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3883076_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 189,
+      "parsed_candidate_count": 200,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 200,
+      "selected_support_count": 50,
+      "source_candidate_count": 200,
+      "source_record_count": 250,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL3392948"
+      ],
+      "task_id": "CARA_LO_CHEMBL3883076_IC50_0046"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3887029_Ki",
+      "assay_type_values": [
+        "Ki"
+      ],
+      "feasible_candidate_count": 107,
+      "parsed_candidate_count": 190,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 190,
+      "selected_support_count": 50,
+      "source_candidate_count": 190,
+      "source_record_count": 240,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL3638334"
+      ],
+      "task_id": "CARA_LO_CHEMBL3887029_Ki_0047"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3887030_Ki",
+      "assay_type_values": [
+        "Ki"
+      ],
+      "feasible_candidate_count": 72,
+      "parsed_candidate_count": 135,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 135,
+      "selected_support_count": 50,
+      "source_candidate_count": 135,
+      "source_record_count": 185,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL233"
+      ],
+      "task_id": "CARA_LO_CHEMBL3887030_Ki_0048"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3887063_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 54,
+      "parsed_candidate_count": 593,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 593,
+      "selected_support_count": 50,
+      "source_candidate_count": 593,
+      "source_record_count": 643,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL5145"
+      ],
+      "task_id": "CARA_LO_CHEMBL3887063_IC50_0049"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3887074_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 104,
+      "parsed_candidate_count": 212,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 212,
+      "selected_support_count": 50,
+      "source_candidate_count": 212,
+      "source_record_count": 262,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL4247"
+      ],
+      "task_id": "CARA_LO_CHEMBL3887074_IC50_0050"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3887078_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 0,
+      "parsed_candidate_count": 80,
+      "parsed_support_count": 50,
+      "reason": "insufficient_feasible_candidates",
+      "selected_candidate_count": 80,
+      "selected_support_count": 50,
+      "source_candidate_count": 80,
+      "source_record_count": 130,
+      "source_support_count": 50,
+      "status": "excluded",
+      "target_values": [
+        "CHEMBL3638360"
+      ]
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3887224_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 13,
+      "parsed_candidate_count": 72,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 72,
+      "selected_support_count": 50,
+      "source_candidate_count": 72,
+      "source_record_count": 122,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL2506"
+      ],
+      "task_id": "CARA_LO_CHEMBL3887224_IC50_0051"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3887259_EC50",
+      "assay_type_values": [
+        "EC50"
+      ],
+      "feasible_candidate_count": 125,
+      "parsed_candidate_count": 204,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 204,
+      "selected_support_count": 50,
+      "source_candidate_count": 204,
+      "source_record_count": 254,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL5652"
+      ],
+      "task_id": "CARA_LO_CHEMBL3887259_EC50_0052"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3887288_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 46,
+      "parsed_candidate_count": 245,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 245,
+      "selected_support_count": 50,
+      "source_candidate_count": 245,
+      "source_record_count": 295,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL4204"
+      ],
+      "task_id": "CARA_LO_CHEMBL3887288_IC50_0053"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3887334_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 69,
+      "parsed_candidate_count": 148,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 148,
+      "selected_support_count": 50,
+      "source_candidate_count": 148,
+      "source_record_count": 198,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL2593"
+      ],
+      "task_id": "CARA_LO_CHEMBL3887334_IC50_0054"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3887429_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 133,
+      "parsed_candidate_count": 155,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 155,
+      "selected_support_count": 50,
+      "source_candidate_count": 155,
+      "source_record_count": 205,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL3922"
+      ],
+      "task_id": "CARA_LO_CHEMBL3887429_IC50_0055"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3887456_EC50",
+      "assay_type_values": [
+        "EC50"
+      ],
+      "feasible_candidate_count": 0,
+      "parsed_candidate_count": 180,
+      "parsed_support_count": 50,
+      "reason": "insufficient_feasible_candidates",
+      "selected_candidate_count": 180,
+      "selected_support_count": 50,
+      "source_candidate_count": 180,
+      "source_record_count": 230,
+      "source_support_count": 50,
+      "status": "excluded",
+      "target_values": [
+        "CHEMBL1784"
+      ]
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3887731_Ki",
+      "assay_type_values": [
+        "Ki"
+      ],
+      "feasible_candidate_count": 52,
+      "parsed_candidate_count": 52,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 52,
+      "selected_support_count": 50,
+      "source_candidate_count": 52,
+      "source_record_count": 102,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL264"
+      ],
+      "task_id": "CARA_LO_CHEMBL3887731_Ki_0056"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3887866_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 203,
+      "parsed_candidate_count": 208,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 208,
+      "selected_support_count": 50,
+      "source_candidate_count": 208,
+      "source_record_count": 258,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL1163101"
+      ],
+      "task_id": "CARA_LO_CHEMBL3887866_IC50_0057"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3887887_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 121,
+      "parsed_candidate_count": 414,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 414,
+      "selected_support_count": 50,
+      "source_candidate_count": 414,
+      "source_record_count": 464,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL4792"
+      ],
+      "task_id": "CARA_LO_CHEMBL3887887_IC50_0058"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3888033_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 94,
+      "parsed_candidate_count": 193,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 193,
+      "selected_support_count": 50,
+      "source_candidate_count": 193,
+      "source_record_count": 243,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL4441"
+      ],
+      "task_id": "CARA_LO_CHEMBL3888033_IC50_0059"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3888094_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 255,
+      "parsed_candidate_count": 256,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 256,
+      "selected_support_count": 50,
+      "source_candidate_count": 256,
+      "source_record_count": 306,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL3988599"
+      ],
+      "task_id": "CARA_LO_CHEMBL3888094_IC50_0060"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3888209_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 239,
+      "parsed_candidate_count": 312,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 312,
+      "selected_support_count": 50,
+      "source_candidate_count": 312,
+      "source_record_count": 362,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL2321613"
+      ],
+      "task_id": "CARA_LO_CHEMBL3888209_IC50_0061"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3888296_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 91,
+      "parsed_candidate_count": 93,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 93,
+      "selected_support_count": 50,
+      "source_candidate_count": 93,
+      "source_record_count": 143,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL1899"
+      ],
+      "task_id": "CARA_LO_CHEMBL3888296_IC50_0062"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3888518_Ki",
+      "assay_type_values": [
+        "Ki"
+      ],
+      "feasible_candidate_count": 0,
+      "parsed_candidate_count": 72,
+      "parsed_support_count": 50,
+      "reason": "insufficient_feasible_candidates",
+      "selected_candidate_count": 72,
+      "selected_support_count": 50,
+      "source_candidate_count": 72,
+      "source_record_count": 122,
+      "source_support_count": 50,
+      "status": "excluded",
+      "target_values": [
+        "CHEMBL4429"
+      ]
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3888825_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 311,
+      "parsed_candidate_count": 315,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 315,
+      "selected_support_count": 50,
+      "source_candidate_count": 315,
+      "source_record_count": 365,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL1075104"
+      ],
+      "task_id": "CARA_LO_CHEMBL3888825_IC50_0063"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3888867_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 120,
+      "parsed_candidate_count": 133,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 133,
+      "selected_support_count": 50,
+      "source_candidate_count": 133,
+      "source_record_count": 183,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL3028"
+      ],
+      "task_id": "CARA_LO_CHEMBL3888867_IC50_0064"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3888870_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 104,
+      "parsed_candidate_count": 151,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 151,
+      "selected_support_count": 50,
+      "source_candidate_count": 151,
+      "source_record_count": 201,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL3983"
+      ],
+      "task_id": "CARA_LO_CHEMBL3888870_IC50_0065"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3888871_Ki",
+      "assay_type_values": [
+        "Ki"
+      ],
+      "feasible_candidate_count": 0,
+      "parsed_candidate_count": 134,
+      "parsed_support_count": 50,
+      "reason": "insufficient_feasible_candidates",
+      "selected_candidate_count": 134,
+      "selected_support_count": 50,
+      "source_candidate_count": 134,
+      "source_record_count": 184,
+      "source_support_count": 50,
+      "status": "excluded",
+      "target_values": [
+        "CHEMBL2016"
+      ]
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3889097_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 81,
+      "parsed_candidate_count": 650,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 650,
+      "selected_support_count": 50,
+      "source_candidate_count": 650,
+      "source_record_count": 700,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL1667665"
+      ],
+      "task_id": "CARA_LO_CHEMBL3889097_IC50_0066"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3889159_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 37,
+      "parsed_candidate_count": 66,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 66,
+      "selected_support_count": 50,
+      "source_candidate_count": 66,
+      "source_record_count": 116,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL3920"
+      ],
+      "task_id": "CARA_LO_CHEMBL3889159_IC50_0067"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3889186_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 223,
+      "parsed_candidate_count": 235,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 235,
+      "selected_support_count": 50,
+      "source_candidate_count": 235,
+      "source_record_count": 285,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL2973"
+      ],
+      "task_id": "CARA_LO_CHEMBL3889186_IC50_0068"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3889212_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 6,
+      "parsed_candidate_count": 515,
+      "parsed_support_count": 50,
+      "reason": "insufficient_feasible_candidates",
+      "selected_candidate_count": 515,
+      "selected_support_count": 50,
+      "source_candidate_count": 515,
+      "source_record_count": 565,
+      "source_support_count": 50,
+      "status": "excluded",
+      "target_values": [
+        "CHEMBL1741186"
+      ]
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3889262_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 55,
+      "parsed_candidate_count": 150,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 150,
+      "selected_support_count": 50,
+      "source_candidate_count": 150,
+      "source_record_count": 200,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL2828"
+      ],
+      "task_id": "CARA_LO_CHEMBL3889262_IC50_0069"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL3889266_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 8,
+      "parsed_candidate_count": 170,
+      "parsed_support_count": 50,
+      "reason": "insufficient_feasible_candidates",
+      "selected_candidate_count": 170,
+      "selected_support_count": 50,
+      "source_candidate_count": 170,
+      "source_record_count": 220,
+      "source_support_count": 50,
+      "status": "excluded",
+      "target_values": [
+        "CHEMBL5251"
+      ]
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL4388634_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 14,
+      "parsed_candidate_count": 90,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 90,
+      "selected_support_count": 50,
+      "source_candidate_count": 90,
+      "source_record_count": 140,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL4295521"
+      ],
+      "task_id": "CARA_LO_CHEMBL4388634_IC50_0070"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL4404752_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 125,
+      "parsed_candidate_count": 125,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 125,
+      "selected_support_count": 50,
+      "source_candidate_count": 125,
+      "source_record_count": 175,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL3774298"
+      ],
+      "task_id": "CARA_LO_CHEMBL4404752_IC50_0071"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL4418470_EC50",
+      "assay_type_values": [
+        "EC50"
+      ],
+      "feasible_candidate_count": 117,
+      "parsed_candidate_count": 232,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 232,
+      "selected_support_count": 50,
+      "source_candidate_count": 232,
+      "source_record_count": 282,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL3714130"
+      ],
+      "task_id": "CARA_LO_CHEMBL4418470_EC50_0072"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL4476912_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 58,
+      "parsed_candidate_count": 67,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 67,
+      "selected_support_count": 50,
+      "source_candidate_count": 67,
+      "source_record_count": 117,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL1250348"
+      ],
+      "task_id": "CARA_LO_CHEMBL4476912_IC50_0073"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL4476963_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 20,
+      "parsed_candidate_count": 67,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 67,
+      "selected_support_count": 50,
+      "source_candidate_count": 67,
+      "source_record_count": 117,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL4523105"
+      ],
+      "task_id": "CARA_LO_CHEMBL4476963_IC50_0074"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL4477153_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 68,
+      "parsed_candidate_count": 137,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 137,
+      "selected_support_count": 50,
+      "source_candidate_count": 137,
+      "source_record_count": 187,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL2311243"
+      ],
+      "task_id": "CARA_LO_CHEMBL4477153_IC50_0075"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL4712750_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 50,
+      "parsed_candidate_count": 55,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 55,
+      "selected_support_count": 50,
+      "source_candidate_count": 55,
+      "source_record_count": 105,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL4630839"
+      ],
+      "task_id": "CARA_LO_CHEMBL4712750_IC50_0076"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL4739819_EC50",
+      "assay_type_values": [
+        "EC50"
+      ],
+      "feasible_candidate_count": 201,
+      "parsed_candidate_count": 548,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 548,
+      "selected_support_count": 50,
+      "source_candidate_count": 548,
+      "source_record_count": 598,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL4226"
+      ],
+      "task_id": "CARA_LO_CHEMBL4739819_EC50_0077"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL641707_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 12,
+      "parsed_candidate_count": 87,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 87,
+      "selected_support_count": 50,
+      "source_candidate_count": 87,
+      "source_record_count": 137,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL285"
+      ],
+      "task_id": "CARA_LO_CHEMBL641707_IC50_0078"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL648337_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 48,
+      "parsed_candidate_count": 57,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 57,
+      "selected_support_count": 50,
+      "source_candidate_count": 57,
+      "source_record_count": 107,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL1808"
+      ],
+      "task_id": "CARA_LO_CHEMBL648337_IC50_0079"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL652259_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 34,
+      "parsed_candidate_count": 53,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 53,
+      "selected_support_count": 50,
+      "source_candidate_count": 53,
+      "source_record_count": 103,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL3072"
+      ],
+      "task_id": "CARA_LO_CHEMBL652259_IC50_0080"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL656248_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 43,
+      "parsed_candidate_count": 65,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 65,
+      "selected_support_count": 50,
+      "source_candidate_count": 65,
+      "source_record_count": 115,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL298"
+      ],
+      "task_id": "CARA_LO_CHEMBL656248_IC50_0081"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL658042_Ki",
+      "assay_type_values": [
+        "Ki"
+      ],
+      "feasible_candidate_count": 79,
+      "parsed_candidate_count": 189,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 189,
+      "selected_support_count": 50,
+      "source_candidate_count": 189,
+      "source_record_count": 239,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL205"
+      ],
+      "task_id": "CARA_LO_CHEMBL658042_Ki_0082"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL658217_Ki",
+      "assay_type_values": [
+        "Ki"
+      ],
+      "feasible_candidate_count": 71,
+      "parsed_candidate_count": 190,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 190,
+      "selected_support_count": 50,
+      "source_candidate_count": 190,
+      "source_record_count": 240,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL281"
+      ],
+      "task_id": "CARA_LO_CHEMBL658217_Ki_0083"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL663407_Ki",
+      "assay_type_values": [
+        "Ki"
+      ],
+      "feasible_candidate_count": 38,
+      "parsed_candidate_count": 87,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 87,
+      "selected_support_count": 50,
+      "source_candidate_count": 87,
+      "source_record_count": 137,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL244"
+      ],
+      "task_id": "CARA_LO_CHEMBL663407_Ki_0084"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL664960_Ki",
+      "assay_type_values": [
+        "Ki"
+      ],
+      "feasible_candidate_count": 38,
+      "parsed_candidate_count": 60,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 60,
+      "selected_support_count": 50,
+      "source_candidate_count": 60,
+      "source_record_count": 110,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL1800"
+      ],
+      "task_id": "CARA_LO_CHEMBL664960_Ki_0085"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL819742_Ki",
+      "assay_type_values": [
+        "Ki"
+      ],
+      "feasible_candidate_count": 106,
+      "parsed_candidate_count": 107,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 107,
+      "selected_support_count": 50,
+      "source_candidate_count": 107,
+      "source_record_count": 157,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL2626"
+      ],
+      "task_id": "CARA_LO_CHEMBL819742_Ki_0086"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL829091_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 49,
+      "parsed_candidate_count": 57,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 57,
+      "selected_support_count": 50,
+      "source_candidate_count": 57,
+      "source_record_count": 107,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL242"
+      ],
+      "task_id": "CARA_LO_CHEMBL829091_IC50_0087"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL830957_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 122,
+      "parsed_candidate_count": 122,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 122,
+      "selected_support_count": 50,
+      "source_candidate_count": 122,
+      "source_record_count": 172,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL2363"
+      ],
+      "task_id": "CARA_LO_CHEMBL830957_IC50_0088"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL856174_IC50",
+      "assay_type_values": [
+        "IC50"
+      ],
+      "feasible_candidate_count": 91,
+      "parsed_candidate_count": 91,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 91,
+      "selected_support_count": 50,
+      "source_candidate_count": 91,
+      "source_record_count": 141,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL1945"
+      ],
+      "task_id": "CARA_LO_CHEMBL856174_IC50_0089"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL863649_EC50",
+      "assay_type_values": [
+        "EC50"
+      ],
+      "feasible_candidate_count": 52,
+      "parsed_candidate_count": 52,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 52,
+      "selected_support_count": 50,
+      "source_candidate_count": 52,
+      "source_record_count": 102,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL219"
+      ],
+      "task_id": "CARA_LO_CHEMBL863649_EC50_0090"
+    },
+    {
+      "activity_scales": [
+        "pChEMBL"
+      ],
+      "assay_id": "CHEMBL879102_Ki",
+      "assay_type_values": [
+        "Ki"
+      ],
+      "feasible_candidate_count": 49,
+      "parsed_candidate_count": 67,
+      "parsed_support_count": 50,
+      "reason": null,
+      "selected_candidate_count": 67,
+      "selected_support_count": 50,
+      "source_candidate_count": 67,
+      "source_record_count": 117,
+      "source_support_count": 50,
+      "status": "included",
+      "target_values": [
+        "CHEMBL204"
+      ],
+      "task_id": "CARA_LO_CHEMBL879102_Ki_0091"
+    }
+  ]
+}

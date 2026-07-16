@@ -2,14 +2,15 @@ from pathlib import Path
 
 from specguard_chem_v2.io import load_models
 from specguard_chem_v2.reports import (
+    CONDITION_METADATA,
     compare_run_summaries,
     make_frontier_plot,
     write_results_dashboard,
     write_results_summary,
 )
-from specguard_chem_v2.runner import run_system_file, run_system_on_card
-from specguard_chem_v2.schemas import DecisionCard
-from specguard_chem_v2.scoring import score_record, score_run
+from specguard_chem_v2.runner import run_system_file, run_system_on_card, validate_output
+from specguard_chem_v2.schemas import DecisionCard, RunRecord
+from specguard_chem_v2.scoring import score_record, score_run, summarize_scores
 from specguard_chem_v2.systems.llm import (
     _cache_path,
     _extract_json_object,
@@ -58,11 +59,36 @@ def test_qsar_and_llm_validator_paths(tmp_path: Path) -> None:
     assert llm_record.metadata["repaired_from_empty"] is True
     assert not llm_record.issues
     score = score_record(card, llm_record)
+    assert score.action_validity == 1.0
     assert score.compliance_rate == 1.0
+    assert score.raw_action_validity == 0.0
     assert score.raw_feasible_utility == 0.0
     assert score.repaired_rate == 1.0
     assert score.repaired_from_empty_rate == 1.0
     assert score.repair_delta_feasible_utility == score.feasible_utility
+
+
+def test_whole_action_validity_is_distinct_from_valid_selection_fraction() -> None:
+    card = load_models(FIXTURES / "cards.jsonl", DecisionCard)[0]
+    valid_record = run_system_on_card(card, "rules_only")
+    mismatched_output = valid_record.output.model_copy(update={"task_id": "wrong-task"})
+    record = RunRecord(
+        task_id=card.task_id,
+        system_name="wrong_task_id",
+        output=mismatched_output,
+        issues=validate_output(card, mismatched_output),
+    )
+
+    score = score_record(card, record)
+
+    assert len(mismatched_output.selections) == card.budget_k
+    assert score.valid_selected_count == card.budget_k
+    assert score.compliance_rate == 1.0
+    assert score.action_validity == 0.0
+    summary = summarize_scores([score], bootstrap_samples=10)
+    assert summary["action_validity"] == 0.0
+    assert summary["action_validity_ci_low"] == 0.0
+    assert summary["action_validity_ci_high"] == 0.0
 
 
 def test_cached_llm_replay_variants() -> None:
@@ -82,12 +108,20 @@ def test_llm_request_export_distinguishes_tool_condition() -> None:
     tools = build_llm_request(card, "llm_tools")
     assert bare["condition"]["uses_tools"] is False
     assert tools["condition"]["uses_tools"] is True
+    assert bare["activity_semantics"] == {
+        "support_activity_field": "activity_value",
+        "scale": "pIC50",
+        "higher_is_better": True,
+        "objective": "rank candidates to maximize predicted pIC50",
+    }
+    assert bare["support_set"][0]["activity_type"] == "pIC50"
     assert bare["generation"]["max_tokens"] == 4096
     assert "tpsa" not in bare["candidate_pool"][0]
     assert "tpsa" in tools["candidate_pool"][0]
     rows = export_llm_requests([card], ["bare_llm", "llm_tools"])
     assert len(rows) == 2
     assert rows[0]["messages"][0]["role"] == "system"
+    assert "higher values are better" in rows[0]["messages"][0]["content"]
 
 
 def test_model_matrix_requests_and_offline_run(tmp_path: Path) -> None:
@@ -135,7 +169,11 @@ def test_llm_request_cache_identity_includes_generation_settings(tmp_path: Path)
     )
     long_config = short_config.model_copy(update={"max_tokens": 32768})
     selector_config = short_config.model_copy(
-        update={"id": "deepseek_frontier_selector", "thinking": False, "prompt_profile": "json_first"}
+        update={
+            "id": "deepseek_frontier_selector",
+            "thinking": False,
+            "prompt_profile": "json_first",
+        }
     )
 
     short_request = build_llm_request(card, "bare_llm", model_config=short_config)
@@ -234,6 +272,9 @@ def test_compare_and_frontier_plot(tmp_path: Path) -> None:
     frame = compare_run_summaries(summary_paths, tmp_path / "compare")
     assert set(frame["system_name"]) == {"random_valid", "rules_only"}
     assert "raw_feasible_utility" in frame.columns
+    assert "action_validity" in frame.columns
+    assert "action_validity_ci_low" in frame.columns
+    assert "action_validity_ci_high" in frame.columns
     assert (tmp_path / "compare" / "metric_winners.csv").exists()
     assert (tmp_path / "compare" / "metric_winners_primary.csv").exists()
     assert (tmp_path / "compare" / "primary_leaderboard.csv").exists()
@@ -251,26 +292,37 @@ def test_compare_and_frontier_plot(tmp_path: Path) -> None:
     summary = write_results_summary(
         tmp_path / "compare" / "system_comparison.csv",
         tmp_path / "paper",
+        generated_at="2026-07-16T00:00:00+00:00",
+        source_path="release/tables/system_comparison.csv",
     )
+    summary_text = summary.read_text(encoding="utf-8")
     assert summary.exists()
-    assert "Primary Systems" in summary.read_text(encoding="utf-8")
-    assert "raw_feasible_utility" in summary.read_text(encoding="utf-8")
-    assert "Failure Taxonomy Summary" in summary.read_text(encoding="utf-8")
-    assert "Card-Level Diagnostics" in summary.read_text(encoding="utf-8")
+    assert "Primary Systems" in summary_text
+    assert "raw_feasible_utility" in summary_text
+    assert "Failure Taxonomy Summary" in summary_text
+    assert "Card-Level Diagnostics" in summary_text
+    assert "2026-07-16T00:00:00+00:00" in summary_text
+    assert "release/tables/system_comparison.csv" in summary_text
+    assert str(tmp_path) not in summary_text
+    assert "paper-50" not in summary_text
     dashboard = write_results_dashboard(
         tmp_path / "compare" / "system_comparison.csv",
         tmp_path / "paper",
+        generated_at="2026-07-16T00:00:00+00:00",
+        source_path="release/tables/system_comparison.csv",
     )
     dashboard_text = dashboard.read_text(encoding="utf-8")
     assert dashboard.exists()
-    assert "SpecGuard-Chem v2 Results Dashboard" in dashboard_text
-    assert "Compliance-Utility Frontier" in dashboard_text
+    assert "SpecGuard-Chem Action-Quality Results Dashboard" in dashboard_text
+    assert "Action-Quality Profile" in dashboard_text
+    assert "Final whole-action validity" in dashboard_text
+    assert "Final valid-selection fraction" in dashboard_text
     assert "QSAR models" in dashboard_text
     assert "xScale" in dashboard_text
     assert "Plotly.react" in dashboard_text
     assert "data-tooltip" in dashboard_text
-    assert "Original Hypotheses and Evidence" in dashboard_text
-    assert "Compliance is not utility" in dashboard_text
+    assert "Research Questions and Observed Evidence" in dashboard_text
+    assert "Action utility is the primary scientific outcome" in dashboard_text
     assert "wrapPlotLabel" in dashboard_text
     assert "wrapHoverText" in dashboard_text
     assert "wrapIdentifier" in dashboard_text
@@ -288,8 +340,7 @@ def test_compare_and_frontier_plot(tmp_path: Path) -> None:
     assert "Paired Card-Level Bootstrap" in dashboard_text
     assert "Card-Level Utility Distribution" in dashboard_text
     assert "Percent of oracle utility" in dashboard_text
-    assert "utility 70 means selected valid compounds averaged about 7.0" in dashboard_text
-    assert "ten valid selections averaging 7.0" in dashboard_text
+    assert "dividing by budget k gives the mean selected activity" in dashboard_text
     assert "Raw output:" in dashboard_text
     assert "Failure Taxonomy" in dashboard_text
     assert "pairedRows" in dashboard_text
@@ -297,6 +348,23 @@ def test_compare_and_frontier_plot(tmp_path: Path) -> None:
     assert "failureRows" in dashboard_text
     assert "Primary Systems" in dashboard_text
     assert "term" in dashboard_text
+    assert "2026-07-16T00:00:00+00:00" in dashboard_text
+    assert "release/tables/system_comparison.csv" in dashboard_text
+    assert str(tmp_path) not in dashboard_text
+    assert "paper-50" not in dashboard_text
+
+
+def test_report_condition_metadata_uses_release_ids_and_keeps_historical_labels() -> None:
+    expected_models = {
+        "openai_gpt_5_5_2026_04_23_selector": "gpt-5.5-2026-04-23",
+        "anthropic_opus_4_8_selector": "claude-opus-4-8",
+        "deepseek_v4_pro_2026_07_16_selector": "deepseek-v4-pro",
+    }
+    for condition_id, model in expected_models.items():
+        assert CONDITION_METADATA[condition_id]["model"] == model
+        assert "Release-candidate" in CONDITION_METADATA[condition_id]["description"]
+
+    assert "Historical condition" in CONDITION_METADATA["openai_frontier_selector"]["description"]
 
 
 def test_compare_variant_ablation_rows(tmp_path: Path) -> None:

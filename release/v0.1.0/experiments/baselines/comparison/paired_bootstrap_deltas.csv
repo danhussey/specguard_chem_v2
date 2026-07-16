@@ -1,0 +1,121 @@
+comparison,metric,system_a,system_a_label,system_b,system_b_label,direction,n_cards,mean_delta,ci_low,ci_high,probability_delta_gt_zero
+all_primary_pairs,feasible_utility,qsar_svm,QSAR linear SVR,qsar_rf,QSAR random forest,system_a_minus_system_b,91,0.00840659340659232,-0.37548626373626437,0.3660796703296708,0.5155
+all_primary_pairs,ndcg_at_k,qsar_svm,QSAR linear SVR,qsar_rf,QSAR random forest,system_a_minus_system_b,91,-0.0007014485057950861,-0.005447299326933194,0.0039898734241304605,0.388
+all_primary_pairs,action_validity,qsar_svm,QSAR linear SVR,qsar_rf,QSAR random forest,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,compliance_rate,qsar_svm,QSAR linear SVR,qsar_rf,QSAR random forest,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_feasible_utility,qsar_svm,QSAR linear SVR,qsar_rf,QSAR random forest,system_a_minus_system_b,91,0.00840659340659232,-0.37548626373626437,0.3660796703296708,0.5155
+all_primary_pairs,raw_ndcg_at_k,qsar_svm,QSAR linear SVR,qsar_rf,QSAR random forest,system_a_minus_system_b,91,-0.0007014485057950861,-0.005447299326933194,0.0039898734241304605,0.388
+all_primary_pairs,raw_action_validity,qsar_svm,QSAR linear SVR,qsar_rf,QSAR random forest,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_compliance_rate,qsar_svm,QSAR linear SVR,qsar_rf,QSAR random forest,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,feasible_utility,qsar_svm,QSAR linear SVR,qsar_gbt,QSAR gradient boosting,system_a_minus_system_b,91,0.21642857142857214,-0.19855082417582406,0.6220618131868142,0.846
+all_primary_pairs,ndcg_at_k,qsar_svm,QSAR linear SVR,qsar_gbt,QSAR gradient boosting,system_a_minus_system_b,91,0.002359833344030629,-0.0029194720986284173,0.008165313329921016,0.805
+all_primary_pairs,action_validity,qsar_svm,QSAR linear SVR,qsar_gbt,QSAR gradient boosting,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,compliance_rate,qsar_svm,QSAR linear SVR,qsar_gbt,QSAR gradient boosting,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_feasible_utility,qsar_svm,QSAR linear SVR,qsar_gbt,QSAR gradient boosting,system_a_minus_system_b,91,0.21642857142857214,-0.19855082417582406,0.6220618131868142,0.846
+all_primary_pairs,raw_ndcg_at_k,qsar_svm,QSAR linear SVR,qsar_gbt,QSAR gradient boosting,system_a_minus_system_b,91,0.002359833344030629,-0.0029194720986284173,0.008165313329921016,0.805
+all_primary_pairs,raw_action_validity,qsar_svm,QSAR linear SVR,qsar_gbt,QSAR gradient boosting,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_compliance_rate,qsar_svm,QSAR linear SVR,qsar_gbt,QSAR gradient boosting,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,feasible_utility,qsar_svm,QSAR linear SVR,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,1.6781318681318684,1.0301675824175833,2.39893543956044,1.0
+all_primary_pairs,ndcg_at_k,qsar_svm,QSAR linear SVR,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,0.018815828082858414,0.010316035915891896,0.028142758801287717,1.0
+all_primary_pairs,action_validity,qsar_svm,QSAR linear SVR,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,compliance_rate,qsar_svm,QSAR linear SVR,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_feasible_utility,qsar_svm,QSAR linear SVR,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,1.6781318681318684,1.0301675824175833,2.39893543956044,1.0
+all_primary_pairs,raw_ndcg_at_k,qsar_svm,QSAR linear SVR,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,0.018815828082858414,0.010316035915891896,0.028142758801287717,1.0
+all_primary_pairs,raw_action_validity,qsar_svm,QSAR linear SVR,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_compliance_rate,qsar_svm,QSAR linear SVR,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,feasible_utility,qsar_svm,QSAR linear SVR,random_valid,Random valid baseline,system_a_minus_system_b,91,6.497527472527469,5.62871978021978,7.397313186813186,1.0
+all_primary_pairs,ndcg_at_k,qsar_svm,QSAR linear SVR,random_valid,Random valid baseline,system_a_minus_system_b,91,0.0828385508940739,0.07220984007667049,0.09366801428564034,1.0
+all_primary_pairs,action_validity,qsar_svm,QSAR linear SVR,random_valid,Random valid baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,compliance_rate,qsar_svm,QSAR linear SVR,random_valid,Random valid baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_feasible_utility,qsar_svm,QSAR linear SVR,random_valid,Random valid baseline,system_a_minus_system_b,91,6.497527472527469,5.62871978021978,7.397313186813186,1.0
+all_primary_pairs,raw_ndcg_at_k,qsar_svm,QSAR linear SVR,random_valid,Random valid baseline,system_a_minus_system_b,91,0.0828385508940739,0.07220984007667049,0.09366801428564034,1.0
+all_primary_pairs,raw_action_validity,qsar_svm,QSAR linear SVR,random_valid,Random valid baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_compliance_rate,qsar_svm,QSAR linear SVR,random_valid,Random valid baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,feasible_utility,qsar_svm,QSAR linear SVR,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,8.044835164835163,6.847896978021977,9.241670329670324,1.0
+all_primary_pairs,ndcg_at_k,qsar_svm,QSAR linear SVR,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.10997352778227608,0.0943677209344191,0.12493546552411386,1.0
+all_primary_pairs,action_validity,qsar_svm,QSAR linear SVR,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,compliance_rate,qsar_svm,QSAR linear SVR,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_feasible_utility,qsar_svm,QSAR linear SVR,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,8.044835164835163,6.847896978021977,9.241670329670324,1.0
+all_primary_pairs,raw_ndcg_at_k,qsar_svm,QSAR linear SVR,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.10997352778227608,0.0943677209344191,0.12493546552411386,1.0
+all_primary_pairs,raw_action_validity,qsar_svm,QSAR linear SVR,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_compliance_rate,qsar_svm,QSAR linear SVR,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,feasible_utility,qsar_rf,QSAR random forest,qsar_gbt,QSAR gradient boosting,system_a_minus_system_b,91,0.2080219780219798,-0.10703983516483254,0.5158008241758263,0.905
+all_primary_pairs,ndcg_at_k,qsar_rf,QSAR random forest,qsar_gbt,QSAR gradient boosting,system_a_minus_system_b,91,0.0030612818498257153,-0.0009519918143460436,0.007338868702899046,0.9375
+all_primary_pairs,action_validity,qsar_rf,QSAR random forest,qsar_gbt,QSAR gradient boosting,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,compliance_rate,qsar_rf,QSAR random forest,qsar_gbt,QSAR gradient boosting,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_feasible_utility,qsar_rf,QSAR random forest,qsar_gbt,QSAR gradient boosting,system_a_minus_system_b,91,0.2080219780219798,-0.10703983516483254,0.5158008241758263,0.905
+all_primary_pairs,raw_ndcg_at_k,qsar_rf,QSAR random forest,qsar_gbt,QSAR gradient boosting,system_a_minus_system_b,91,0.0030612818498257153,-0.0009519918143460436,0.007338868702899046,0.9375
+all_primary_pairs,raw_action_validity,qsar_rf,QSAR random forest,qsar_gbt,QSAR gradient boosting,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_compliance_rate,qsar_rf,QSAR random forest,qsar_gbt,QSAR gradient boosting,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,feasible_utility,qsar_rf,QSAR random forest,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,1.669725274725276,0.9649436813186822,2.448556318681317,1.0
+all_primary_pairs,ndcg_at_k,qsar_rf,QSAR random forest,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,0.019517276588653498,0.01107119972638756,0.028579670601053167,1.0
+all_primary_pairs,action_validity,qsar_rf,QSAR random forest,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,compliance_rate,qsar_rf,QSAR random forest,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_feasible_utility,qsar_rf,QSAR random forest,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,1.669725274725276,0.9649436813186822,2.448556318681317,1.0
+all_primary_pairs,raw_ndcg_at_k,qsar_rf,QSAR random forest,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,0.019517276588653498,0.01107119972638756,0.028579670601053167,1.0
+all_primary_pairs,raw_action_validity,qsar_rf,QSAR random forest,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_compliance_rate,qsar_rf,QSAR random forest,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,feasible_utility,qsar_rf,QSAR random forest,random_valid,Random valid baseline,system_a_minus_system_b,91,6.489120879120878,5.618745879120878,7.414365384615385,1.0
+all_primary_pairs,ndcg_at_k,qsar_rf,QSAR random forest,random_valid,Random valid baseline,system_a_minus_system_b,91,0.08353999939986897,0.07293478026139175,0.09453524764164811,1.0
+all_primary_pairs,action_validity,qsar_rf,QSAR random forest,random_valid,Random valid baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,compliance_rate,qsar_rf,QSAR random forest,random_valid,Random valid baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_feasible_utility,qsar_rf,QSAR random forest,random_valid,Random valid baseline,system_a_minus_system_b,91,6.489120879120878,5.618745879120878,7.414365384615385,1.0
+all_primary_pairs,raw_ndcg_at_k,qsar_rf,QSAR random forest,random_valid,Random valid baseline,system_a_minus_system_b,91,0.08353999939986897,0.07293478026139175,0.09453524764164811,1.0
+all_primary_pairs,raw_action_validity,qsar_rf,QSAR random forest,random_valid,Random valid baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_compliance_rate,qsar_rf,QSAR random forest,random_valid,Random valid baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,feasible_utility,qsar_rf,QSAR random forest,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,8.03642857142857,6.767972527472527,9.283155219780216,1.0
+all_primary_pairs,ndcg_at_k,qsar_rf,QSAR random forest,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.11067497628807119,0.09480999632894813,0.12637775174036747,1.0
+all_primary_pairs,action_validity,qsar_rf,QSAR random forest,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,compliance_rate,qsar_rf,QSAR random forest,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_feasible_utility,qsar_rf,QSAR random forest,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,8.03642857142857,6.767972527472527,9.283155219780216,1.0
+all_primary_pairs,raw_ndcg_at_k,qsar_rf,QSAR random forest,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.11067497628807119,0.09480999632894813,0.12637775174036747,1.0
+all_primary_pairs,raw_action_validity,qsar_rf,QSAR random forest,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_compliance_rate,qsar_rf,QSAR random forest,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,feasible_utility,qsar_gbt,QSAR gradient boosting,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,1.4617032967032966,0.756282967032967,2.2222733516483495,1.0
+all_primary_pairs,ndcg_at_k,qsar_gbt,QSAR gradient boosting,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,0.016455994738827782,0.006769058492832361,0.026706338361155494,1.0
+all_primary_pairs,action_validity,qsar_gbt,QSAR gradient boosting,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,compliance_rate,qsar_gbt,QSAR gradient boosting,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_feasible_utility,qsar_gbt,QSAR gradient boosting,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,1.4617032967032966,0.756282967032967,2.2222733516483495,1.0
+all_primary_pairs,raw_ndcg_at_k,qsar_gbt,QSAR gradient boosting,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,0.016455994738827782,0.006769058492832361,0.026706338361155494,1.0
+all_primary_pairs,raw_action_validity,qsar_gbt,QSAR gradient boosting,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_compliance_rate,qsar_gbt,QSAR gradient boosting,similarity_to_best_active,Similarity-to-best-active baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,feasible_utility,qsar_gbt,QSAR gradient boosting,random_valid,Random valid baseline,system_a_minus_system_b,91,6.281098901098898,5.461343406593403,7.181002747252743,1.0
+all_primary_pairs,ndcg_at_k,qsar_gbt,QSAR gradient boosting,random_valid,Random valid baseline,system_a_minus_system_b,91,0.08047871755004327,0.07009754291945039,0.0914038185127674,1.0
+all_primary_pairs,action_validity,qsar_gbt,QSAR gradient boosting,random_valid,Random valid baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,compliance_rate,qsar_gbt,QSAR gradient boosting,random_valid,Random valid baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_feasible_utility,qsar_gbt,QSAR gradient boosting,random_valid,Random valid baseline,system_a_minus_system_b,91,6.281098901098898,5.461343406593403,7.181002747252743,1.0
+all_primary_pairs,raw_ndcg_at_k,qsar_gbt,QSAR gradient boosting,random_valid,Random valid baseline,system_a_minus_system_b,91,0.08047871755004327,0.07009754291945039,0.0914038185127674,1.0
+all_primary_pairs,raw_action_validity,qsar_gbt,QSAR gradient boosting,random_valid,Random valid baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_compliance_rate,qsar_gbt,QSAR gradient boosting,random_valid,Random valid baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,feasible_utility,qsar_gbt,QSAR gradient boosting,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,7.82840659340659,6.586263736263733,9.085137362637358,1.0
+all_primary_pairs,ndcg_at_k,qsar_gbt,QSAR gradient boosting,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.10761369443824544,0.09158766706772291,0.12334724315682594,1.0
+all_primary_pairs,action_validity,qsar_gbt,QSAR gradient boosting,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,compliance_rate,qsar_gbt,QSAR gradient boosting,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_feasible_utility,qsar_gbt,QSAR gradient boosting,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,7.82840659340659,6.586263736263733,9.085137362637358,1.0
+all_primary_pairs,raw_ndcg_at_k,qsar_gbt,QSAR gradient boosting,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.10761369443824544,0.09158766706772291,0.12334724315682594,1.0
+all_primary_pairs,raw_action_validity,qsar_gbt,QSAR gradient boosting,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_compliance_rate,qsar_gbt,QSAR gradient boosting,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,feasible_utility,similarity_to_best_active,Similarity-to-best-active baseline,random_valid,Random valid baseline,system_a_minus_system_b,91,4.819395604395602,3.898590659340658,5.748497252747248,1.0
+all_primary_pairs,ndcg_at_k,similarity_to_best_active,Similarity-to-best-active baseline,random_valid,Random valid baseline,system_a_minus_system_b,91,0.06402272281121547,0.051358905347597836,0.07626118136340058,1.0
+all_primary_pairs,action_validity,similarity_to_best_active,Similarity-to-best-active baseline,random_valid,Random valid baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,compliance_rate,similarity_to_best_active,Similarity-to-best-active baseline,random_valid,Random valid baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_feasible_utility,similarity_to_best_active,Similarity-to-best-active baseline,random_valid,Random valid baseline,system_a_minus_system_b,91,4.819395604395602,3.898590659340658,5.748497252747248,1.0
+all_primary_pairs,raw_ndcg_at_k,similarity_to_best_active,Similarity-to-best-active baseline,random_valid,Random valid baseline,system_a_minus_system_b,91,0.06402272281121547,0.051358905347597836,0.07626118136340058,1.0
+all_primary_pairs,raw_action_validity,similarity_to_best_active,Similarity-to-best-active baseline,random_valid,Random valid baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_compliance_rate,similarity_to_best_active,Similarity-to-best-active baseline,random_valid,Random valid baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,feasible_utility,similarity_to_best_active,Similarity-to-best-active baseline,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,6.366703296703294,5.123009615384613,7.572528846153845,1.0
+all_primary_pairs,ndcg_at_k,similarity_to_best_active,Similarity-to-best-active baseline,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.09115769969941766,0.07540415603058795,0.10631562700497231,1.0
+all_primary_pairs,action_validity,similarity_to_best_active,Similarity-to-best-active baseline,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,compliance_rate,similarity_to_best_active,Similarity-to-best-active baseline,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_feasible_utility,similarity_to_best_active,Similarity-to-best-active baseline,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,6.366703296703294,5.123009615384613,7.572528846153845,1.0
+all_primary_pairs,raw_ndcg_at_k,similarity_to_best_active,Similarity-to-best-active baseline,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.09115769969941766,0.07540415603058795,0.10631562700497231,1.0
+all_primary_pairs,raw_action_validity,similarity_to_best_active,Similarity-to-best-active baseline,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_compliance_rate,similarity_to_best_active,Similarity-to-best-active baseline,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,feasible_utility,random_valid,Random valid baseline,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,1.5473076923076918,0.5072266483516502,2.5378021978021956,0.9985
+all_primary_pairs,ndcg_at_k,random_valid,Random valid baseline,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.027134976888202194,0.012774320470592442,0.040651328986526326,1.0
+all_primary_pairs,action_validity,random_valid,Random valid baseline,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,compliance_rate,random_valid,Random valid baseline,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_feasible_utility,random_valid,Random valid baseline,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,1.5473076923076918,0.5072266483516502,2.5378021978021956,0.9985
+all_primary_pairs,raw_ndcg_at_k,random_valid,Random valid baseline,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.027134976888202194,0.012774320470592442,0.040651328986526326,1.0
+all_primary_pairs,raw_action_validity,random_valid,Random valid baseline,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0
+all_primary_pairs,raw_compliance_rate,random_valid,Random valid baseline,rules_only,Rule/desirability baseline,system_a_minus_system_b,91,0.0,0.0,0.0,0.0

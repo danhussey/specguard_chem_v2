@@ -1,5 +1,13 @@
 # Run Ledger
 
+> **Historical validity notice (2026-07-16).** Entries before the CARA
+> positional-integrity recovery are preserved as an execution history only.
+> Their paper-50 cards, results, tables, figures, and model comparisons are
+> invalid as scientific evidence because the old importer interpreted official
+> split positions as data-frame labels. Current evidence must use the 91-card
+> split artifacts in `data/releases/v0.1.0/` and runs in
+> `release/v0.1.0/`.
+
 This is the concise laboratory log for meaningful runs and experiments. Keep
 execution detail in `plans/logs/`; use this file to compare what was run, why it
 was run, what happened, and what to do next.
@@ -197,3 +205,101 @@ was run, what happened, and what to do next.
   separately.
 - Provider quota, credit, overload, and timeout failures are run-feasibility
   failures, not scored model-performance outcomes.
+
+## 2026-07-16 CARA LO positional-integrity recovery and v0.1.0 freeze
+
+- Artifacts: `data/releases/v0.1.0/system_input_cards.jsonl`,
+  `data/releases/v0.1.0/scorer_outcomes.jsonl`,
+  `data/releases/v0.1.0/system_input_cards.meta.json`, and
+  `data/releases/v0.1.0/system_input_cards.audit.json`.
+- Scope: all 100 official CARA `LO_All` task keys; split indices resolved as
+  source-table row positions and verified against each named task; budget
+  `k=10`, support size `50`, explicit default constraints.
+- Question: recover a task-coherent, label-separated artifact after discovering
+  that the historical importer treated positional split indices as labels.
+- Status: complete. Ninety-one tasks meet the prespecified requirement of at
+  least ten feasible candidates; nine exclusions are recorded explicitly.
+- Headline: the corrected system-input artifact contains 91 cards (candidate
+  pool 52--967; feasible pool 12--579). Its SHA256 is
+  `c18e66c726bb26f8afc3ba8422b21ec327444560d92750421f0dc44a2f393d9e`;
+  the scorer-only outcome artifact SHA256 is
+  `96b5d6060e3c75dda34d835fd166fd074ca5621c18924aa0ea2714acba173ff4`.
+- Surprise / interpretation: all corrected tasks are biologically coherent at
+  the CARA target/endpoint level, but the old paper-50 results are not reusable.
+  The release must treat those historical outputs as invalid rather than as a
+  comparable earlier benchmark version.
+- Follow-up: report only corrected v0.1.0 evidence and preserve the split-input
+  visibility contract in every execution path.
+
+## 2026-07-16 corrected v0.1.0 deterministic baselines
+
+- Artifacts: `release/v0.1.0/experiments/baselines/`.
+- Scope: all 91 corrected cards; oracle, random-valid, rules-only,
+  similarity-to-best-active, QSAR RF, QSAR GBT, and QSAR SVM.
+- Question: confirm that the corrected task has measurable scientific headroom
+  and separates useful ranking systems before any new provider spend.
+- Status: complete and independently rerun; traces and score artifacts were
+  byte-identical, except for expected run-manifest time/path fields.
+- Headline: oracle feasible utility was `79.5626`; QSAR SVM `74.9664`, QSAR RF
+  `74.9580`, similarity `73.2882`, random-valid `68.4688`, and rules-only
+  `66.9215`. All deterministic systems had whole-action validity and
+  valid-selection fraction `1.0`; oracle-to-best deployable headroom was
+  `4.5963` utility points.
+- Surprise / interpretation: constraints alone do not solve the task. The gap
+  from rules/random through similarity and QSAR to oracle supports treating it
+  as a nontrivial action-quality benchmark, while keeping CARA visible as the
+  underlying activity-data substrate.
+- Follow-up: use these as the corrected fixed comparators for the minimum LLM
+  matrix and manuscript; do not promote them as final cross-model results until
+  the approved LLM runs are complete.
+
+## 2026-07-16 v0.1.0 exact LLM request and cost export
+
+- Artifacts: `release/v0.1.0/experiments/llm/exact_requests.jsonl` and
+  `release/v0.1.0/experiments/llm/pre_run_cost_estimate.json`.
+- Scope: 91 cards, two interfaces (`bare_llm`, `llm_tools`), and three pinned or
+  date-qualified model conditions: GPT-5.5 `2026-04-23`, Claude Opus 4.8, and
+  DeepSeek V4 Pro as checked on 2026-07-16.
+- Question: freeze the smallest informative provider matrix and establish a
+  conservative spend gate without changing the task or making external calls.
+- Status: request/cost export complete; live experiment not started and no
+  provider calls or costs incurred.
+- Headline: 546 planned calls, zero cached/completed, maximum conservative input
+  estimate `158274` tokens, and upper-bound incremental estimate `$106.0594`.
+  Request SHA256 is
+  `50e518893b19d4a7efd64c62e08ab94d610815f8fb7518c9af4b64ff40b6f6c5`;
+  cost-estimate SHA256 is
+  `d11ce35da68e5082153be4bc57c027915ccb76cf8fb19b02e5adf767b2ab525d`.
+- Surprise / interpretation: the full candidate-pool interface remains large
+  but fits all selected providers' documented context windows. Separating the
+  two raw interfaces yields a cleaner experiment than paying for prompt-level
+  validator variants; deterministic repair can be evaluated post hoc on the
+  same responses. Pre-run QA also made the CARA pChEMBL scale and
+  higher-is-better objective explicit in every card and prompt, avoiding a
+  confound between pChEMBL and raw IC50/Ki endpoint direction.
+- Follow-up: post-hoc repair attribution is now implemented and tested; obtain
+  explicit authorization before a one-card pilot or any full
+  `--allow-external` run.
+
+## 2026-07-16 v0.1.0 offline release preflight
+
+- Artifacts: `paper/manuscript/main.pdf`,
+  `paper/manuscript/supplement.pdf`, and `release/v0.1.0/software/`.
+- Scope: exact one-card pilot specification, full offline test/lint/schema
+  validation, manuscript compilation and visual inspection, and Python package
+  build/smoke installation.
+- Question: determine whether the bounded release is internally reproducible
+  and ready to pause at the explicit provider-call boundary.
+- Status: offline preflight complete; no provider call, final manifest, tag, or
+  publication action occurred.
+- Headline: 44 tests passed; both 91-row JSONL artifacts passed executable and
+  JSON Schema validation; the six-page manuscript and two-page supplement
+  compiled cleanly; the wheel and source distribution built, and the wheel
+  passed isolated Python 3.12 CLI validation. The fixed six-request pilot has a
+  USD 0.936717455 upper-bound estimate and 25,817-token maximum input estimate.
+- Surprise / interpretation: an explicit task selector and shared cache were
+  necessary to make the pilot scientifically reproducible and prevent its six
+  requests from being purchased again during the full matrix.
+- Follow-up: obtain explicit authorization before the six-call pilot, confirm
+  the manuscript license/authorship route, then complete provider results,
+  final checksums, clean-checkout verification, and the annotated tag.

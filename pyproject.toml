@@ -1,15 +1,31 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "specguard-chem-v2"
 version = "0.1.0"
-description = "Decision-audit harness for constrained medicinal-chemistry compound prioritisation."
+description = "Action-level benchmark for constrained assay-local compound prioritisation."
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "MIT" }
-authors = [{ name = "SpecGuard-Chem Contributors" }]
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Daniel Hussey" }]
+keywords = [
+  "benchmarking",
+  "cheminformatics",
+  "compound prioritisation",
+  "large language models",
+  "reproducible research",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Chemistry",
+]
 dependencies = [
   "matplotlib>=3.8",
   "numpy>=1.26",
@@ -36,6 +52,10 @@ providers = [
 
 [project.scripts]
 sgchem = "specguard_chem_v2.cli:app"
+
+[project.urls]
+Repository = "https://github.com/danhussey/specguard_chem_v2"
+Issues = "https://github.com/danhussey/specguard_chem_v2/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

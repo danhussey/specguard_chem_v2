@@ -42,7 +42,9 @@ def _selection_output(
         if scores and candidate.id in scores:
             raw_score = scores[candidate.id]
             confidence = max(0.0, min(1.0, raw_score))
-        selections.append(SelectionItem(rank=rank, candidate_id=candidate.id, confidence=confidence))
+        selections.append(
+            SelectionItem(rank=rank, candidate_id=candidate.id, confidence=confidence)
+        )
     return SystemOutput(task_id=card.task_id, system_name=system_name, selections=selections)
 
 

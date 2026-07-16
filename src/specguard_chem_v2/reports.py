@@ -60,6 +60,8 @@ def _write_metric_winners(frame: pd.DataFrame, out_dir: Path) -> None:
         ("raw_feasible_utility", False),
         ("ndcg_at_k", False),
         ("raw_ndcg_at_k", False),
+        ("action_validity", False),
+        ("raw_action_validity", False),
         ("compliance_rate", False),
         ("raw_compliance_rate", False),
         ("constrained_regret", True),
@@ -106,6 +108,8 @@ def _write_ablation_table(frame: pd.DataFrame, out_dir: Path) -> None:
     metrics = [
         "feasible_utility",
         "raw_feasible_utility",
+        "action_validity",
+        "raw_action_validity",
         "compliance_rate",
         "raw_compliance_rate",
         "constrained_regret",
@@ -281,7 +285,9 @@ def _best_system(frame: pd.DataFrame, group: str | None, metric: str) -> str | N
     return str(metric_frame.sort_values(metric, ascending=False).iloc[0]["system_name"])
 
 
-def _write_paired_bootstrap_tables(scores: pd.DataFrame, frame: pd.DataFrame, out_dir: Path) -> None:
+def _write_paired_bootstrap_tables(
+    scores: pd.DataFrame, frame: pd.DataFrame, out_dir: Path
+) -> None:
     columns = [
         "comparison",
         "metric",
@@ -298,7 +304,9 @@ def _write_paired_bootstrap_tables(scores: pd.DataFrame, frame: pd.DataFrame, ou
     ]
     if scores.empty or frame.empty:
         pd.DataFrame(columns=columns).to_csv(out_dir / "paired_bootstrap_deltas.csv", index=False)
-        pd.DataFrame(columns=columns).to_csv(out_dir / "paired_bootstrap_key_deltas.csv", index=False)
+        pd.DataFrame(columns=columns).to_csv(
+            out_dir / "paired_bootstrap_key_deltas.csv", index=False
+        )
         return
 
     enriched_frame = _add_display_columns(frame)
@@ -307,9 +315,11 @@ def _write_paired_bootstrap_tables(scores: pd.DataFrame, frame: pd.DataFrame, ou
     metrics = [
         "feasible_utility",
         "ndcg_at_k",
+        "action_validity",
         "compliance_rate",
         "raw_feasible_utility",
         "raw_ndcg_at_k",
+        "raw_action_validity",
         "raw_compliance_rate",
     ]
     ordered_systems = [str(value) for value in primary["system_name"].tolist()]
@@ -334,7 +344,9 @@ def _write_paired_bootstrap_tables(scores: pd.DataFrame, frame: pd.DataFrame, ou
     best_qsar = _best_system(enriched_frame, "QSAR", "feasible_utility")
     best_llm = _best_system(enriched_frame, "LLM", "feasible_utility")
     best_raw_llm = _best_system(enriched_frame, "LLM", "raw_feasible_utility")
-    similarity = "similarity_to_best_active" if "similarity_to_best_active" in ordered_systems else None
+    similarity = (
+        "similarity_to_best_active" if "similarity_to_best_active" in ordered_systems else None
+    )
     rules = "rules_only" if "rules_only" in ordered_systems else None
     key_specs = [
         ("oracle_minus_best_qsar", oracle, best_qsar),
@@ -348,7 +360,7 @@ def _write_paired_bootstrap_tables(scores: pd.DataFrame, frame: pd.DataFrame, ou
     for comparison, system_a, system_b in key_specs:
         if system_a is None or system_b is None or system_a == system_b:
             continue
-        for metric in ["feasible_utility", "ndcg_at_k", "compliance_rate"]:
+        for metric in ["feasible_utility", "ndcg_at_k", "action_validity"]:
             row = _paired_metric_row(
                 scores,
                 labels,
@@ -394,6 +406,7 @@ def _write_card_level_diagnostics(scores: pd.DataFrame, frame: pd.DataFrame, out
         "metric_source",
         "feasible_utility",
         "ndcg_at_k",
+        "action_validity",
         "compliance_rate",
         "constrained_regret",
         "oracle_utility",
@@ -413,8 +426,12 @@ def _write_card_level_diagnostics(scores: pd.DataFrame, frame: pd.DataFrame, out
         "best_qsar_minus_similarity",
     ]
     if scores.empty or frame.empty:
-        pd.DataFrame(columns=key_columns).to_csv(out_dir / "card_level_key_systems.csv", index=False)
-        pd.DataFrame(columns=diagnostic_columns).to_csv(out_dir / "card_level_diagnostics.csv", index=False)
+        pd.DataFrame(columns=key_columns).to_csv(
+            out_dir / "card_level_key_systems.csv", index=False
+        )
+        pd.DataFrame(columns=diagnostic_columns).to_csv(
+            out_dir / "card_level_diagnostics.csv", index=False
+        )
         return
 
     labelled_scores = _add_score_labels(scores, frame)
@@ -437,6 +454,7 @@ def _write_card_level_diagnostics(scores: pd.DataFrame, frame: pd.DataFrame, out
                     "metric_source": source,
                     "feasible_utility": feasible_utility,
                     "ndcg_at_k": _score_value(row, "ndcg_at_k", source),
+                    "action_validity": _score_value(row, "action_validity", source),
                     "compliance_rate": _score_value(row, "compliance_rate", source),
                     "constrained_regret": row.get("oracle_utility") - float(feasible_utility),
                     "oracle_utility": row.get("oracle_utility"),
@@ -446,7 +464,9 @@ def _write_card_level_diagnostics(scores: pd.DataFrame, frame: pd.DataFrame, out
     key_frame.to_csv(out_dir / "card_level_key_systems.csv", index=False)
 
     if key_frame.empty:
-        pd.DataFrame(columns=diagnostic_columns).to_csv(out_dir / "card_level_diagnostics.csv", index=False)
+        pd.DataFrame(columns=diagnostic_columns).to_csv(
+            out_dir / "card_level_diagnostics.csv", index=False
+        )
         return
     pivot = key_frame.pivot_table(
         index="task_id",
@@ -465,8 +485,12 @@ def _write_card_level_diagnostics(scores: pd.DataFrame, frame: pd.DataFrame, out
         "Rules-only baseline": "rules_utility",
     }
     for series, column in series_to_column.items():
-        diagnostics[column] = diagnostics["task_id"].map(pivot[series]) if series in pivot else np.nan
-    diagnostics["oracle_minus_best_qsar"] = diagnostics["oracle_utility"] - diagnostics["best_qsar_utility"]
+        diagnostics[column] = (
+            diagnostics["task_id"].map(pivot[series]) if series in pivot else np.nan
+        )
+    diagnostics["oracle_minus_best_qsar"] = (
+        diagnostics["oracle_utility"] - diagnostics["best_qsar_utility"]
+    )
     diagnostics["best_qsar_minus_best_final_llm"] = (
         diagnostics["best_qsar_utility"] - diagnostics["best_final_llm_utility"]
     )
@@ -476,11 +500,15 @@ def _write_card_level_diagnostics(scores: pd.DataFrame, frame: pd.DataFrame, out
     diagnostics["best_final_llm_minus_similarity"] = (
         diagnostics["best_final_llm_utility"] - diagnostics["similarity_utility"]
     )
-    diagnostics["best_qsar_minus_similarity"] = diagnostics["best_qsar_utility"] - diagnostics["similarity_utility"]
+    diagnostics["best_qsar_minus_similarity"] = (
+        diagnostics["best_qsar_utility"] - diagnostics["similarity_utility"]
+    )
     diagnostics[diagnostic_columns].to_csv(out_dir / "card_level_diagnostics.csv", index=False)
 
 
-def _write_failure_taxonomy_tables(taxonomy: pd.DataFrame, frame: pd.DataFrame, out_dir: Path) -> None:
+def _write_failure_taxonomy_tables(
+    taxonomy: pd.DataFrame, frame: pd.DataFrame, out_dir: Path
+) -> None:
     summary_columns = [
         "system_name",
         "display_label",
@@ -502,8 +530,12 @@ def _write_failure_taxonomy_tables(taxonomy: pd.DataFrame, frame: pd.DataFrame, 
         "total_issue_count",
     ]
     if taxonomy.empty or frame.empty:
-        pd.DataFrame(columns=summary_columns).to_csv(out_dir / "failure_taxonomy_summary.csv", index=False)
-        pd.DataFrame(columns=group_columns).to_csv(out_dir / "failure_taxonomy_by_group.csv", index=False)
+        pd.DataFrame(columns=summary_columns).to_csv(
+            out_dir / "failure_taxonomy_summary.csv", index=False
+        )
+        pd.DataFrame(columns=group_columns).to_csv(
+            out_dir / "failure_taxonomy_by_group.csv", index=False
+        )
         return
     labels = _system_label_maps(frame)
     working = taxonomy.copy()
@@ -527,7 +559,9 @@ def _write_failure_taxonomy_tables(taxonomy: pd.DataFrame, frame: pd.DataFrame, 
             {
                 "system_name": system_name,
                 "display_label": labels.get(str(system_name), {}).get("display_label", system_name),
-                "system_group": labels.get(str(system_name), {}).get("system_group", _system_group(str(system_name))),
+                "system_group": labels.get(str(system_name), {}).get(
+                    "system_group", _system_group(str(system_name))
+                ),
                 "failure_type": failure_type,
                 "num_cards": num_cards,
                 "cards_with_type": int(cards_with_type),
@@ -570,21 +604,30 @@ def make_frontier_plot(comparison_csv: Path, out_dir: Path) -> Path:
     frame = pd.read_csv(comparison_csv)
     out_dir.mkdir(parents=True, exist_ok=True)
     fig, ax = plt.subplots(figsize=(7, 5))
+    validity_metric = "action_validity" if "action_validity" in frame.columns else "compliance_rate"
     if not frame.empty:
         frame = _add_display_columns(frame)
         label_column = "display_label" if "display_label" in frame.columns else "system_name"
-        ax.scatter(frame["compliance_rate"], frame["feasible_utility"], s=70)
+        ax.scatter(frame[validity_metric], frame["feasible_utility"], s=70)
         for _, row in frame.iterrows():
             ax.annotate(
                 str(row.get(label_column, row.get("system_name", ""))),
-                (float(row["compliance_rate"]), float(row["feasible_utility"])),
+                (float(row[validity_metric]), float(row["feasible_utility"])),
                 xytext=(5, 4),
                 textcoords="offset points",
                 fontsize=8,
             )
-    ax.set_xlabel("Compliance rate")
+    ax.set_xlabel(
+        "Whole-action validity rate"
+        if validity_metric == "action_validity"
+        else "Valid-selection fraction (legacy summaries)"
+    )
     ax.set_ylabel("Feasible utility")
-    ax.set_title("Compliance-Utility Frontier")
+    ax.set_title(
+        "Action Quality: Utility by Whole-Action Validity"
+        if validity_metric == "action_validity"
+        else "Action Quality: Utility by Valid-Selection Fraction"
+    )
     ax.set_xlim(-0.02, 1.02)
     ax.grid(True, alpha=0.3)
     fig.tight_layout()
@@ -634,7 +677,11 @@ def _make_card_level_plots(table_dir: Path, out_dir: Path) -> list[Path]:
             for series in available_series
         ]
         fig, ax = plt.subplots(figsize=(8.5, 5.5))
-        ax.boxplot(plot_data, tick_labels=[_wrap_tick(series) for series in available_series], showfliers=False)
+        ax.boxplot(
+            plot_data,
+            tick_labels=[_wrap_tick(series) for series in available_series],
+            showfliers=False,
+        )
         ax.axhline(100, color="#64717f", linewidth=1, linestyle="--", alpha=0.75)
         ax.set_ylabel("Utility (% of oracle valid top-k)")
         ax.set_title("Card-Level Utility Distribution (Oracle-Normalized)")
@@ -653,10 +700,14 @@ def _make_card_level_plots(table_dir: Path, out_dir: Path) -> list[Path]:
         "best_qsar_minus_similarity",
     ]
     available_deltas = [
-        column for column in delta_columns if column in diagnostics.columns and diagnostics[column].notna().any()
+        column
+        for column in delta_columns
+        if column in diagnostics.columns and diagnostics[column].notna().any()
     ]
     if available_deltas:
-        plot_data = [diagnostics[column].dropna().astype(float).to_numpy() for column in available_deltas]
+        plot_data = [
+            diagnostics[column].dropna().astype(float).to_numpy() for column in available_deltas
+        ]
         fig, ax = plt.subplots(figsize=(8.5, 5.5))
         ax.boxplot(
             plot_data,
@@ -683,7 +734,13 @@ def _make_card_level_plots(table_dir: Path, out_dir: Path) -> list[Path]:
             ax.scatter(scatter["best_qsar_utility"], scatter["best_final_llm_utility"], alpha=0.75)
             axis_min = float(min(scatter.min()))
             axis_max = float(max(scatter.max()))
-            ax.plot([axis_min, axis_max], [axis_min, axis_max], color="#64717f", linestyle="--", linewidth=1)
+            ax.plot(
+                [axis_min, axis_max],
+                [axis_min, axis_max],
+                color="#64717f",
+                linestyle="--",
+                linewidth=1,
+            )
             ax.set_xlabel("Best QSAR feasible utility")
             ax.set_ylabel("Best final LLM feasible utility")
             ax.set_title("Per-Card QSAR Versus LLM Utility")
@@ -752,23 +809,41 @@ SYSTEM_DESCRIPTIONS = {
 
 
 CONDITION_METADATA = {
+    "openai_gpt_5_5_2026_04_23_selector": {
+        "provider": "openai",
+        "model": "gpt-5.5-2026-04-23",
+        "profile": "low reasoning, direct JSON",
+        "description": "Release-candidate direct-JSON condition pinned to the GPT-5.5 snapshot dated 2026-04-23.",
+    },
+    "anthropic_opus_4_8_selector": {
+        "provider": "anthropic",
+        "model": "claude-opus-4-8",
+        "profile": "no extended thinking, direct JSON",
+        "description": "Release-candidate Claude Opus 4.8 direct-JSON condition without an extended-thinking budget.",
+    },
+    "deepseek_v4_pro_2026_07_16_selector": {
+        "provider": "deepseek",
+        "model": "deepseek-v4-pro",
+        "profile": "thinking off, direct JSON",
+        "description": "Release-candidate direct-JSON condition using the DeepSeek V4 Pro alias as checked on 2026-07-16; traces preserve the provider-returned model identifier.",
+    },
     "openai_frontier_selector": {
         "provider": "openai",
         "model": "gpt-5.5",
-        "profile": "low reasoning, Direct JSON",
-        "description": "Direct JSON prompt profile. OpenAI minimal reasoning was rejected in preflight, so this condition uses the predefined low-reasoning fallback.",
+        "profile": "historical low-reasoning direct-JSON condition",
+        "description": "Historical condition retained so earlier result artifacts remain readable; it used the unpinned GPT-5.5 alias.",
     },
     "anthropic_frontier_selector": {
         "provider": "anthropic",
         "model": "claude-opus-4-7",
-        "profile": "no extended thinking, Direct JSON",
-        "description": "Direct JSON prompt profile without Anthropic extended thinking.",
+        "profile": "historical direct-JSON condition",
+        "description": "Historical condition retained so earlier result artifacts remain readable; it used Claude Opus 4.7 without extended thinking.",
     },
     "deepseek_frontier_selector": {
         "provider": "deepseek",
         "model": "deepseek-v4-pro",
-        "profile": "thinking off, Direct JSON",
-        "description": "Direct JSON prompt profile with DeepSeek thinking disabled.",
+        "profile": "historical direct-JSON condition",
+        "description": "Historical condition retained so earlier result artifacts remain readable; it used the DeepSeek V4 Pro alias with thinking disabled.",
     },
     "openai_frontier": {
         "provider": "openai",
@@ -810,31 +885,33 @@ CONDITION_METADATA = {
         "provider": "openai",
         "model": "gpt-5.5",
         "profile": "low reasoning, long output budget pilot, Direct JSON",
-        "description": "Pilot-only reasoning-budget condition, not part of the consolidated LO result.",
+        "description": "Historical pilot-only reasoning-budget condition retained for earlier artifacts.",
     },
     "anthropic_frontier_thinking_8k": {
         "provider": "anthropic",
         "model": "claude-opus-4-7",
         "profile": "8k extended thinking budget pilot, Direct JSON",
-        "description": "Pilot-only extended-thinking condition, not part of the consolidated LO result.",
+        "description": "Historical pilot-only extended-thinking condition retained for earlier artifacts.",
     },
     "deepseek_frontier_thinking_32k": {
         "provider": "deepseek",
         "model": "deepseek-v4-pro",
         "profile": "thinking on, long output budget pilot, Direct JSON",
-        "description": "Pilot-only thinking-budget condition, not part of the consolidated LO result.",
+        "description": "Historical pilot-only thinking-budget condition retained for earlier artifacts.",
     },
 }
 
 
 METRIC_DESCRIPTIONS = {
-    "feasible_utility": "Final utility after any validator repair. It sums hidden activity for selected candidates that satisfy hard constraints. For paper-50, k=10, so utility 70 roughly means ten valid selections averaging 7.0 pIC50/pChEMBL. Higher is better.",
-    "raw_feasible_utility": "Utility before validator repair. This is the closer measure of raw LLM behavior. For paper-50, k=10, so raw utility 70 roughly means ten valid raw selections averaging 7.0 pIC50/pChEMBL. Higher is better.",
+    "feasible_utility": "Final action utility after any deterministic repair. It sums hidden activity for selected candidates that satisfy the action contract and hard constraints. Higher is better.",
+    "raw_feasible_utility": "Action utility before deterministic repair. This is the closer measure of raw LLM behavior. Higher is better.",
     "ndcg_at_k": "Final ranking quality using hidden activity as graded relevance. 1.0 is ideal.",
     "raw_ndcg_at_k": "NDCG before validator repair.",
     "constrained_regret": "Oracle valid top-k utility minus observed feasible utility. Lower is better.",
-    "compliance_rate": "Fraction of requested selections that are valid after final repair, if repair applies.",
-    "raw_compliance_rate": "Fraction of requested selections that are valid before validator repair.",
+    "action_validity": "Whole-action validity after final repair, if repair applies: 1 only when the complete output has zero validation issues, otherwise 0. Run summaries report the fraction of cards with fully valid actions.",
+    "raw_action_validity": "Whole-action validity before validator repair: 1 only when the complete raw output has zero validation issues, otherwise 0.",
+    "compliance_rate": "Valid-selection fraction after final repair, if repair applies: the number of valid selected entries divided by requested budget k. This can be 1.0 even when the whole action is invalid for another reason, such as a task-ID mismatch.",
+    "raw_compliance_rate": "Valid-selection fraction before validator repair. This is not whole-action validity.",
     "schema_error_rate": "Fraction of cards with final output schema or contract errors.",
     "raw_schema_error_rate": "Fraction of cards with raw output schema or contract errors.",
     "repaired_rate": "Fraction of cards where the final validator changed the raw model output.",
@@ -843,18 +920,30 @@ METRIC_DESCRIPTIONS = {
 
 
 METRIC_EXAMPLES = {
-    "feasible_utility": "Example: k=10 and the final valid selections have hidden activities that sum to 70.0. That is an average selected activity of 7.0 pIC50/pChEMBL. Invalid or missing slots contribute 0.",
+    "feasible_utility": "For valid selected activities a_i, feasible_utility = sum(a_i). Invalid or missing slots contribute 0; when all k slots are valid, feasible_utility / k is the mean selected activity.",
     "raw_feasible_utility": "Same calculation as feasible_utility, but applied to the model's raw output before deterministic validator repair.",
     "ndcg_at_k": "Example: the best possible valid ranking has DCG=18.0 and the system ranking has DCG=14.4. NDCG@k = 14.4 / 18.0 = 0.80.",
     "raw_ndcg_at_k": "Same NDCG@k calculation, but on the raw model output before validator repair.",
     "constrained_regret": "Example: the hidden-activity oracle can reach 90.0 feasible utility and a system reaches 76.0. constrained_regret = 90.0 - 76.0 = 14.0.",
-    "compliance_rate": "Example: budget k=10 and 9 final selections are valid candidate IDs satisfying all hard constraints. compliance_rate = 9 / 10 = 0.90.",
-    "raw_compliance_rate": "Same compliance calculation, but on the raw model output before validator repair.",
+    "action_validity": "action_validity = 1 when the final output has zero validation issues; otherwise 0. The run summary is the mean over cards.",
+    "raw_action_validity": "Same zero-issue whole-action check, but on the raw model output before validator repair.",
+    "compliance_rate": "compliance_rate = valid selected candidate IDs satisfying all hard constraints / budget k. It measures slot-level selection compliance, not whether the complete action is valid.",
+    "raw_compliance_rate": "Same valid-selection fraction, but on the raw model output before validator repair.",
     "schema_error_rate": "Example: if a card has a malformed final output, wrong k, or missing candidate IDs, schema_error_rate=1 for that card; otherwise 0. Run summaries average this over cards.",
     "raw_schema_error_rate": "Same schema/contract error calculation, but before validator repair.",
-    "repaired_rate": "Example: if validator repair changed 12 out of 50 raw card outputs, repaired_rate = 12 / 50 = 0.24.",
-    "repaired_from_empty_rate": "Example: if 2 out of 50 cards had an empty raw selection list that was filled by repair, repaired_from_empty_rate = 2 / 50 = 0.04.",
+    "repaired_rate": "If repair changes r of n raw card outputs, repaired_rate = r / n.",
+    "repaired_from_empty_rate": "If repair fills an empty raw selection on e of n cards, repaired_from_empty_rate = e / n.",
 }
+
+
+def _report_generated_at(value: datetime | str | None) -> str:
+    if value is None:
+        return datetime.now(timezone.utc).isoformat()
+    if isinstance(value, datetime):
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        return value.isoformat()
+    return value
 
 
 def _attr(value: object) -> str:
@@ -964,11 +1053,16 @@ def _add_display_columns(frame: pd.DataFrame) -> pd.DataFrame:
     if frame.empty or "system_name" not in frame.columns:
         return frame
     enriched = frame.copy()
-    enriched["system_group"] = [str(_system_group(str(row.get("system_name", "")))) for _, row in enriched.iterrows()]
-    enriched["display_label"] = [_system_display_label_from_row(row) for _, row in enriched.iterrows()]
+    enriched["system_group"] = [
+        str(_system_group(str(row.get("system_name", "")))) for _, row in enriched.iterrows()
+    ]
+    enriched["display_label"] = [
+        _system_display_label_from_row(row) for _, row in enriched.iterrows()
+    ]
     enriched["condition_label"] = [_condition_label_from_row(row) for _, row in enriched.iterrows()]
     enriched["condition_description"] = [
-        _condition_description(_condition_name(str(row.get("system_name", "")))) for _, row in enriched.iterrows()
+        _condition_description(_condition_name(str(row.get("system_name", ""))))
+        for _, row in enriched.iterrows()
     ]
     return enriched
 
@@ -991,6 +1085,8 @@ def _dashboard_rows(frame: pd.DataFrame) -> list[dict[str, object]]:
         "ndcg_at_k",
         "raw_ndcg_at_k",
         "constrained_regret",
+        "action_validity",
+        "raw_action_validity",
         "compliance_rate",
         "raw_compliance_rate",
         "schema_error_rate",
@@ -1034,7 +1130,9 @@ def write_results_dashboard(
     comparison_csv: Path,
     out_dir: Path,
     *,
-    title: str = "SpecGuard-Chem v2 Results Dashboard",
+    title: str = "SpecGuard-Chem Action-Quality Results Dashboard",
+    generated_at: datetime | str | None = None,
+    source_path: str | Path | None = None,
 ) -> Path:
     frame = pd.read_csv(comparison_csv)
     if not frame.empty and "system_name" in frame.columns:
@@ -1045,7 +1143,8 @@ def write_results_dashboard(
     card_key_rows = _optional_csv_records(table_dir / "card_level_key_systems.csv")
     card_diagnostic_rows = _optional_csv_records(table_dir / "card_level_diagnostics.csv")
     failure_rows = _optional_csv_records(table_dir / "failure_taxonomy_summary.csv")
-    generated_at = datetime.now(timezone.utc).isoformat()
+    generated_at_text = _report_generated_at(generated_at)
+    source_display_path = str(source_path if source_path is not None else comparison_csv)
     out_dir.mkdir(parents=True, exist_ok=True)
     output = out_dir / "RESULTS_DASHBOARD.html"
     plotly_js = get_plotlyjs()
@@ -1056,8 +1155,8 @@ def write_results_dashboard(
     )
     decision_cards_term = _term(
         "1. Decision cards",
-        "One benchmark instance: support compounds, candidate pool, hard constraints, budget k, and hidden scorer-only activity values.",
-        example='{\n  "task_id": "CARA_LO_assay_0001",\n  "budget_k": 10,\n  "support_set": [{"id": "S001", "smiles": "...", "pIC50": 6.4}],\n  "candidate_pool": [{"id": "C017", "mw": 412.2, "clogp": 3.1}],\n  "hard_constraints": ["MW <= 500", "cLogP <= 4.5", "no support compounds"]\n}',
+        "One system-visible benchmark instance: assay semantics, support evidence, candidate pool, hard constraints, and budget k. Hidden candidate outcomes live in a separate scorer artifact.",
+        example='{\n  "task_id": "CARA_LO_assay_0001",\n  "assay_context": {"activity_scale": "pChEMBL", "activity_direction": "higher_is_better"},\n  "budget_k": 10,\n  "support_set": [{"id": "S001", "smiles": "...", "activity_value": 6.4, "activity_type": "pChEMBL"}],\n  "candidate_pool": [{"id": "C017", "mw": 412.2, "clogp": 3.1}],\n  "hard_constraints": ["MW <= 500", "cLogP <= 4.5", "no support compounds"]\n}',
     )
     system_output_term = _term(
         "2. System output",
@@ -1076,8 +1175,8 @@ def write_results_dashboard(
     )
     scoring_term = _term(
         "5. Scoring",
-        "Computes utility, ranking quality, compliance, regret, repair rates, and comparison tables from the final output and raw output where available.",
-        example="feasible_utility = sum(hidden activity for valid selected IDs)\ncompliance_rate = valid_selected_count / budget_k\nconstrained_regret = oracle_valid_topk_utility - feasible_utility",
+        "Computes utility, ranking quality, whole-action validity, valid-selection fraction, regret, repair rates, and comparison tables from the final output and raw output where available.",
+        example="feasible_utility = sum(hidden activity for valid selected IDs)\naction_validity = 1 if validation issues are empty else 0\ncompliance_rate = valid_selected_count / budget_k",
     )
     table_terms = {
         "feasible_utility": _term(
@@ -1098,14 +1197,26 @@ def write_results_dashboard(
             example=METRIC_EXAMPLES["ndcg_at_k"],
             title="ndcg_at_k",
         ),
+        "action_validity": _term(
+            "Action validity",
+            METRIC_DESCRIPTIONS["action_validity"],
+            example=METRIC_EXAMPLES["action_validity"],
+            title="action_validity",
+        ),
+        "raw_action_validity": _term(
+            "Raw action validity",
+            METRIC_DESCRIPTIONS["raw_action_validity"],
+            example=METRIC_EXAMPLES["raw_action_validity"],
+            title="raw_action_validity",
+        ),
         "compliance_rate": _term(
-            "Compliance",
+            "Valid-selection fraction",
             METRIC_DESCRIPTIONS["compliance_rate"],
             example=METRIC_EXAMPLES["compliance_rate"],
             title="compliance_rate",
         ),
         "raw_compliance_rate": _term(
-            "Raw compliance",
+            "Raw valid-selection fraction",
             METRIC_DESCRIPTIONS["raw_compliance_rate"],
             example=METRIC_EXAMPLES["raw_compliance_rate"],
             title="raw_compliance_rate",
@@ -1190,15 +1301,15 @@ def write_results_dashboard(
     .flow-step {{ border: 1px solid var(--line); border-radius: 7px; padding: 10px; background: #fbfcfa; min-height: 86px; }}
     .flow-step strong {{ display: block; margin-bottom: 4px; }}
     .flow-step small {{ color: var(--muted); }}
-    .hypothesis-grid {{ display: grid; grid-template-columns: repeat(2, minmax(260px, 1fr)); gap: 12px; }}
-    .hypothesis {{
+    .question-grid {{ display: grid; grid-template-columns: repeat(2, minmax(260px, 1fr)); gap: 12px; }}
+    .question {{
       border: 1px solid var(--line);
       border-radius: 7px;
       background: #fbfcfa;
       padding: 12px;
     }}
-    .hypothesis-title {{ display: flex; align-items: start; justify-content: space-between; gap: 12px; margin-bottom: 6px; }}
-    .hypothesis-title strong {{ font-size: 14px; }}
+    .question-title {{ display: flex; align-items: start; justify-content: space-between; gap: 12px; margin-bottom: 6px; }}
+    .question-title strong {{ font-size: 14px; }}
     .status {{ border-radius: 999px; color: #fff; display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; white-space: nowrap; }}
     .status-supported {{ background: #0f766e; }}
     .status-partial {{ background: #a16207; }}
@@ -1290,7 +1401,7 @@ def write_results_dashboard(
     summary {{ cursor: pointer; font-weight: 600; }}
     code {{ background: #edf0ec; padding: 1px 4px; border-radius: 4px; }}
     @media (max-width: 980px) {{
-      .summary-grid, .plot-grid, .flow, .hypothesis-grid {{ grid-template-columns: 1fr; }}
+      .summary-grid, .plot-grid, .flow, .question-grid {{ grid-template-columns: 1fr; }}
       main {{ padding: 16px; }}
       header {{ padding: 22px 18px 14px; }}
     }}
@@ -1299,14 +1410,14 @@ def write_results_dashboard(
 <body>
   <header>
     <h1>{escape(title)}</h1>
-    <div class="subtle">Generated at <code>{escape(generated_at)}</code> from <code>{escape(str(comparison_csv))}</code></div>
+    <div class="subtle">Generated at <code>{escape(generated_at_text)}</code> from <code>{escape(source_display_path)}</code></div>
   </header>
   <main>
     <section class="grid summary-grid" id="summaryCards"></section>
     <section class="definition-strip" aria-label="Key metric definitions">
       {table_terms["feasible_utility"]}
       {table_terms["ndcg_at_k"]}
-      {table_terms["compliance_rate"]}
+      {table_terms["action_validity"]}
       {table_terms["raw_feasible_utility"]}
     </section>
 
@@ -1317,14 +1428,14 @@ def write_results_dashboard(
         <div class="flow-step"><strong>{system_output_term}</strong><small>Baselines or LLMs return ranked candidate IDs.</small></div>
         <div class="flow-step"><strong>{raw_audit_term}</strong><small>Raw LLM selections are scored before repair where available.</small></div>
         <div class="flow-step"><strong>{validator_term}</strong><small>Deterministic schema, ID, duplicate, support-exclusion, and RDKit/property checks.</small></div>
-        <div class="flow-step"><strong>{scoring_term}</strong><small>Utility, compliance, regret, repair rate, and frontier plots.</small></div>
+        <div class="flow-step"><strong>{scoring_term}</strong><small>Utility, whole-action validity, valid-selection fraction, regret, and repair.</small></div>
       </div>
     </section>
 
     <section class="panel" style="margin-top:16px">
-      <h2>Original Hypotheses and Evidence</h2>
-      <p class="subtle">This panel links the completed comparison table back to the project brief. It is descriptive, not a replacement for statistical analysis in the manuscript.</p>
-      <div id="hypotheses" class="hypothesis-grid"></div>
+      <h2>Research Questions and Observed Evidence</h2>
+      <p class="subtle">Action utility is the primary scientific outcome. Validity and repair are reported separately so a well-formed but weak shortlist is not mistaken for a useful one. This panel is descriptive, not a replacement for statistical analysis.</p>
+      <div id="researchQuestions" class="question-grid"></div>
     </section>
 
     <section class="grid plot-grid" style="margin-top:16px" id="pairedBootstrapSection">
@@ -1401,7 +1512,7 @@ def write_results_dashboard(
 
     <section class="grid plot-grid" style="margin-top:16px">
       <div class="panel">
-        <h2><span class="term" tabindex="0" data-tooltip="Scatter plot separating specification compliance on the x-axis from medicinal-chemistry decision utility on the y-axis.">Compliance-Utility Frontier</span></h2>
+        <h2><span class="term" tabindex="0" data-tooltip="Action utility is the primary outcome on the y-axis; contract validity is a separately visible diagnostic on the x-axis.">Action-Quality Profile</span></h2>
         <div class="controls">
           <label>{_term("Y metric", "Metric plotted on the vertical axis. Hover the selected metric chip below for the calculation.")}
             <select id="yMetric">
@@ -1413,13 +1524,15 @@ def write_results_dashboard(
           </label>
           <label>{_term("X metric", "Metric plotted on the horizontal axis. Hover the selected metric chip below for the calculation.")}
             <select id="xMetric">
-              <option value="compliance_rate">Final compliance</option>
-              <option value="raw_compliance_rate">Raw compliance</option>
+              <option value="action_validity">Final whole-action validity</option>
+              <option value="raw_action_validity">Raw whole-action validity</option>
+              <option value="compliance_rate">Final valid-selection fraction</option>
+              <option value="raw_compliance_rate">Raw valid-selection fraction</option>
               <option value="schema_error_rate">Final schema error</option>
               <option value="raw_schema_error_rate">Raw schema error</option>
             </select>
           </label>
-          <label>{_term("X scale", "How the x-axis is transformed. Log gap to 1.0 expands values clustered near perfect compliance; log value expands small error rates.")}
+          <label>{_term("X scale", "How the x-axis is transformed. Log gap to 1.0 expands rate values clustered near 1.0; log value expands small error rates.")}
             <select id="xScale">
               <option value="auto" selected>Auto log for clustered rates</option>
               <option value="linear">Linear</option>
@@ -1488,6 +1601,8 @@ def write_results_dashboard(
               <th>{table_terms["feasible_utility"]}</th>
               <th>{table_terms["raw_feasible_utility"]}</th>
               <th>{table_terms["ndcg_at_k"]}</th>
+              <th>{table_terms["action_validity"]}</th>
+              <th>{table_terms["raw_action_validity"]}</th>
               <th>{table_terms["compliance_rate"]}</th>
               <th>{table_terms["raw_compliance_rate"]}</th>
               <th>{table_terms["repaired_rate"]}</th>
@@ -1562,64 +1677,80 @@ def write_results_dashboard(
       return {{min: Math.min(...values), max: Math.max(...values)}};
     }}
 
-    function renderHypotheses() {{
+    function renderResearchQuestions() {{
+      const oracle = bestRow("feasible_utility", row => row.group === "Oracle");
+      const bestPrimary = bestRow("feasible_utility", row => row.group !== "Oracle");
       const bestQsar = bestRow("feasible_utility", row => row.group === "QSAR");
       const bestLlmFinal = bestRow("feasible_utility", row => row.group === "LLM");
       const bestRawLlm = bestRow("raw_feasible_utility", row => row.group === "LLM");
       const similarity = rowByName("similarity_to_best_active");
-      const bareOpenai = rowByName("bare_llm__openai_frontier_selector");
-      const toolsOpenai = rowByName("llm_tools__openai_frontier_selector");
-      const validatorOpenai = rowByName("llm_validator__openai_frontier_selector");
+      const representationPairs = rows
+        .filter(row => row.base_system === "bare_llm" && row.condition && row.feasible_utility !== null)
+        .map(bare => {{
+          const tools = rows.find(row => row.base_system === "llm_tools" && row.condition === bare.condition);
+          if (!tools || tools.feasible_utility === null) return null;
+          return {{
+            condition: bare.condition_label || bare.condition,
+            bare,
+            tools,
+            delta: tools.feasible_utility - bare.feasible_utility
+          }};
+        }})
+        .filter(Boolean)
+        .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
+      const largestRepresentationShift = representationPairs[0];
       const repairRows = rows
         .filter(row => row.raw_feasible_utility !== null && row.feasible_utility !== null)
         .map(row => ({{...row, delta: row.feasible_utility - row.raw_feasible_utility}}))
         .sort((a, b) => b.delta - a.delta);
       const biggestRepair = repairRows[0];
-      const perfectComplianceRange = metricRange("feasible_utility", row => row.group !== "Oracle" && row.compliance_rate !== null && row.compliance_rate >= 0.999);
-      const hypotheses = [
+      const perfectValidityRange = metricRange("feasible_utility", row => row.group !== "Oracle" && row.action_validity !== null && row.action_validity >= 0.999);
+      const questions = [
         {{
-          label: "H1",
-          status: "Supported",
+          label: "RQ1",
+          status: "Observed",
           statusClass: "status-supported",
-          title: "Validators raise compliance more reliably than utility.",
-          evidence: biggestRepair
-            ? `Largest observed raw-to-final ${{metricTerm("feasible_utility", "utility")}} shift is ${{escapeHtml(labelFor(biggestRepair))}}: +${{fmt(biggestRepair.delta)}} feasible utility, with ${{metricTerm("repaired_rate", "repaired_rate")}} ${{fmt(biggestRepair.repaired_rate)}}. These final scores are guarded-system behavior, not raw model behavior.`
-            : "Raw-to-final repair data were not available for this table."
+          title: "How much useful next-assay action quality is attainable?",
+          evidence: `Best primary action is ${{escapeHtml(labelFor(bestPrimary))}} at ${{fmt(bestPrimary?.feasible_utility)}} ${{metricTerm("feasible_utility", "feasible utility")}}; the hidden-outcome oracle reaches ${{fmt(oracle?.feasible_utility)}}. Their separation measures remaining prioritisation headroom.`
         }},
         {{
-          label: "H2",
-          status: "Supported",
+          label: "RQ2",
+          status: "Observed",
           statusClass: "status-supported",
-          title: "Simple QSAR and similarity baselines are competitive.",
-          evidence: `Best QSAR is ${{escapeHtml(labelFor(bestQsar))}} at ${{fmt(bestQsar?.feasible_utility)}} ${{metricTerm("feasible_utility", "feasible utility")}}; best LLM final is ${{escapeHtml(labelFor(bestLlmFinal))}} at ${{fmt(bestLlmFinal?.feasible_utility)}}; similarity-to-best-active is ${{fmt(similarity?.feasible_utility)}}.`
+          title: "How do LLM selectors compare with conventional prioritisation methods?",
+          evidence: `Best LLM final is ${{escapeHtml(labelFor(bestLlmFinal))}} at ${{fmt(bestLlmFinal?.feasible_utility)}} ${{metricTerm("feasible_utility", "feasible utility")}}; best QSAR is ${{escapeHtml(labelFor(bestQsar))}} at ${{fmt(bestQsar?.feasible_utility)}}; similarity-to-best-active is ${{fmt(similarity?.feasible_utility)}}.`
         }},
         {{
-          label: "H3",
-          status: "Partial",
+          label: "RQ3",
+          status: "Observed",
           statusClass: "status-partial",
-          title: "The best LLM system is likely hybrid, not a naked LLM.",
-          evidence: `For OpenAI direct JSON, bare LLM is ${{fmt(bareOpenai?.feasible_utility)}}, tools-only is ${{fmt(toolsOpenai?.feasible_utility)}}, and validator-assisted is ${{fmt(validatorOpenai?.feasible_utility)}} on ${{metricTerm("feasible_utility", "feasible utility")}}. Hybrid/guarded LLM rows improve on bare LLMs, but none beats the best QSAR baseline.`
+          title: "Does the candidate representation change LLM action quality?",
+          evidence: largestRepresentationShift
+            ? `The largest matched bare-versus-tool-summary shift is ${{escapeHtml(largestRepresentationShift.condition)}}: ${{fmt(largestRepresentationShift.delta)}} ${{metricTerm("feasible_utility", "feasible utility")}} (tools minus bare). All matched conditions should be inspected before drawing a representation-level conclusion.`
+            : "No matched bare-versus-tool-summary LLM conditions were available in this table."
         }},
         {{
-          label: "H4",
-          status: "Supported",
+          label: "RQ4",
+          status: "Diagnostic",
           statusClass: "status-supported",
-          title: "Compliance and utility are imperfectly correlated.",
-          evidence: perfectComplianceRange
-            ? `Among non-oracle rows with final ${{metricTerm("compliance_rate", "compliance")}} near 1.0, ${{metricTerm("feasible_utility", "feasible utility")}} ranges from ${{fmt(perfectComplianceRange.min)}} to ${{fmt(perfectComplianceRange.max)}}. Perfect compliance alone does not imply strong prioritisation utility.`
-            : "No near-perfect compliance rows were available."
+          title: "Can contract-valid actions still have weak scientific utility?",
+          evidence: perfectValidityRange
+            ? `Among non-oracle rows with final ${{metricTerm("action_validity", "whole-action validity")}} near 1.0, ${{metricTerm("feasible_utility", "feasible utility")}} ranges from ${{fmt(perfectValidityRange.min)}} to ${{fmt(perfectValidityRange.max)}}. Perfect validity alone does not imply strong prioritisation utility.`
+            : "No near-perfect whole-action-validity rows were available."
         }},
         {{
-          label: "Central contention",
-          status: "Caveat",
+          label: "Audit",
+          status: "Diagnostic",
           statusClass: "status-caveat",
-          title: "Compliance is not utility.",
-          evidence: `The current results support the audit framing: direct-JSON LLMs can become valid and useful, but best raw LLM ${{metricTerm("raw_feasible_utility", "utility")}} (${{fmt(bestRawLlm?.raw_feasible_utility)}}) remains below best QSAR ${{metricTerm("feasible_utility", "utility")}} (${{fmt(bestQsar?.feasible_utility)}}), and validator repair can materially change final scores.`
+          title: "How much does deterministic repair change the recorded action?",
+          evidence: biggestRepair
+            ? `Largest observed raw-to-final ${{metricTerm("feasible_utility", "utility")}} shift is ${{escapeHtml(labelFor(biggestRepair))}}: ${{fmt(biggestRepair.delta)}}. Best raw LLM utility is ${{fmt(bestRawLlm?.raw_feasible_utility)}}. Final repaired scores describe the guarded system, not the unaided model.`
+            : "Raw-to-final repair data were not available for this table."
         }}
       ];
-      document.getElementById("hypotheses").innerHTML = hypotheses.map(item => `
-        <article class="hypothesis">
-          <div class="hypothesis-title">
+      document.getElementById("researchQuestions").innerHTML = questions.map(item => `
+        <article class="question">
+          <div class="question-title">
             <strong>${{item.label}}: ${{item.title}}</strong>
             <span class="status ${{item.statusClass}}">${{item.status}}</span>
           </div>
@@ -1629,7 +1760,7 @@ def write_results_dashboard(
 
     function effectiveXScale(metric, requested) {{
       if (requested !== "auto") return requested;
-      if (metric.includes("compliance")) return "log_gap";
+      if (metric.includes("validity") || metric.includes("compliance")) return "log_gap";
       if (metric.includes("schema_error")) return "log_value";
       return "linear";
     }}
@@ -1663,6 +1794,7 @@ def write_results_dashboard(
       const mapping = {{
         feasible_utility: "raw_feasible_utility",
         ndcg_at_k: "raw_ndcg_at_k",
+        action_validity: "raw_action_validity",
         compliance_rate: "raw_compliance_rate",
         schema_error_rate: "raw_schema_error_rate"
       }};
@@ -1676,7 +1808,7 @@ def write_results_dashboard(
       const chips = [
         `<span class="metric-chip">Y: ${{metricCodeTerm(yMetric)}}</span>`,
         `<span class="metric-chip">X: ${{metricCodeTerm(xMetric)}}</span>`,
-        `<span class="metric-chip">${{termHtml("scale: " + xMode, "The selected x-axis transform. log_gap plots -log10(1 - value), which spreads values clustered close to 1.0. log_value plots log10(value), which spreads small error rates.", "linear: value is unchanged\\nlog_gap: compliance 0.99 becomes 2.0 because -log10(0.01)=2\\nlog_value: schema error 0.01 becomes -2.0 because log10(0.01)=-2")}}</span>`,
+        `<span class="metric-chip">${{termHtml("scale: " + xMode, "The selected x-axis transform. log_gap plots -log10(1 - value), which spreads rate values clustered close to 1.0. log_value plots log10(value), which spreads small error rates.", "linear: value is unchanged\\nlog_gap: a rate of 0.99 becomes 2.0 because -log10(0.01)=2\\nlog_value: schema error 0.01 becomes -2.0 because log10(0.01)=-2")}}</span>`,
       ];
       document.getElementById("selectedMetricDefinitions").innerHTML = chips.join("");
     }}
@@ -1856,7 +1988,7 @@ def write_results_dashboard(
         }});
       }}
       const tickValues = xTickValues(xMetric, xMode);
-      const layout = plotlyLayout("Compliance versus utility", xAxisLabel(xMetric, xMode), yMetric, 500);
+      const layout = plotlyLayout("Action quality: validity and utility", xAxisLabel(xMetric, xMode), yMetric, 500);
       layout.xaxis.tickmode = "array";
       layout.xaxis.tickvals = tickValues.map(value => transformX(value, xMetric, xMode));
       layout.xaxis.ticktext = tickValues.map(value => xTickLabel(value, xMode));
@@ -1867,7 +1999,7 @@ def write_results_dashboard(
       }} else if (pointView === "both" && canShowRepair) {{
         note.textContent = "Open grey circles are raw LLM outputs. Dotted grey segments connect each raw point to that same system's final scored point.";
       }} else if (pointView === "both") {{
-        note.textContent = "Raw-to-final repair links require a final metric with a matching raw metric. Use final utility/compliance or final NDCG/compliance to inspect repair movement.";
+        note.textContent = "Raw-to-final repair links require a final metric with a matching raw metric. Use final utility or NDCG with whole-action validity or valid-selection fraction to inspect repair movement.";
       }} else {{
         note.textContent = "Showing final scored outputs. For validator rows, final points may include deterministic repair.";
       }}
@@ -1883,8 +2015,8 @@ def write_results_dashboard(
         x: plotRows.map(row => row.feasible_utility),
         y: plotRows.map(row => labelFor(row)),
         marker: {{color: plotRows.map(row => colors[row.group] || colors.Other)}},
-        customdata: plotRows.map(row => [wrapHoverText(row.description), row.ndcg_at_k, row.compliance_rate, wrapHoverText(labelFor(row), 44), wrapIdentifier(row.system_name)]),
-        hovertemplate: "<b>%{{customdata[3]}}</b><br>%{{customdata[0]}}<br>utility: %{{x:.3f}}<br>NDCG@k: %{{customdata[1]:.3f}}<br>compliance: %{{customdata[2]:.3f}}<br>raw run ID: %{{customdata[4]}}<extra></extra>"
+        customdata: plotRows.map(row => [wrapHoverText(row.description), row.ndcg_at_k, row.action_validity, row.compliance_rate, wrapHoverText(labelFor(row), 44), wrapIdentifier(row.system_name)]),
+        hovertemplate: "<b>%{{customdata[4]}}</b><br>%{{customdata[0]}}<br>utility: %{{x:.3f}}<br>NDCG@k: %{{customdata[1]:.3f}}<br>whole-action validity: %{{customdata[2]:.3f}}<br>valid-selection fraction: %{{customdata[3]:.3f}}<br>raw run ID: %{{customdata[5]}}<extra></extra>"
       }};
       const layout = plotlyLayout("Primary-system leaderboard", "feasible_utility", "", 560);
       layout.margin = {{l: 138, r: 24, t: 42, b: 52}};
@@ -1981,7 +2113,7 @@ def write_results_dashboard(
         Plotly.react("pairedBootstrapBars", [trace], layout, plotlyConfig);
       }}
       const tableRows = pairedRows
-        .filter(row => ["feasible_utility", "ndcg_at_k", "compliance_rate"].includes(row.metric))
+        .filter(row => ["feasible_utility", "ndcg_at_k", "action_validity"].includes(row.metric))
         .slice(0, 18);
       document.getElementById("pairedBootstrapRows").innerHTML = tableRows.map(row => `
         <tr>
@@ -2016,7 +2148,7 @@ def write_results_dashboard(
         absolute: {{
           title: "Per-card absolute feasible utility",
           yTitle: "sum of selected valid hidden activity",
-          note: "Audit view. Absolute utility is the sum of selected valid hidden activity values; with k=10, utility 70 means selected valid compounds averaged about 7.0 pIC50/pChEMBL. Different cards have different oracle ceilings, so cross-system boxplots can look misleading."
+          note: "Audit view. Absolute utility is the sum of selected valid hidden activity values; dividing by budget k gives the mean selected activity when every slot is valid. Different cards have different oracle ceilings, so cross-system boxplots can look misleading."
         }}
       }}[cardMode];
       const cardValue = row => {{
@@ -2187,6 +2319,8 @@ def write_results_dashboard(
           <td class="num">${{fmt(row.feasible_utility)}}</td>
           <td class="num">${{fmt(row.raw_feasible_utility)}}</td>
           <td class="num">${{fmt(row.ndcg_at_k)}}</td>
+          <td class="num">${{fmt(row.action_validity)}}</td>
+          <td class="num">${{fmt(row.raw_action_validity)}}</td>
           <td class="num">${{fmt(row.compliance_rate)}}</td>
           <td class="num">${{fmt(row.raw_compliance_rate)}}</td>
           <td class="num">${{fmt(row.repaired_rate)}}</td>
@@ -2279,7 +2413,7 @@ def write_results_dashboard(
     document.getElementById("groupFilter").addEventListener("change", renderTable);
     document.getElementById("searchBox").addEventListener("input", renderTable);
     renderSummary();
-    renderHypotheses();
+    renderResearchQuestions();
     renderScatter();
     renderLeaderboard();
     renderRepairBars();
@@ -2338,8 +2472,10 @@ def _results_glossary() -> list[str]:
         "- `ndcg_at_k`: ranking-quality score using hidden activity as graded relevance. Higher is better; `1.0` is ideal ranking.",
         "- `raw_ndcg_at_k`: NDCG before deterministic validator repair.",
         "- `constrained_regret`: oracle valid top-k utility minus observed feasible utility. Lower is better.",
-        "- `compliance_rate`: fraction of the requested `k` selections that are valid after final repair, if repair applies.",
-        "- `raw_compliance_rate`: compliance before deterministic validator repair.",
+        "- `action_validity`: whole-action validity after final repair, if repair applies; `1` only when the complete output has zero validation issues, otherwise `0`. The run summary is the fraction of fully valid actions.",
+        "- `raw_action_validity`: the same zero-issue whole-action check before deterministic validator repair.",
+        "- `compliance_rate`: valid-selection fraction after final repair: valid selected entries divided by requested `k`. It is not whole-action validity.",
+        "- `raw_compliance_rate`: valid-selection fraction before deterministic validator repair.",
         "- `schema_error_rate`: fraction of cards with final schema/contract errors.",
         "- `raw_schema_error_rate`: schema/contract error rate before deterministic validator repair.",
         "- `repaired_from_empty_rate`: fraction of cards where the validator repaired an empty raw selection list. This should be near zero for a usable LLM interface.",
@@ -2348,7 +2484,7 @@ def _results_glossary() -> list[str]:
         "",
         "- Raw metrics describe model behavior; final metrics for `*_validator` rows describe model plus deterministic guardrail behavior.",
         "- Oracle controls are sanity checks, not systems that could be used prospectively.",
-        "- A row can be highly compliant but still have weak utility; this distinction is the main object of the audit.",
+        "- Action utility is the primary scientific outcome. A row can have a high valid-selection fraction yet still be invalid as a whole or scientifically weak, so these diagnostics remain separate.",
     ]
 
 
@@ -2383,7 +2519,7 @@ def _optional_paired_bootstrap_section(table_dir: Path) -> list[str]:
     frame = pd.read_csv(path)
     if frame.empty:
         return []
-    metrics = {"feasible_utility", "ndcg_at_k", "compliance_rate"}
+    metrics = {"feasible_utility", "ndcg_at_k", "action_validity"}
     subset = frame[frame["metric"].isin(metrics)].copy()
     if subset.empty:
         return []
@@ -2442,7 +2578,14 @@ def _optional_failure_taxonomy_section(table_dir: Path) -> list[str]:
     ]
 
 
-def write_results_summary(comparison_csv: Path, out_dir: Path, *, title: str = "SpecGuard-Chem v2 Results Summary") -> Path:
+def write_results_summary(
+    comparison_csv: Path,
+    out_dir: Path,
+    *,
+    title: str = "SpecGuard-Chem Action-Quality Results Summary",
+    generated_at: datetime | str | None = None,
+    source_path: str | Path | None = None,
+) -> Path:
     frame = pd.read_csv(comparison_csv)
     out_dir.mkdir(parents=True, exist_ok=True)
     if not frame.empty and "system_name" in frame.columns:
@@ -2458,7 +2601,12 @@ def write_results_summary(comparison_csv: Path, out_dir: Path, *, title: str = "
     best_qsar = _best_row(primary, "feasible_utility", group="QSAR")
     best_llm = _best_row(primary, "feasible_utility", group="LLM")
     best_raw_llm = _best_row(primary, "raw_feasible_utility", group="LLM")
-    best_similarity = primary[primary["system_name"] == "similarity_to_best_active"].iloc[0] if not primary.empty and (primary["system_name"] == "similarity_to_best_active").any() else None
+    best_primary = _best_row(primary, "feasible_utility")
+    best_similarity = (
+        primary[primary["system_name"] == "similarity_to_best_active"].iloc[0]
+        if not primary.empty and (primary["system_name"] == "similarity_to_best_active").any()
+        else None
+    )
     best_oracle = _best_row(oracle, "feasible_utility")
 
     columns = [
@@ -2473,50 +2621,57 @@ def write_results_summary(comparison_csv: Path, out_dir: Path, *, title: str = "
         "ndcg_at_k_ci_high",
         "raw_ndcg_at_k",
         "constrained_regret",
+        "action_validity",
+        "action_validity_ci_low",
+        "action_validity_ci_high",
+        "raw_action_validity",
         "compliance_rate",
         "raw_compliance_rate",
         "schema_error_rate",
         "raw_schema_error_rate",
         "repaired_from_empty_rate",
     ]
-    generated_at = datetime.now(timezone.utc).isoformat()
+    generated_at_text = _report_generated_at(generated_at)
+    source_display_path = Path(source_path) if source_path is not None else comparison_csv
+    display_table_dir = source_display_path.parent
     content = [
         f"# {title}",
         "",
-        f"Generated at: `{generated_at}`",
+        f"Generated at: `{generated_at_text}`",
         "",
-        f"Source comparison CSV: `{comparison_csv}`",
+        f"Source comparison CSV: `{source_display_path}`",
         "",
         "This report is a computational audit artifact. It ranks provided candidate IDs only and does not claim synthesis feasibility, safety, selectivity, clinical utility, or therapeutic value.",
         "",
-        "## Central Paper Argument",
+        "## Benchmark Question",
         "",
-        "SpecGuard-Chem evaluates constrained medicinal-chemistry decision systems on two axes at once. Activity utility alone can reward potent compounds that violate project specifications. Compliance alone can be enforced cheaply and may produce valid but weak recommendations. The paper question is whether a system can choose candidate IDs that are both valid under the written constraints and useful as next-assay priorities.",
+        "SpecGuard-Chem is an action-level unit test for constrained compound selection: can a system turn sparse project-local assay evidence into a useful, budget-constrained next-assay shortlist? Action utility is the primary scientific outcome. Contract validity is reported separately because a malformed action and a well-formed but scientifically weak action are different failures.",
         "",
-        "The LO paper-50 results therefore compare LLM systems against deterministic baselines and QSAR models rather than only against other LLMs. In this result set, the best deployable QSAR baseline is "
-        f"**{_row_label(best_qsar)}** with feasible utility `{_row_value(best_qsar, 'feasible_utility')}`, "
-        f"below the oracle upper bound `{_row_value(best_oracle, 'feasible_utility')}` but above the best final LLM row "
-        f"**{_row_label(best_llm)}** at `{_row_value(best_llm, 'feasible_utility')}` and the best raw LLM row "
+        "The comparison includes LLM selectors, deterministic baselines, conventional per-card QSAR models, and a hidden-outcome oracle control. The best primary system is "
+        f"**{_row_label(best_primary)}** with feasible utility `{_row_value(best_primary, 'feasible_utility')}`. "
+        f"The oracle upper bound is `{_row_value(best_oracle, 'feasible_utility')}`; the best final LLM row is "
+        f"**{_row_label(best_llm)}** at `{_row_value(best_llm, 'feasible_utility')}`, and the best raw LLM row is "
         f"**{_row_label(best_raw_llm)}** at raw feasible utility `{_row_value(best_raw_llm, 'raw_feasible_utility')}`.",
         "",
         "## QSAR Baseline Interpretation",
         "",
         "QSAR means quantitative structure-activity relationship modelling. Here, each QSAR row is trained separately for each decision card using only the support compounds' Morgan fingerprints and measured support activity. The trained model predicts candidate activity, then ranks feasible candidate IDs. It does not use hidden candidate activity and is therefore a deployable non-language comparator, unlike the oracle control.",
         "",
-        "The fact that `qsar_rf`, `qsar_gbt`, and `qsar_svm` all beat random, rules-only, and similarity baselines in this run supports treating QSAR as a serious baseline. It does not make QSAR ground truth, a universal activity model, or a substitute for prospective medicinal-chemistry judgement.",
+        "QSAR is included as a serious non-language comparator, not as ground truth, a universal activity model, or a substitute for prospective medicinal-chemistry judgement. Its observed performance should be read directly from the table and paired card-level comparisons.",
         "",
-        "## Hypotheses And Contentions",
+        "## Research Questions",
         "",
-        "- H1, validators improve compliance more reliably than utility: supported as a reporting requirement. Final validator-assisted rows can be more compliant and sometimes more useful, but raw metrics show when the gain is harness repair rather than raw model behavior.",
-        f"- H2, simple QSAR and similarity baselines are competitive: supported. Best QSAR feasible utility is `{_row_value(best_qsar, 'feasible_utility')}`; similarity-to-best-active is `{_row_value(best_similarity, 'feasible_utility')}`; best final LLM is `{_row_value(best_llm, 'feasible_utility')}`.",
-        "- H3, the best useful system is likely hybrid: partially supported. Guarded/tool-summary LLM rows can improve over bare LLM rows, but this implementation is not yet the broader agent design where QSAR, RDKit, similarity retrieval, and other tools are actively available as callable tools.",
-        "- H4, compliance and utility are imperfectly correlated: supported. Near-perfect compliance appears in rows with materially different feasible utility, so compliance alone is not the target outcome.",
+        f"- RQ1, how much action quality is attainable? Best primary feasible utility is `{_row_value(best_primary, 'feasible_utility')}` versus the oracle `{_row_value(best_oracle, 'feasible_utility')}`.",
+        f"- RQ2, how do LLM selectors compare with conventional prioritisation methods? Best final LLM utility is `{_row_value(best_llm, 'feasible_utility')}`; best QSAR is `{_row_value(best_qsar, 'feasible_utility')}`; similarity-to-best-active is `{_row_value(best_similarity, 'feasible_utility')}`.",
+        "- RQ3, does adding computed tool-summary fields change LLM action quality? Use matched bare-versus-tool-summary conditions and paired card-level deltas; do not infer a representation effect from unmatched rows.",
+        "- RQ4, are action validity and action utility distinct? Report zero-issue whole-action validity alongside utility; use compliance only for the valid-selection fraction and do not treat either validity measure as the primary scientific outcome.",
+        "- Audit question, how much does deterministic repair change the action? Raw metrics describe model behavior; final repaired metrics describe the guarded system.",
         "",
         *_optional_paired_bootstrap_section(comparison_csv.parent),
         *_optional_failure_taxonomy_section(comparison_csv.parent),
         "## Card-Level Diagnostics",
         "",
-        f"Per-card diagnostic tables are written next to the comparison CSV in `{comparison_csv.parent}`. The matching figure directory contains card-level utility distributions, utility-delta distributions, and a QSAR-versus-LLM per-card scatter plot when `make-figures` is run.",
+        f"Per-card diagnostic tables are written next to the comparison CSV in `{display_table_dir}`. The matching figure directory contains card-level utility distributions, utility-delta distributions, and a QSAR-versus-LLM per-card scatter plot when `make-figures` is run.",
         "",
         "## Primary Systems",
         "",
@@ -2529,6 +2684,7 @@ def write_results_summary(comparison_csv: Path, out_dir: Path, *, title: str = "
         "- Higher feasible utility and NDCG@k are better.",
         "- Raw columns score the model output before deterministic validator repair.",
         "- Final columns score the selected output after validator repair where applicable.",
+        "- `action_validity` is the zero-issue whole-action rate; `compliance_rate` is only the valid-selection fraction and can remain 1.0 when another contract error invalidates the action.",
         "- Lower constrained regret and schema error rate are better.",
         "- Oracle controls are sanity checks and must not be mixed into primary system claims.",
         "",

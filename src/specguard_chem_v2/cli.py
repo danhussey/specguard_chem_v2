@@ -7,6 +7,7 @@ from typing import Optional
 import typer
 from rich.console import Console
 
+from .artifacts import load_evaluation_cards, select_card_by_task_id, sha256_file
 from .costing import (
     enforce_cost_limits,
     estimate_llm_matrix_cost,
@@ -16,7 +17,8 @@ from .costing import (
 from .data.cara import build_cards_from_jsonl, inspect_cara_layout, write_imported_records
 from .data.cara import download_cara as download_cara_data
 from .data.cara import summarize_cards as summarize_card_models
-from .io import load_models, write_json
+from .io import write_json
+from .posthoc import repair_llm_trace_file
 from .reports import (
     compare_run_summaries,
     make_frontier_plot,
@@ -51,6 +53,13 @@ def _expand_llm_systems(value: str) -> list[str]:
     return names
 
 
+def _select_cli_task(cards: list[DecisionCard], task_id: str | None) -> list[DecisionCard]:
+    try:
+        return select_card_by_task_id(cards, task_id)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc), param_hint="--task-id") from exc
+
+
 @app.command("list-systems")
 def list_systems() -> None:
     console.print("[bold]Deterministic systems[/bold]")
@@ -78,17 +87,23 @@ def download_cara(
 
 @app.command("import-cara")
 def import_cara(
-    raw_dir: Path = typer.Argument(..., help="Directory containing CARA files or downloaded archive."),
+    raw_dir: Path = typer.Argument(
+        ..., help="Directory containing CARA files or downloaded archive."
+    ),
     out: Path = typer.Option(Path("data/interim/cara_records.jsonl"), "--out", "-o"),
     split_name: str = typer.Option("LO_All", "--split-name", help="Official CARA split name."),
 ) -> None:
     records = write_imported_records(raw_dir, out, split_name=split_name)
-    console.print(f"Imported [green]{len(records)}[/green] normalized records to [green]{out}[/green]")
+    console.print(
+        f"Imported [green]{len(records)}[/green] normalized records to [green]{out}[/green]"
+    )
 
 
 @app.command("inspect-cara")
 def inspect_cara(
-    raw_dir: Path = typer.Argument(..., help="Directory containing CARA files or downloaded archive."),
+    raw_dir: Path = typer.Argument(
+        ..., help="Directory containing CARA files or downloaded archive."
+    ),
     out: Path = typer.Option(Path("data/interim/cara_layout.json"), "--out", "-o"),
 ) -> None:
     summary = inspect_cara_layout(raw_dir)
@@ -105,6 +120,9 @@ def build_cards(
     support_size: int = typer.Option(50, "--support-size"),
     constraints: Optional[Path] = typer.Option(None, "--constraints"),
     selection_policy: str = typer.Option("first", "--selection-policy"),
+    scorer_outcomes_out: Optional[Path] = typer.Option(None, "--scorer-outcomes-out"),
+    benchmark_version: Optional[str] = typer.Option(None, "--benchmark-version"),
+    data_version: Optional[str] = typer.Option(None, "--data-version"),
 ) -> None:
     cards = build_cards_from_jsonl(
         records,
@@ -114,6 +132,9 @@ def build_cards(
         support_size=support_size,
         constraints_path=constraints,
         selection_policy=selection_policy,
+        scorer_outcomes_out=scorer_outcomes_out,
+        benchmark_version=benchmark_version,
+        data_version=data_version,
     )
     console.print(f"Built [green]{len(cards)}[/green] decision cards at [green]{out}[/green]")
 
@@ -123,7 +144,7 @@ def summarize_cards(
     cards: Path = typer.Argument(..., help="Decision-card JSONL path."),
     out: Optional[Path] = typer.Option(None, "--out", "-o"),
 ) -> None:
-    loaded = load_models(cards, DecisionCard)
+    loaded = load_evaluation_cards(cards)
     summary = summarize_card_models(loaded)
     if out is not None:
         write_json(out, summary)
@@ -133,8 +154,11 @@ def summarize_cards(
 
 
 @app.command("validate-cards")
-def validate_cards(cards: Path = typer.Argument(..., help="Decision-card JSONL path.")) -> None:
-    loaded = load_models(cards, DecisionCard)
+def validate_cards(
+    cards: Path = typer.Argument(..., help="Decision-card JSONL path."),
+    scorer_outcomes: Optional[Path] = typer.Option(None, "--scorer-outcomes"),
+) -> None:
+    loaded = load_evaluation_cards(cards, scorer_outcomes)
     issues = []
     for card in loaded:
         for issue in validate_card_semantics(card):
@@ -158,6 +182,7 @@ def run_system(
     allow_external: bool = typer.Option(False, "--allow-external"),
     model: str = typer.Option("gpt-4.1-mini", "--model"),
     workers: int = typer.Option(1, "--workers", min=1, help="Card-level worker count."),
+    scorer_outcomes: Optional[Path] = typer.Option(None, "--scorer-outcomes"),
 ) -> None:
     records = run_system_file(
         cards,
@@ -168,6 +193,7 @@ def run_system(
         allow_external=allow_external,
         model=model,
         workers=workers,
+        scorer_outcomes_path=scorer_outcomes,
     )
     console.print(f"Ran [green]{system}[/green] on [green]{len(records)}[/green] cards -> {out}")
 
@@ -186,17 +212,29 @@ def run_suite(
     allow_external: bool = typer.Option(False, "--allow-external"),
     model: str = typer.Option("gpt-4.1-mini", "--model"),
     workers: int = typer.Option(1, "--workers", min=1, help="Card-level worker count."),
+    scorer_outcomes: Optional[Path] = typer.Option(None, "--scorer-outcomes"),
+    manifest_started_at: Optional[str] = typer.Option(
+        None,
+        "--manifest-started-at",
+        help="Explicit ISO-8601 run timestamp for reproducible archival manifests.",
+    ),
 ) -> None:
     names = _expand_systems(systems)
     manifest = {
+        "manifest_schema_version": "1.0.0",
         "cards": str(cards),
+        "cards_sha256": sha256_file(cards),
         "systems": names,
         "seed": seed,
         "allow_external": allow_external,
-        "model": model,
-        "started_at": datetime.now(timezone.utc).isoformat(),
+        "started_at": manifest_started_at or datetime.now(timezone.utc).isoformat(),
         "runs": [],
     }
+    if scorer_outcomes is not None:
+        manifest["scorer_outcomes"] = str(scorer_outcomes)
+        manifest["scorer_outcomes_sha256"] = sha256_file(scorer_outcomes)
+    if any(name in LLM_SYSTEMS for name in names):
+        manifest["model"] = model
     for name in names:
         run_path = out / name / "trace.jsonl"
         run_system_file(
@@ -208,10 +246,13 @@ def run_suite(
             allow_external=allow_external,
             model=model,
             workers=workers,
+            scorer_outcomes_path=scorer_outcomes,
         )
         scores_dir = out / name / "scores"
-        score_run(cards, run_path, scores_dir)
-        manifest["runs"].append({"system_name": name, "trace": str(run_path), "scores": str(scores_dir)})
+        score_run(cards, run_path, scores_dir, scorer_outcomes_path=scorer_outcomes)
+        manifest["runs"].append(
+            {"system_name": name, "trace": str(run_path), "scores": str(scores_dir)}
+        )
         console.print(f"Completed [green]{name}[/green]")
     write_json(out / "manifest.json", manifest)
     console.print(f"Suite manifest written to [green]{out / 'manifest.json'}[/green]")
@@ -221,21 +262,31 @@ def run_suite(
 def export_llm_requests(
     cards: Path = typer.Argument(..., help="Decision-card JSONL path."),
     systems: str = typer.Option(
-        "bare_llm,llm_validator,llm_tools,llm_tools_validator",
+        "bare_llm,llm_tools",
         "--systems",
         help="Comma-separated LLM system names.",
     ),
     out: Path = typer.Option(Path("runs/llm_requests.jsonl"), "--out", "-o"),
     model_matrix: Optional[Path] = typer.Option(None, "--model-matrix"),
     model_conditions: str = typer.Option("all", "--model-conditions"),
+    task_id: Optional[str] = typer.Option(
+        None,
+        "--task-id",
+        help="Export only the card with this exact task ID.",
+    ),
 ) -> None:
     from .io import write_jsonl
 
-    loaded = load_models(cards, DecisionCard)
+    loaded = _select_cli_task(load_evaluation_cards(cards), task_id)
     names = [name.strip() for name in systems.split(",") if name.strip()]
     configs = None
     if model_matrix is not None:
         configs = select_model_configs(load_model_matrix(model_matrix), model_conditions)
+    elif model_conditions != "all":
+        raise typer.BadParameter(
+            "--model-conditions requires --model-matrix",
+            param_hint="--model-conditions",
+        )
     rows = export_llm_request_rows(loaded, names, model_configs=configs)
     write_jsonl(out, rows)
     console.print(f"Exported [green]{len(rows)}[/green] LLM requests -> {out}")
@@ -245,7 +296,7 @@ def export_llm_requests(
 def estimate_llm_cost(
     cards: Path = typer.Argument(..., help="Decision-card JSONL path."),
     systems: str = typer.Option(
-        "bare_llm,llm_validator,llm_tools,llm_tools_validator",
+        "bare_llm,llm_tools",
         "--systems",
         help="Comma-separated LLM system names.",
     ),
@@ -260,8 +311,13 @@ def estimate_llm_cost(
     cache_dir: Optional[Path] = typer.Option(None, "--cache-dir"),
     out: Optional[Path] = typer.Option(None, "--out", "-o"),
     force: bool = typer.Option(False, "--force", help="Ignore completed traces when estimating."),
+    task_id: Optional[str] = typer.Option(
+        None,
+        "--task-id",
+        help="Estimate only the card with this exact task ID.",
+    ),
 ) -> None:
-    loaded = load_models(cards, DecisionCard)
+    loaded = _select_cli_task(load_evaluation_cards(cards), task_id)
     names = _expand_llm_systems(systems)
     configs = select_model_configs(load_model_matrix(model_matrix), model_conditions)
     effective_cache_dir = cache_dir or (out_run_dir / "cache")
@@ -297,7 +353,7 @@ def list_model_matrix(
 def run_llm_matrix(
     cards: Path = typer.Argument(..., help="Decision-card JSONL path."),
     systems: str = typer.Option(
-        "bare_llm,llm_validator,llm_tools,llm_tools_validator",
+        "bare_llm,llm_tools",
         "--systems",
         help="Comma-separated LLM system names.",
     ),
@@ -332,12 +388,20 @@ def run_llm_matrix(
         min=1,
         help="Abort if any missing live call is estimated above this input-token count.",
     ),
-    force: bool = typer.Option(False, "--force", help="Rerun completed traces instead of skipping."),
+    force: bool = typer.Option(
+        False, "--force", help="Rerun completed traces instead of skipping."
+    ),
+    scorer_outcomes: Optional[Path] = typer.Option(None, "--scorer-outcomes"),
+    task_id: Optional[str] = typer.Option(
+        None,
+        "--task-id",
+        help="Run only the card with this exact task ID.",
+    ),
 ) -> None:
     names = _expand_llm_systems(systems)
     configs = select_model_configs(load_model_matrix(model_matrix), model_conditions)
     effective_cache_dir = cache_dir or (out / "cache")
-    loaded_cards = load_models(cards, DecisionCard)
+    loaded_cards = _select_cli_task(load_evaluation_cards(cards), task_id)
     if allow_external and (
         require_cost_estimate
         or max_estimated_cost_usd is not None
@@ -372,18 +436,25 @@ def run_llm_matrix(
         "systems": names,
         "model_matrix": str(model_matrix),
         "model_conditions": [config.id for config in configs],
+        "cache_dir": str(effective_cache_dir),
         "seed": seed,
         "allow_external": allow_external,
         "started_at": datetime.now(timezone.utc).isoformat(),
         "runs": [],
     }
+    if task_id is not None:
+        manifest["task_id"] = task_id
     for config in configs:
         for system_name in names:
             run_label = f"{system_name}__{config.id}"
             run_path = out / config.id / system_name / "trace.jsonl"
             scores_dir = out / config.id / system_name / "scores"
             skipped_existing = False
-            if not force and trace_is_complete(run_path, len(loaded_cards)):
+            if not force and trace_is_complete(
+                run_path,
+                len(loaded_cards),
+                expected_task_ids=[card.task_id for card in loaded_cards],
+            ):
                 skipped_existing = True
                 console.print(f"Skipping completed [green]{run_label}[/green]")
             else:
@@ -397,8 +468,14 @@ def run_llm_matrix(
                     model_config=config,
                     run_label=run_label,
                     workers=workers,
+                    task_id=task_id,
                 )
-            score_run(cards, run_path, scores_dir)
+            score_run(
+                cards,
+                run_path,
+                scores_dir,
+                scorer_outcomes_path=scorer_outcomes,
+            )
             manifest["runs"].append(
                 {
                     "system_name": system_name,
@@ -416,6 +493,39 @@ def run_llm_matrix(
     console.print(f"Matrix manifest written to [green]{out / 'manifest.json'}[/green]")
 
 
+@app.command("repair-llm-trace")
+def repair_llm_trace_command(
+    cards: Path = typer.Argument(..., help="Decision-card JSONL path."),
+    run: Path = typer.Argument(..., help="Existing bare_llm or llm_tools trace JSONL."),
+    out: Path = typer.Option(..., "--out", "-o", help="Repaired-view trace JSONL."),
+    scores_out: Optional[Path] = typer.Option(
+        None,
+        "--scores-out",
+        help="Optionally score raw and repaired views in the same invocation.",
+    ),
+    scorer_outcomes: Optional[Path] = typer.Option(None, "--scorer-outcomes"),
+) -> None:
+    """Apply deterministic harness repair without any new provider calls."""
+
+    if scorer_outcomes is not None and scores_out is None:
+        raise typer.BadParameter("--scorer-outcomes requires --scores-out")
+    records = repair_llm_trace_file(cards, run, out)
+    console.print(
+        f"Created post-hoc repaired view for [green]{len(records)}[/green] records -> {out}"
+    )
+    if scores_out is not None:
+        scores = score_run(
+            cards,
+            out,
+            scores_out,
+            scorer_outcomes_path=scorer_outcomes,
+        )
+        console.print(
+            f"Scored raw and post-hoc repaired views for "
+            f"[green]{len(scores)}[/green] records -> {scores_out}"
+        )
+
+
 @app.command("score-run")
 def score_run_command(
     cards: Path = typer.Argument(..., help="Decision-card JSONL path."),
@@ -424,6 +534,7 @@ def score_run_command(
     hit_threshold: Optional[float] = typer.Option(None, "--hit-threshold"),
     bootstrap_samples: int = typer.Option(1000, "--bootstrap-samples"),
     seed: int = typer.Option(7, "--seed"),
+    scorer_outcomes: Optional[Path] = typer.Option(None, "--scorer-outcomes"),
 ) -> None:
     scores = score_run(
         cards,
@@ -432,6 +543,7 @@ def score_run_command(
         hit_threshold=hit_threshold,
         bootstrap_samples=bootstrap_samples,
         seed=seed,
+        scorer_outcomes_path=scorer_outcomes,
     )
     console.print(f"Scored [green]{len(scores)}[/green] records -> {out}")
 

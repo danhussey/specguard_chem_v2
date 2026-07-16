@@ -1,0 +1,178 @@
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=0.65in]{geometry}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{longtable}
+\usepackage{microtype}
+\usepackage{tabularx}
+\usepackage{xurl}
+\usepackage[colorlinks=true,urlcolor=blue!55!black]{hyperref}
+
+\setlist{nosep,leftmargin=*}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\title{\textbf{Supplementary Methods and Artifact Record}\\
+SpecGuard-Chem 0.1.0}
+\author{Daniel Hussey}
+\date{Pre-run draft, 16 July 2026}
+
+\begin{document}
+\maketitle
+
+\section{Release status}
+
+This supplement accompanies the pre-run manuscript \emph{Before the Lab Acts:
+Benchmarking Language Models for Constrained Compound Selection}. The corrected
+data and deterministic baselines are complete. The paper-facing provider run is
+pending explicit authorization; no historical paper-50 response or score is
+reported here.
+
+\section{Artifact visibility contract}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabularx}{\linewidth}{@{}p{0.27\linewidth}p{0.15\linewidth}Y@{}}
+\toprule
+\textbf{Field} & \textbf{Visibility} & \textbf{Role} \\
+\midrule
+Task, target, endpoint, source, activity semantics & System & Assay context and higher-is-better pChEMBL identity \\
+Support IDs, structures, descriptors, pChEMBL activity & System & Project-local evidence observed before selection \\
+Candidate IDs, structures, permitted descriptors & System & Finite action space \\
+Constraints and budget & System & Executable action contract \\
+Candidate activity & Evaluator only & Retrospective utility, ranking, and regret \\
+Raw source paths and build-only metadata & Neither & Construction provenance, not model evidence \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The public JSONL and scorer JSONL share benchmark, data, source, and transform
+provenance. Every scorer row carries the SHA256 digest of the canonical public
+card. The evaluator verifies identical task sets, candidate identity and order,
+provenance, and binding hashes before hydration. Non-oracle systems receive a
+strict allowlisted projection even when legacy monolithic fixtures are used.
+
+\section{Final data identity}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabularx}{\linewidth}{@{}p{0.34\linewidth}Y@{}}
+\toprule
+\textbf{Artifact} & \textbf{SHA256} \\
+\midrule
+Normalized corrected records & \path{cec651b6e97f044bf82820c465b441763cafa18a34b12361a33e79ab30faf438} \\
+Build configuration & \path{425a40d3b64ac8398c49dfc04508e1c66522754c4e07e75e69810bc2517d9a6a} \\
+System-input cards & \path{c18e66c726bb26f8afc3ba8422b21ec327444560d92750421f0dc44a2f393d9e} \\
+Scorer outcomes & \path{96b5d6060e3c75dda34d835fd166fd074ca5621c18924aa0ea2714acba173ff4} \\
+Card-build metadata & \path{d986ba96589032c59dac2dcc24cadf9aa3325616fa2a395cec682ece7220af54} \\
+Card-build audit & \path{abb80ad110ef71d69a2cea2f09cc456399a81d431bc9e365320ab8b27064812c} \\
+Exact 546-request export & \path{50e518893b19d4a7efd64c62e08ab94d610815f8fb7518c9af4b64ff40b6f6c5} \\
+Pre-run cost estimate & \path{d11ce35da68e5082153be4bc57c027915ccb76cf8fb19b02e5adf767b2ab525d} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+An independent final rebuild produced byte-identical system input, scorer
+outcomes, build metadata, and build audit. A second baseline run produced
+byte-identical per-system traces and score directories. A second request export
+produced the same 546 rows and request-file digest.
+
+\section{Task inclusion and exclusions}
+
+All 100 official \texttt{LO\_All} task keys were considered. The inclusion rule
+keeps every task with at least ten candidates satisfying the declared candidate
+constraints. Ninety-one tasks are included. The following tasks were excluded
+without outcome-based selection:
+
+\begin{longtable}{@{}lr@{}}
+\toprule
+\textbf{CARA task key} & \textbf{Feasible candidates} \\
+\midrule
+\endhead
+CHEMBL1827734\_IC50 & 0 \\
+CHEMBL3705332\_IC50 & 0 \\
+CHEMBL3707531\_IC50 & 0 \\
+CHEMBL3887078\_IC50 & 0 \\
+CHEMBL3887456\_EC50 & 0 \\
+CHEMBL3888518\_Ki & 0 \\
+CHEMBL3888871\_Ki & 0 \\
+CHEMBL3889212\_IC50 & 6 \\
+CHEMBL3889266\_IC50 & 8 \\
+\bottomrule
+\end{longtable}
+
+The included endpoint distribution is 68 IC50, 17 Ki, 5 EC50, and one Potency
+task. Each included task has 50 support measurements and a distinct CARA target
+identifier.
+
+\section{Constraints}
+
+Output validity requires exactly ten unique candidate IDs, membership in the
+supplied candidate pool, and support-set exclusion. Candidate eligibility
+requires a parseable structure, molecular weight no greater than 500, and cLogP
+no greater than 4.5. The configured forbidden-SMARTS list is empty. These rules
+are eligibility controls, not a claim of synthesis feasibility, selectivity,
+ADMET suitability, toxicity, or medicinal-chemistry approval.
+
+\section{Systems and frozen provider matrix}
+
+Deterministic systems comprise a random-valid selector, descriptor-desirability
+rules, similarity to the best observed support compound, per-task random-forest,
+gradient-boosting and linear support-vector regressors, and a non-deployable
+hidden-outcome oracle.
+
+The provider matrix contains three conditions and two representations across 91
+cards (546 requests):
+
+\begin{itemize}
+  \item OpenAI \texttt{gpt-5.5-2026-04-23}, low reasoning, direct JSON;
+  \item Anthropic \texttt{claude-opus-4-8}, direct JSON without extended
+  thinking; and
+  \item DeepSeek \texttt{deepseek-v4-pro}, thinking disabled, as checked on
+  16 July 2026, with the provider-returned model identifier retained in traces.
+\end{itemize}
+
+The basic interface supplies IDs, structures, molecular weight, and cLogP. The
+descriptor-enriched interface additionally supplies TPSA, hydrogen-bond donor
+and acceptor counts, and rotatable-bond count. Both receive the same action
+contract and an explicit instruction that pChEMBL is higher-is-better. The
+conservative uncached pre-run estimate is \$106.06, with maximum estimated
+input 158,274 tokens and a planned hard cost ceiling of \$120.
+
+\section{Deterministic post-hoc repair}
+
+Repair is computed from the same raw response and adds zero provider calls:
+
+\begin{enumerate}
+  \item Parse and validate the raw output against the action contract.
+  \item Retain valid raw candidate IDs in their original order.
+  \item Remove duplicates, out-of-pool IDs, support identities, and infeasible
+  candidates.
+  \item Fill unoccupied slots using the deterministic rules-only ranking.
+  \item Revalidate and store both outputs and issue sets, the source-trace
+  digest, the repair policy, and a zero-provider-call attribution field.
+\end{enumerate}
+
+Raw metrics characterize model behavior. Repaired metrics characterize the
+model-plus-harness system and must never be relabeled as unaided model ability.
+
+\section{Historical invalidation}
+
+The historical paper-50 import treated CARA's positional split references as
+dataframe labels. All cards, prompts, caches, responses, tables, figures, and
+claims downstream of that import are invalid. They remain in immutable Git tags
+for provenance but are absent from the 0.1.0 release branch. They are not an
+earlier comparable benchmark version.
+
+\section{Remaining release gates}
+
+Before tagging: finish the authorized provider matrix and repaired/paired
+analyses; regenerate the paper; confirm license and authorship; build package
+distributions; and verify final checksums from a clean checkout.
+
+\end{document}

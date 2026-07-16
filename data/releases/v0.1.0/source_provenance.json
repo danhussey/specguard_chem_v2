@@ -1,0 +1,31 @@
+{
+  "upstream": {
+    "name": "CARA",
+    "version": "1.0.1",
+    "doi": "10.5281/zenodo.14740896",
+    "license": "CC-BY-4.0",
+    "source_url": "https://zenodo.org/records/14740896/files/CARA.zip?download=1"
+  },
+  "archive": {
+    "bytes": 103511135,
+    "sha256": "87a71c2040d1a1434348d35691242ab1327b846cf06a46f1d64cd060867de12c"
+  },
+  "lo_all_task_table": {
+    "logical_path": "CARA/Task/LO_All.tsv",
+    "rows_excluding_header": 1187136,
+    "bytes": 185008770,
+    "sha256": "d83f9936c907635143d047af547db1f2b332375e4f930082b75c9c61a81ddf6a"
+  },
+  "lo_all_support_split": {
+    "logical_path": "CARA/Split/LO_All_support.json",
+    "sha256": "273c01297977bf82b9c983ad7616cb3e5f3ca318df6c75a040204611ef742f8a"
+  },
+  "lo_all_query_split": {
+    "logical_path": "CARA/Split/LO_All_query.json",
+    "sha256": "5c2c7c0908dd87d3a5d2fc5139dd6a1283affb1b2050d4ac8360228a859993bd"
+  },
+  "normalized_records": {
+    "included_in_release": false,
+    "sha256": "cec651b6e97f044bf82820c465b441763cafa18a34b12361a33e79ab30faf438"
+  }
+}

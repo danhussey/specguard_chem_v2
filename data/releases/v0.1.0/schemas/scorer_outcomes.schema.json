@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:specguard-chem:schema:scorer-outcomes:v1",
+  "$comment": "Derived from the ScorerOutcomes and CandidateOutcome Pydantic contracts in specguard_chem_v2 0.1.0.",
+  "title": "SpecGuard-Chem scorer-only outcomes",
+  "description": "One evaluator-only outcome row cryptographically bound to one system-input decision card.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "provenance",
+    "task_id",
+    "system_input_sha256",
+    "outcomes"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "specguard.scorer-outcomes.v1"
+    },
+    "provenance": {
+      "$ref": "#/$defs/artifact_provenance"
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "system_input_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "outcomes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/candidate_outcome"
+      }
+    }
+  },
+  "$defs": {
+    "artifact_provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "benchmark_version",
+        "data_version",
+        "source_sha256",
+        "config_sha256"
+      ],
+      "properties": {
+        "benchmark_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "data_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "config_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "candidate_outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id",
+        "activity_value",
+        "activity_type"
+      ],
+      "properties": {
+        "candidate_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "activity_value": {
+          "type": "number"
+        },
+        "activity_type": {
+          "const": "pChEMBL"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+metric,winner,value,lower_is_better
+feasible_utility,qsar_svm,74.96637362637362,False
+raw_feasible_utility,qsar_svm,74.96637362637362,False
+ndcg_at_k,qsar_rf,0.9382337347168516,False
+raw_ndcg_at_k,qsar_rf,0.9382337347168516,False
+action_validity,qsar_svm,1.0,False
+raw_action_validity,qsar_svm,1.0,False
+compliance_rate,qsar_svm,1.0,False
+raw_compliance_rate,qsar_svm,1.0,False
+constrained_regret,qsar_svm,4.596263736263736,True
+schema_error_rate,qsar_svm,0.0,True
+raw_schema_error_rate,qsar_svm,0.0,True

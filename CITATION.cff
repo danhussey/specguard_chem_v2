@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software, please cite the repository and the upstream CARA
+  dataset described in the README.
+title: "SpecGuard-Chem: an action-level benchmark for constrained compound selection"
+type: software
+authors:
+  - family-names: Hussey
+    given-names: Daniel
+version: 0.1.0
+repository-code: "https://github.com/danhussey/specguard_chem_v2"
+license: MIT

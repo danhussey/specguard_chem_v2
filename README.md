@@ -1,259 +1,214 @@
-# Constrained Compound Prioritisation
+# SpecGuard-Chem
 
-**A reproducible benchmark that separates whether a system *followed the rules* from whether it *made a better scientific decision*.**
+**An action-level benchmark for asking whether a language-model system can turn
+sparse assay evidence into a valid, useful experimental shortlist.**
 
-[![CI](https://github.com/danhussey/constrained-compound-prioritisation/actions/workflows/ci.yml/badge.svg)](https://github.com/danhussey/constrained-compound-prioritisation/actions/workflows/ci.yml)
-![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)
-![License: MIT](https://img.shields.io/badge/license-MIT-green)
-![Built with RDKit + scikit-learn](https://img.shields.io/badge/built%20with-RDKit%20%2B%20scikit--learn-8A2BE2)
+[![CI](https://github.com/danhussey/specguard_chem_v2/actions/workflows/ci.yml/badge.svg)](https://github.com/danhussey/specguard_chem_v2/actions/workflows/ci.yml)
+![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776AB)
+![Code license: MIT](https://img.shields.io/badge/code%20license-MIT-2EA44F)
+![LLM calls: offline by default](https://img.shields.io/badge/LLM%20calls-offline%20by%20default-6F42C1)
 
-This project studies constrained medicinal-chemistry compound prioritisation.
-Given compounds that have already been tested, a fixed candidate pool, hard
-chemistry constraints, and a small testing budget, each system must return the
-candidate IDs it would test next. The benchmark then measures two outcomes that
-guardrails routinely blur together:
+Automated drug-discovery laboratories will not only ask models for predictions
+or prose. They will delegate actions: choose what to synthesize, which assay to
+run, and where to spend a finite experimental budget. Those actions consume
+material, time, and capacity.
 
-- **Compliance** — did the system return a valid list that obeys the schema, the
-  candidate pool, the no-duplicates rule, the support-set (no-leakage) rule, and
-  the hard chemistry constraints?
-- **Utility** — among valid selections, did it actually choose candidates with
-  high *hidden* retrospective activity?
+SpecGuard-Chem evaluates one deliberately bounded action primitive before
+attempting an end-to-end autonomous loop:
 
-> A system that is perfectly formatted but picks weak candidates is not useful.
-> A system that picks strong candidates while breaking hard constraints is not
-> deployable. This benchmark refuses to average those two failures into one score.
+> Given project-local assay evidence, a fixed candidate pool, explicit
+> eligibility rules, and a budget of `k` experiments, which compounds should be
+> tested next?
 
-It is an offline audit tool for ranking supplied candidate IDs — **not** a
-molecule generator, a drug-discovery agent, a synthesis planner, or a clinical
-recommender. See [Scope and safety boundary](#scope-and-safety-boundary).
+The benchmark is an **action-level unit test**. It does not claim to simulate
+drug discovery. Its value is that the action is consequential, auditable,
+cheap enough to evaluate repeatedly, and narrow enough to compare LLM systems
+against strong conventional molecular rankers on identical evidence.
 
-## Findings at a glance
+## Result status
 
-On a frozen 50-card CARA lead-optimisation slice (`k = 10`), evaluated with a
-paired card-level bootstrap:
+**No prior paper-50 number in this repository is a valid current result.** The
+old CARA importer resolved positional split references against the wrong
+dataframe index. All downstream cards, model calls, tables, figures, and claims
+from that import are retired. See [INVALID_RESULTS_NOTICE.md](INVALID_RESULTS_NOTICE.md).
 
-1. **Guardrails buy validity, not decision quality.** A validator loop raises
-   every system to perfect compliance, but the ordering by *utility* still tracks
-   the underlying model. For a weak model, the validator lifts compliance from
-   0.71 to 1.0 while the repaired decisions remain mediocre; for a strong model
-   it adds ~1.4 utility points on top of already-high compliance. Repair fixes
-   the form of the answer, not the judgement behind it.
-2. **A guarded frontier LLM is genuinely useful, and beats naive baselines.** The
-   best guarded LLM (OpenAI gpt-5.5, low reasoning, validator, direct-JSON)
-   reaches 78.2 feasible utility — **+4.6 over** a similarity-to-best-active
-   baseline (95% CI [1.9, 7.3]) and **+12.1 over** a rules/desirability baseline.
-3. **But a per-card QSAR model still wins on this slice.** A linear-SVR QSAR
-   trained per card scores 81.4 feasible utility, **+3.2 over** the best guarded
-   LLM (95% CI [1.9, 4.7], P(Δ>0) = 1.0). The oracle upper bound is 89.0, so
-   **7.6 points of headroom remain** above the best deployable system (95% CI
-   [6.6, 8.8]).
+The corrected import has now passed an exhaustive local integrity audit:
 
-The takeaway is deliberately unglamorous and, I think, the honest one: on a
-constrained selection task with a strong conventional baseline available,
-guardrail-heavy LLM systems clear the low bar of "valid and better than random"
-but do not yet clear the high bar of "better than a well-specified domain model."
+- 24,588 of 24,588 official `LO_All` split references resolve to the named task;
+- 5,000 support and 19,588 candidate rows form 100 coherent assay tasks;
+- every task has 50 support measurements;
+- there are no task, target, endpoint, or support/query identity mismatches; and
+- 91 tasks remain feasible at `k = 10` under the current explicit constraints.
 
-## Headline result
+The corrected `0.1.0` data artifact is now frozen as separate system-input
+and scorer-only files, with deterministic build/audit manifests and checksums.
+Corrected deterministic baselines have also been rerun on all 91 cards. The
+paper-facing LLM matrix is specified and costed but has **not** made live
+provider calls, so no cross-model paper result is yet final. No historical
+response cache will be reused.
 
-The paper-facing result is a 50-card CARA lead-optimisation audit. CARA is a
-public, ChEMBL-derived compound-activity benchmark. Each decision card contains
-support compounds with measured activity visible to systems, a candidate pool
-whose activity is hidden until scoring, hard medicinal-chemistry constraints, and
-a testing budget of `k = 10`.
+## The evaluated action
 
-| System | Feasible utility | NDCG@k | Compliance |
-| --- | ---: | ---: | ---: |
-| Oracle upper bound *(control, not deployable)* | 89.0 | 1.000 | 1.000 |
-| QSAR — linear SVR | **81.4** | 0.910 | 1.000 |
-| QSAR — gradient boosting | 80.9 | 0.900 | 1.000 |
-| QSAR — random forest | 80.6 | 0.901 | 1.000 |
-| LLM + validator — gpt-5.5, low reasoning, direct-JSON | 78.2 | 0.881 | 1.000 |
-| LLM + tools + validator — gpt-5.5, low reasoning, direct-JSON | 77.7 | 0.873 | 1.000 |
-| Similarity-to-best-active baseline | 73.6 | 0.825 | 1.000 |
-| Random-valid baseline | 66.8 | 0.739 | 1.000 |
-| Rules / desirability baseline | 66.0 | 0.731 | 1.000 |
+Each decision card represents one retrospective assay-local allocation choice.
 
-![Readable utility summary for the CARA lead-optimisation 50-card audit](docs/assets/cara_lo_paper_50_utility_summary.svg)
+| Component | System visibility | Purpose |
+| --- | :---: | --- |
+| Support compounds and measured activity | Yes | Evidence available before the action |
+| Assay/target metadata available in CARA | Yes | Local experimental context |
+| Candidate IDs, structures, and permitted descriptors | Yes | Finite action space |
+| Hard constraints and budget `k` | Yes | Executable action contract |
+| Candidate activity outcomes | **No** | Scorer-only retrospective evidence |
 
-The full generated compliance–utility frontier plot is tracked under
-[`paper/figures/`](paper/figures/cara_lo_paper_50_direct_json_completed/compliance_utility_frontier.png);
-the README uses the simplified SVG above so the headline result stays legible on
-GitHub. All deltas come from a paired bootstrap over the *same* 50 cards, so
-system comparisons are within-card rather than across independent samples. Full
-tables and confidence intervals live in
-[`paper/tables/…/paired_bootstrap_key_deltas.csv`](paper/tables/cara_lo_paper_50_direct_json_completed/paired_bootstrap_key_deltas.csv).
+A system returns an ordered list of exactly `k` candidate IDs. It may not invent
+molecules or select outside the supplied pool.
 
-## How it works
+The formal solution class is intentionally simple: **filter, predict, rank, and
+allocate**. Simplicity is a feature of the unit-test boundary. It lets the study
+isolate whether an LLM adds decision value over a transparent molecular model,
+and whether the issued action could actually be executed.
 
-### The decision card
+## What the paper asks
 
-A card freezes one benchmark instance so every system sees identical inputs and
-scoring is deterministic and self-contained:
+The conference paper is organized around action quality rather than around
+guardrails alone:
 
-```text
-support_set      compounds already measured — activity VISIBLE to systems
-candidate_pool   compounds to choose from — activity HIDDEN until scoring
-hard_constraints candidate-level rules (e.g. MW ≤ 500) applied before utility counts
-budget_k         how many candidate IDs the system may return (k = 10 here)
-```
+1. **Incremental value:** do current LLM systems select better assay batches
+   than random-valid, heuristic, similarity, and per-assay QSAR baselines?
+2. **Representation:** does descriptor-enriched evidence change scientific
+   shortlist quality relative to a basic molecular representation?
+3. **Execution reliability:** how often does a direct model response violate
+   the action contract, and what changes when deterministic repair is applied
+   to the same raw response?
+4. **Operational cost:** what latency, token, and monetary cost buys any
+   observed gain over conventional rankers?
 
-Systems return ranked candidate IDs only. Hidden `activity_value` fields live in
-the card so offline scoring is reproducible, and adapters, prompt builders, and
-exported LLM requests are required to redact them — the leakage rules are spelled
-out in [DATA_CARD.md](DATA_CARD.md).
+Primary scientific readouts are ranking/selection utility and regret relative
+to a hidden-outcome oracle. Action validity is reported separately so a
+well-formatted weak shortlist is not mistaken for a useful decision, and an
+invalid shortlist is not credited as executable.
 
-### The pipeline
+## Is this only CARA with filtering?
 
-```text
-raw CARA assets → import-cara → normalized records → build-cards
-  → frozen decision cards → run-suite → trace.jsonl
-  → score-run → summary tables + figures + dashboard
-```
+CARA is the upstream data and split substrate; SpecGuard-Chem does not claim a
+new raw molecular dataset or a fundamentally new potency-prediction problem.
+The benchmark contribution is the adaptation from label prediction to a frozen
+experimental action contract:
 
-### The baseline ladder
+- a finite assay-local decision state and explicit budget;
+- machine-checkable candidate and output constraints;
+- strong classical, QSAR, oracle, and LLM-backed comparators;
+- raw-versus-repaired action attribution;
+- per-card action-sensitive metrics and paired uncertainty;
+- exact prompts, traces, model settings, costs, and replay controls; and
+- a versioned release in which system inputs and scorer outcomes are separate.
 
-A benchmark is only as honest as the systems it compares against. This one runs a
-graded ladder so an LLM result can be placed on a meaningful scale rather than
-against a straw man:
+If a conventional per-assay ranker dominates the LLMs, that is not a failed
+benchmark. It is evidence about where language models should—and should not—be
+placed in a future automated laboratory.
 
-- **Random-valid** — the floor; how far does merely obeying the rules get you?
-- **Rules / desirability** and **similarity-to-best-active** — cheap, sensible
-  heuristics a chemist might reach for.
-- **QSAR** (random forest, gradient boosting, linear SVR) — a conventional
-  quantitative structure-activity model trained *separately on each card's
-  visible support compounds*. This is the strong, non-language baseline.
-- **Oracle valid top-k** — the best possible valid selection using hidden
-  activity. A control that bounds the achievable score, not a deployable system.
+## Scope boundary
 
-### LLM systems and the raw-vs-repaired split
+Version 0.1.0 evaluates one-shot, retrospective, assay-local compound selection.
+It does **not** evaluate:
 
-LLM systems come in four variants — bare, tool-augmented, validator-repaired, and
-tools-plus-validator — run across a provider/model matrix (OpenAI, Anthropic,
-DeepSeek) through a cache/replay adapter. Every LLM row is reported **twice**:
-`raw_*` metrics capture the model's own output, and the final metrics capture
-behaviour after deterministic validator repair. Keeping them separate is what
-lets the benchmark say *"the validator added compliance, not medicinal-chemistry
-skill"* instead of quietly crediting repair to the model.
+- de novo molecule generation;
+- synthesis or route planning;
+- multi-step closed-loop experimentation;
+- selectivity, ADMET, toxicity, or clinical efficacy;
+- prospective wet-lab outcomes; or
+- readiness for autonomous drug discovery.
 
-### Statistics
+Those are possible later layers, not prerequisites for publishing this bounded
+benchmark. Current constraints are intentionally simple molecular-property and
+output-contract rules; they are not a substitute for medicinal-chemistry or
+biological review.
 
-System comparisons use a paired card-level bootstrap that resamples cards and
-reports mean deltas with 95% confidence intervals and P(Δ > 0). Because the
-resampling is paired, it controls for the large card-to-card variance in
-absolute activity scale.
+## System and evaluation ladder
 
-## Reproduce locally
+The offline harness includes:
 
-The Python package is `specguard-chem-v2` and installs a `sgchem` CLI. Install
-with [`uv`](https://github.com/astral-sh/uv):
+- random-valid and rules/desirability floors;
+- similarity to the best observed support compound;
+- per-card random-forest, gradient-boosting, and support-vector QSAR models;
+- a hidden-activity valid top-k oracle as a non-deployable upper bound; and
+- basic and descriptor-enriched LLM interfaces with optional deterministic
+  validation/repair.
+
+The main metrics are NDCG@`k`, feasible utility, constrained regret, mean
+selected activity, action-validity rates, and raw/final attribution. Systems are
+compared on the same cards with paired card-level uncertainty.
+
+## Reproduce the offline path
+
+The project uses [uv](https://docs.astral.sh/uv/) and a committed lockfile.
 
 ```bash
-uv venv --seed
-uv pip install -e ".[dev,providers]"
-```
-
-Run the test suite:
-
-```bash
+uv sync --locked --extra dev
+uv run ruff check src tests
+uv run ruff format --check src tests
 uv run pytest
 ```
 
-Run the fully offline fixture suite (no network, no API keys):
+Run a fully offline fixture evaluation:
 
 ```bash
 uv run sgchem validate-cards tests/fixtures/cards.jsonl
 uv run sgchem run-suite tests/fixtures/cards.jsonl \
   --systems random_valid,rules_only,similarity_to_best_active,qsar_rf \
   --out runs/fixture
-```
-
-Regenerate comparison tables and figures from scored runs:
-
-```bash
 uv run sgchem compare-runs runs/fixture/*/scores/summary.json \
   --out runs/fixture/compare
-uv run sgchem make-figures runs/fixture/compare/system_comparison.csv \
-  --out paper/figures
 ```
 
-`uv run sgchem --help` lists the full command surface (ingestion, card building,
-running, scoring, reporting, and cost estimation).
+The fixture path makes no network or provider call. Live LLM calls are disabled
+unless `--allow-external` is passed. Paper-scale calls additionally require a
+saved cost estimate and hard limits; see [docs/COST_CONTROL.md](docs/COST_CONTROL.md).
 
-## Interpreting the metrics
+## Release target
 
-- **Feasible utility** — total hidden activity recovered by the valid selected
-  candidates. With `k = 10`, a utility of 70 means ten valid selections averaged
-  ~7.0 pIC50/pChEMBL. Higher is better.
-- **NDCG@k** — ranking quality relative to the best feasible top-k choices.
-  Higher is better; 1.0 is ideal.
-- **Compliance** — fraction of required selections that satisfy the output and
-  constraint contract. Higher is better.
-- **Constrained regret** — oracle valid top-k utility minus observed feasible
-  utility. Lower is better.
-- **Oracle upper bound** — the best possible valid top-k selection given hidden
-  activity. A control that bounds the score, not a system you could deploy.
+The first archival release will bundle and checksum:
 
-Validator-repaired LLM rows are *guarded systems*; they are not a measure of raw
-model skill. Reports keep raw and repaired behaviour separate so deterministic
-repair is never mistaken for decision quality.
+- corrected system-input cards and separate scorer outcomes;
+- resolved build configuration, source provenance, and exclusion audit;
+- deterministic and approved LLM traces with exact requests and model settings;
+- per-card scores, aggregate tables, uncertainty estimates, and figures;
+- manuscript source, compiled paper, and supplementary methods;
+- environment lock, package distributions, citation and licensing metadata;
+- a canonical manifest and `SHA256SUMS`; and
+- release notes that supersede the six historical result tags without moving
+  or deleting them.
 
-## LLM and cost controls
-
-Live provider calls are **disabled by default** and require an explicit
-`--allow-external` flag; without it, LLM systems run from cache/replay only.
-Larger live runs go through the cost-estimation and hard-gate workflow in
-[docs/COST_CONTROL.md](docs/COST_CONTROL.md).
-
-Export the exact requests for review without calling any provider:
-
-```bash
-uv run sgchem export-llm-requests data/cards/cara_lo_paper_50.jsonl \
-  --systems bare_llm,llm_tools \
-  --model-matrix configs/model_matrix.toml \
-  --out runs/llm_requests.jsonl
-```
+The active execution plan is
+[plans/active/0030-bounded-v1-archival-release.md](plans/active/0030-bounded-v1-archival-release.md).
 
 ## Repository guide
 
 ```text
-src/specguard_chem_v2/   Python package and Typer CLI (sgchem)
-  ├─ schemas.py          Pydantic contracts for cards, outputs, run records
-  ├─ chem/               RDKit descriptors, fingerprints, constraint checks
-  ├─ data/               CARA download, import, and card building
-  ├─ systems/            deterministic baselines + LLM cache/replay adapters
-  ├─ runner.py           system execution, output validation, validator repair
-  ├─ scoring.py          per-card metrics and aggregation
-  └─ reports.py          comparison tables, figures, and the results dashboard
-configs/                 model matrix, provider pricing, default constraints
-data/cards/              committed small/frozen benchmark card artifacts
-tests/                   unit tests and fixture cards
-paper/                   tracked result tables, figures, dashboard, summaries
-docs/                    methods notes, data card, cost controls, run ledger
-plans/                   executed milestone plans and run logs
+src/specguard_chem_v2/   package, task contracts, systems, scoring, reports, CLI
+configs/                 constraints, model matrix, pricing snapshot
+tests/                   unit/integration tests and offline fixtures
+data/                    raw, normalized, and deliberately frozen data layers
+runs/                    replayable traces and score artifacts
+paper/                   manuscript, tables, figures, and supplementary material
+docs/                    methods, safety, data contracts, runbook, run ledger
+plans/                   active/executed plans and experiment logs
 ```
 
-Core layers depend downward only: the CLI may orchestrate everything, but the
-schema, IO, chemistry, scoring, and reporting layers do not import the CLI. See
+Start with [PROJECT_BRIEF.md](PROJECT_BRIEF.md),
+[BENCHMARK_CARD.md](BENCHMARK_CARD.md), [DATA_CARD.md](DATA_CARD.md), and
 [ARCHITECTURE.md](ARCHITECTURE.md).
 
-## Scope and safety boundary
+## Data provenance and licenses
 
-This project ranks provided candidate IDs for retrospective, offline audit. It
-makes **no** prospective claims about efficacy, toxicity, synthesis, selectivity,
-safety, or clinical use. CARA-derived tasks are assay-grounded but lack wet-lab
-prospective validation, ADMET evidence, and project-team decision context.
-Retrospective activity is treated as retrospective evidence and nothing more. See
-[BENCHMARK_CARD.md](BENCHMARK_CARD.md) and [docs/SAFETY.md](docs/SAFETY.md).
+The activity-data substrate is CARA v1.0.1:
 
-## Key artifacts
+> Tian, T., Li, S., Zhang, Z., Chen, L., Zou, Z., Zhao, D., and Zeng, J.
+> *CARA: Benchmarking Compound Activity Prediction for Real-World Drug
+> Discovery Applications.* Zenodo.
+> [doi:10.5281/zenodo.14740896](https://doi.org/10.5281/zenodo.14740896)
 
-- [Result snapshot](paper/CARA_LO_PAPER_50_RESULTS.md) — the paper-facing writeup
-- [Static results dashboard](paper/RESULTS_DASHBOARD.html) — interactive leaderboard, diagnostics, and tooltips
-- [Primary leaderboard CSV](paper/tables/cara_lo_paper_50_direct_json_completed/primary_leaderboard.csv)
-- [Paired bootstrap deltas](paper/tables/cara_lo_paper_50_direct_json_completed/paired_bootstrap_key_deltas.csv)
-- [50-card benchmark artifact](data/cards/cara_lo_paper_50.jsonl)
-- [Benchmark card](BENCHMARK_CARD.md) · [Data card](DATA_CARD.md) · [Architecture](ARCHITECTURE.md)
-
-## License
-
-MIT — see [LICENSE](LICENSE).
+Code is released under the [MIT License](LICENSE). CARA and CARA-derived data
+remain subject to the upstream CC BY 4.0 attribution terms described in
+[DATA_LICENSE.md](DATA_LICENSE.md) and
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Citation metadata is in
+[CITATION.cff](CITATION.cff).

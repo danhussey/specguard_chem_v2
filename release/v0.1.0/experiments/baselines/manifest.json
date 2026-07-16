@@ -1,0 +1,56 @@
+{
+  "allow_external": false,
+  "cards": "data/releases/v0.1.0/system_input_cards.jsonl",
+  "cards_sha256": "c18e66c726bb26f8afc3ba8422b21ec327444560d92750421f0dc44a2f393d9e",
+  "manifest_schema_version": "1.0.0",
+  "runs": [
+    {
+      "scores": "release/v0.1.0/experiments/baselines/oracle_valid_topk/scores",
+      "system_name": "oracle_valid_topk",
+      "trace": "release/v0.1.0/experiments/baselines/oracle_valid_topk/trace.jsonl"
+    },
+    {
+      "scores": "release/v0.1.0/experiments/baselines/random_valid/scores",
+      "system_name": "random_valid",
+      "trace": "release/v0.1.0/experiments/baselines/random_valid/trace.jsonl"
+    },
+    {
+      "scores": "release/v0.1.0/experiments/baselines/rules_only/scores",
+      "system_name": "rules_only",
+      "trace": "release/v0.1.0/experiments/baselines/rules_only/trace.jsonl"
+    },
+    {
+      "scores": "release/v0.1.0/experiments/baselines/similarity_to_best_active/scores",
+      "system_name": "similarity_to_best_active",
+      "trace": "release/v0.1.0/experiments/baselines/similarity_to_best_active/trace.jsonl"
+    },
+    {
+      "scores": "release/v0.1.0/experiments/baselines/qsar_rf/scores",
+      "system_name": "qsar_rf",
+      "trace": "release/v0.1.0/experiments/baselines/qsar_rf/trace.jsonl"
+    },
+    {
+      "scores": "release/v0.1.0/experiments/baselines/qsar_gbt/scores",
+      "system_name": "qsar_gbt",
+      "trace": "release/v0.1.0/experiments/baselines/qsar_gbt/trace.jsonl"
+    },
+    {
+      "scores": "release/v0.1.0/experiments/baselines/qsar_svm/scores",
+      "system_name": "qsar_svm",
+      "trace": "release/v0.1.0/experiments/baselines/qsar_svm/trace.jsonl"
+    }
+  ],
+  "scorer_outcomes": "data/releases/v0.1.0/scorer_outcomes.jsonl",
+  "scorer_outcomes_sha256": "96b5d6060e3c75dda34d835fd166fd074ca5621c18924aa0ea2714acba173ff4",
+  "seed": 7,
+  "started_at": "2026-07-16T11:12:43Z",
+  "systems": [
+    "oracle_valid_topk",
+    "random_valid",
+    "rules_only",
+    "similarity_to_best_active",
+    "qsar_rf",
+    "qsar_gbt",
+    "qsar_svm"
+  ]
+}

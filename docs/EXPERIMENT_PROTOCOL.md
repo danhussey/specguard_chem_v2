@@ -8,10 +8,14 @@ candidate pool.
 
 ## Inclusion Rules
 
-- Task has at least one support compound with activity.
-- Task has enough candidates to return `budget_k` after hard constraints.
-- Candidate IDs are unique within a decision card.
-- SMILES parse under RDKit.
+- Consider every one of the 100 official CARA `LO_All` task keys.
+- Require exactly 50 support compounds with supplied pChEMBL activity, explicitly
+  interpreted as higher-is-better.
+- Include a task only when at least `budget_k = 10` candidates remain after the
+  frozen molecular constraints.
+- Require unique candidate IDs, no support--candidate identity overlap, and
+  structures parseable by RDKit; any task/coherence mismatch is a hard error.
+- Apply no hidden-outcome criterion when selecting tasks.
 
 ## Systems
 
@@ -28,9 +32,13 @@ Mandatory systems:
 - `qsar_gbt`
 - `qsar_svm`
 - `bare_llm`
-- `llm_validator`
 - `llm_tools`
-- `llm_tools_validator`
+
+The primary LLM matrix crosses these two raw interfaces with the three frozen
+provider/model conditions. Prompt-based validator variants are not part of the
+primary experiment. A guarded-system view is derived post hoc from each raw
+response using the deterministic repair policy, with zero additional provider
+calls and explicit raw-versus-repaired attribution.
 
 LLM systems must support cache/replay and must not make live calls unless
 `--allow-external` is set.
@@ -60,8 +68,10 @@ be compared against it, not only against other LLMs.
 
 ## Main Comparisons
 
-- LLM-only vs LLM + validator.
-- LLM + tools vs LLM + tools + validator.
-- QSAR vs rules/similarity baselines.
-- All agentic systems vs best non-language baseline.
-- Each LLM condition across the configured provider/model matrix.
+- Each raw LLM condition versus the best assay-local QSAR baseline on paired
+  cards, with utility and regret as the primary scientific comparison.
+- Basic versus descriptor-enriched representation within each model condition.
+- Raw action versus deterministic post-hoc repair of the same response.
+- QSAR versus rules, similarity, and random-valid baselines.
+- Every LLM condition across the frozen provider/model matrix, with latency,
+  token use, and cost reported separately from scientific utility.

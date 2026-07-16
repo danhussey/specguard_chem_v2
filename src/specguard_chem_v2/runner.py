@@ -3,8 +3,9 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+from .artifacts import load_evaluation_cards, select_card_by_task_id
 from .chem.constraints import evaluate_candidate, is_candidate_feasible
-from .io import load_models, write_jsonl
+from .io import write_jsonl
 from .schemas import DecisionCard, RunRecord, SelectionItem, SystemOutput, ValidationIssue
 from .systems.baselines import DETERMINISTIC_SYSTEMS, fallback_ranking, run_baseline_system
 from .systems.llm import LLM_SYSTEMS, run_llm_system
@@ -215,8 +216,24 @@ def run_system_file(
     model_config: LLMModelConfig | None = None,
     run_label: str | None = None,
     workers: int = 1,
+    scorer_outcomes_path: Path | None = None,
+    task_id: str | None = None,
 ) -> list[RunRecord]:
-    cards = load_models(cards_path, DecisionCard)
+    if system_name == "oracle_valid_topk":
+        if scorer_outcomes_path is None:
+            legacy_cards = load_evaluation_cards(cards_path)
+            if any(
+                candidate.activity_value is None
+                for card in legacy_cards
+                for candidate in card.candidate_pool
+            ):
+                raise ValueError("oracle_valid_topk requires scorer outcomes")
+            cards = legacy_cards
+        else:
+            cards = load_evaluation_cards(cards_path, scorer_outcomes_path)
+    else:
+        cards = load_evaluation_cards(cards_path)
+    cards = select_card_by_task_id(cards, task_id)
     records = run_system_on_cards(
         cards,
         system_name,

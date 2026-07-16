@@ -1,21 +1,36 @@
 # Data Contracts
 
-## Decision Card
+## Paired benchmark artifacts
 
-A decision card is the canonical task object. It contains public support
-compounds, a candidate pool, hard constraints, a budget, and scorer-only
-candidate activity values for offline evaluation.
+The frozen benchmark deliberately separates the decision card visible to a
+system from the retrospective outcomes used by the scorer. A release row is not
+complete unless the two artifacts pass the executable pairing checks.
 
-Required fields:
+### System-input decision card
 
-- `task_id`: stable unique ID.
-- `assay_context`: target and assay metadata when available.
-- `support_set`: known compounds with measured activity.
-- `candidate_pool`: candidate IDs, SMILES, descriptors, and scorer-only activity
-  values. Non-oracle systems must not use candidate activity values as features.
-- `budget_k`: number of candidate IDs to return.
-- `hard_constraints`: typed machine-checkable constraints.
-- `metadata`: source, transform config, and provenance.
+Required fields include:
+
+- `schema_version` and `provenance`: contract and content identity;
+- `task_id`: stable unique ID;
+- `assay_context`: CARA target, endpoint, source, activity scale, and direction;
+- `support_set`: known compounds with measured pChEMBL activity;
+- `candidate_pool`: candidate IDs, SMILES, and permitted descriptors, with no
+  candidate activity field;
+- `budget_k`: number of candidate IDs to return;
+- `hard_constraints`: typed machine-checkable constraints; and
+- `output_schema` and `metadata`: action contract and construction metadata.
+
+### Scorer outcomes
+
+The paired scorer-only row contains `schema_version`, matching `provenance` and
+`task_id`, the canonical `system_input_sha256`, and one hidden pChEMBL outcome
+per candidate ID. It is public for reproducible retrospective evaluation but
+must never be supplied during non-oracle selection.
+
+Loading a pair verifies the same task set, shared provenance, candidate identity
+and order, and the per-card canonical hash. The system-input JSON Schema also
+forbids candidate activity fields. Legacy monolithic fixtures remain supported
+for tests, but non-oracle execution receives only the strict public projection.
 
 ## System Output
 
@@ -36,9 +51,10 @@ scored according to the metric policy.
 
 ## Provenance
 
-Imported CARA artifacts must record source URL, local path, SHA256, import time,
-and transform configuration. Frozen decision cards should be reproducible from
-those provenance fields.
+Imported CARA artifacts record source URL, source version and license, SHA256,
+and transform configuration. Frozen decision cards must be reproducible from
+those provenance fields. Deterministic release manifests omit wall-clock import
+times so independent builds can be byte-identical.
 
 `import-cara` detects the official CARA layout when `Task/{split}.tsv` and
 `Split/{split}_support/query.json` are present. In that case, support/query JSON

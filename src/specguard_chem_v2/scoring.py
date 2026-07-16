@@ -8,6 +8,7 @@ from typing import Iterable
 import numpy as np
 import pandas as pd
 
+from .artifacts import load_evaluation_cards
 from .chem.constraints import is_candidate_feasible
 from .io import load_models, write_json, write_jsonl
 from .schemas import CardScore, DecisionCard, RunRecord, SystemOutput, ValidationIssue
@@ -124,6 +125,7 @@ def _score_output_metrics(
         "enrichment_at_k": enrichment,
         "feasible_utility": feasible_utility,
         "constrained_regret": constrained_regret,
+        "action_validity": 1.0 if not issues else 0.0,
         "compliance_rate": min(1.0, len(valid_selected_ids) / card.budget_k),
         "schema_error_rate": 1.0 if schema_error_count else 0.0,
         "wrong_k": bool(_issue_code_count(issues, "wrong_k")),
@@ -136,7 +138,9 @@ def _score_output_metrics(
     }
 
 
-def score_record(card: DecisionCard, record: RunRecord, *, hit_threshold: float | None = None) -> CardScore:
+def score_record(
+    card: DecisionCard, record: RunRecord, *, hit_threshold: float | None = None
+) -> CardScore:
     activity_by_id = _activity_values(card)
     feasible_ids = {
         candidate.id for candidate in card.candidate_pool if is_candidate_feasible(card, candidate)
@@ -175,7 +179,9 @@ def score_record(card: DecisionCard, record: RunRecord, *, hit_threshold: float 
         )
     repair_delta = None
     if raw_metrics is not None:
-        repair_delta = float(final_metrics["feasible_utility"]) - float(raw_metrics["feasible_utility"])
+        repair_delta = float(final_metrics["feasible_utility"]) - float(
+            raw_metrics["feasible_utility"]
+        )
 
     return CardScore(
         task_id=card.task_id,
@@ -187,6 +193,7 @@ def score_record(card: DecisionCard, record: RunRecord, *, hit_threshold: float 
         feasible_utility=float(final_metrics["feasible_utility"]),
         oracle_utility=oracle_utility,
         constrained_regret=float(final_metrics["constrained_regret"]),
+        action_validity=float(final_metrics["action_validity"]),
         compliance_rate=float(final_metrics["compliance_rate"]),
         schema_error_rate=float(final_metrics["schema_error_rate"]),
         wrong_k=bool(final_metrics["wrong_k"]),
@@ -195,11 +202,12 @@ def score_record(card: DecisionCard, record: RunRecord, *, hit_threshold: float 
         support_violation_count=int(final_metrics["support_violation_count"]),
         constraint_violation_count=int(final_metrics["constraint_violation_count"]),
         valid_selected_count=int(final_metrics["valid_selected_count"]),
-        raw_ndcg_at_k=(
-            float(raw_metrics["ndcg_at_k"]) if raw_metrics is not None else None
-        ),
+        raw_ndcg_at_k=(float(raw_metrics["ndcg_at_k"]) if raw_metrics is not None else None),
         raw_feasible_utility=(
             float(raw_metrics["feasible_utility"]) if raw_metrics is not None else None
+        ),
+        raw_action_validity=(
+            float(raw_metrics["action_validity"]) if raw_metrics is not None else None
         ),
         raw_compliance_rate=(
             float(raw_metrics["compliance_rate"]) if raw_metrics is not None else None
@@ -231,6 +239,10 @@ def score_record(card: DecisionCard, record: RunRecord, *, hit_threshold: float 
                 "llm_model_config_id",
                 "request_sha256",
                 "prompt_profile",
+                "repair_mode",
+                "repair_policy",
+                "repair_source_trace_sha256",
+                "repair_source_system_name",
             }
             and value is not None
         },
@@ -276,6 +288,7 @@ def summarize_scores(
         "feasible_utility",
         "oracle_utility",
         "constrained_regret",
+        "action_validity",
         "compliance_rate",
         "schema_error_rate",
         "pool_violation_count",
@@ -285,6 +298,7 @@ def summarize_scores(
         "valid_selected_count",
         "raw_ndcg_at_k",
         "raw_feasible_utility",
+        "raw_action_validity",
         "raw_compliance_rate",
         "raw_schema_error_rate",
         "raw_valid_selected_count",
@@ -297,7 +311,16 @@ def summarize_scores(
         "system_name": scores[0].system_name,
         "num_cards": len(scores),
     }
-    for metadata_key in ["base_system_name", "llm_provider", "llm_model", "llm_model_config_id"]:
+    for metadata_key in [
+        "base_system_name",
+        "llm_provider",
+        "llm_model",
+        "llm_model_config_id",
+        "repair_mode",
+        "repair_policy",
+        "repair_source_trace_sha256",
+        "repair_source_system_name",
+    ]:
         values = {
             str(score.metadata[metadata_key])
             for score in scores
@@ -313,9 +336,11 @@ def summarize_scores(
             "ndcg_at_k",
             "feasible_utility",
             "constrained_regret",
+            "action_validity",
             "compliance_rate",
             "raw_ndcg_at_k",
             "raw_feasible_utility",
+            "raw_action_validity",
             "raw_compliance_rate",
         }:
             ci = _bootstrap_ci(filtered, samples=bootstrap_samples, seed=seed)
@@ -376,7 +401,9 @@ def failure_taxonomy(records: list[RunRecord]) -> pd.DataFrame:
 def metric_denominators(scores: list[CardScore]) -> dict[str, object]:
     return {
         "num_cards": len(scores),
-        "cards_with_mean_activity": sum(score.mean_selected_activity is not None for score in scores),
+        "cards_with_mean_activity": sum(
+            score.mean_selected_activity is not None for score in scores
+        ),
         "cards_with_hit_recovery": sum(score.hit_recovery_at_k is not None for score in scores),
         "cards_with_enrichment": sum(score.enrichment_at_k is not None for score in scores),
         "cards_with_raw_metrics": sum(score.raw_feasible_utility is not None for score in scores),
@@ -392,14 +419,35 @@ def score_run(
     hit_threshold: float | None = None,
     bootstrap_samples: int = 1000,
     seed: int = 7,
+    scorer_outcomes_path: Path | None = None,
 ) -> list[CardScore]:
-    cards = {card.task_id: card for card in load_models(cards_path, DecisionCard)}
-    records = load_models(run_path, RunRecord)
-    scores = [
-        score_record(cards[record.task_id], record, hit_threshold=hit_threshold)
-        for record in records
-        if record.task_id in cards
+    loaded_cards = load_evaluation_cards(cards_path, scorer_outcomes_path)
+    missing_outcomes = [
+        (card.task_id, candidate.id)
+        for card in loaded_cards
+        for candidate in card.candidate_pool
+        if candidate.activity_value is None
     ]
+    if missing_outcomes:
+        task_id, candidate_id = missing_outcomes[0]
+        raise ValueError(
+            f"scoring requires candidate outcomes; missing outcome for {task_id}/{candidate_id}"
+        )
+    cards: dict[str, DecisionCard] = {}
+    for card in loaded_cards:
+        if card.task_id in cards:
+            raise ValueError(f"duplicate decision-card task_id: {card.task_id}")
+        cards[card.task_id] = card
+    records = load_models(run_path, RunRecord)
+    seen_record_tasks: set[str] = set()
+    scores: list[CardScore] = []
+    for record in records:
+        if record.task_id in seen_record_tasks:
+            raise ValueError(f"duplicate run task_id: {record.task_id}")
+        seen_record_tasks.add(record.task_id)
+        if record.task_id not in cards:
+            raise ValueError(f"run task_id is not present in decision cards: {record.task_id}")
+        scores.append(score_record(cards[record.task_id], record, hit_threshold=hit_threshold))
     out_dir.mkdir(parents=True, exist_ok=True)
     write_jsonl(out_dir / "card_scores.jsonl", scores)
     write_json(

@@ -1,66 +1,160 @@
 # Cost Control
 
-Live LLM runs must be estimated before expensive execution. The estimator is
-conservative: uncached calls are priced as if they use the estimated prompt
-tokens plus the full configured output budget. Chemical JSON tokenizes densely,
-so the default estimate uses a strict character-to-token ratio plus a safety
-multiplier.
+Live LLM calls are never required for tests, card validation, deterministic
+baselines, request export, costing, or post-hoc repair. A live command requires
+both explicit user authorization and `--allow-external`.
+
+## Frozen v0.1.0 Matrix
+
+The release experiment has exactly two raw interfaces and three model
+conditions:
+
+- `bare_llm` and `llm_tools`;
+- `openai_gpt_5_5_2026_04_23_selector`;
+- `anthropic_opus_4_8_selector`; and
+- `deepseek_v4_pro_2026_07_16_selector`.
+
+Across 91 cards this is `91 × 2 × 3 = 546` provider requests. Deterministic
+repair is applied post hoc to recorded traces and adds zero provider requests.
+The former four-prompt matrix, which paid separately for validator prompt
+variants, is historical and is not the v0.1.0 design.
 
 ## Estimate Before Running
 
 ```bash
-uv run sgchem estimate-llm-cost data/cards/cara_lo_paper_50.jsonl \
-  --systems bare_llm,llm_validator,llm_tools,llm_tools_validator \
-  --model-conditions openai_frontier_selector,anthropic_frontier_selector \
-  --out-run-dir runs/cara_lo_paper_50_selector_matrix \
-  --out runs/cara_lo_paper_50_selector_matrix/cost_estimate.json
+uv run sgchem estimate-llm-cost \
+  data/releases/v0.1.0/system_input_cards.jsonl \
+  --systems bare_llm,llm_tools \
+  --model-matrix configs/model_matrix.toml \
+  --model-conditions openai_gpt_5_5_2026_04_23_selector,anthropic_opus_4_8_selector,deepseek_v4_pro_2026_07_16_selector \
+  --pricing configs/provider_pricing.toml \
+  --cache-dir release/v0.1.0/experiments/llm/matrix/cache \
+  --out-run-dir release/v0.1.0/experiments/llm/matrix \
+  --out release/v0.1.0/experiments/llm/pre_run_cost_estimate.json
 ```
 
-The `*_frontier_selector` condition IDs are legacy internal names for the
-direct-JSON run profile. Keep those IDs stable for cache and run reproducibility,
-but use provider/model labels such as `OpenAI gpt-5.5, low reasoning, Direct
-JSON` in paper-facing reports.
+The frozen pre-run estimate reports 546 missing live calls, a maximum
+conservative input estimate of 158,274 tokens, and an upper-bound incremental
+cost of USD 106.0594. It assumes the configured maximum output budget for every
+uncached call, so it is a spend gate rather than a forecast of the final invoice.
 
-The estimate reports:
+Pricing in `configs/provider_pricing.toml` was checked on 2026-07-16. It is a
+versioned snapshot, not a source of truth: verify provider pricing, context
+limits, and model availability again immediately before an authorized run. If
+any value or model changes, regenerate the exact-request and cost artifacts and
+record the change as a new condition/version.
 
-- total planned requests;
-- calls already covered by complete traces or replay cache;
-- missing live calls;
-- maximum estimated input tokens for any missing call;
-- estimated incremental cost.
+## Pre-Pilot Whole-Matrix Ceiling
 
-Pricing lives in `configs/provider_pricing.toml`. It is a snapshot, not a source
-of truth. Check provider pricing pages before large runs.
-
-## Gate Live Runs
-
-Use hard gates whenever `--allow-external` is set:
+The following records the pre-pilot ceiling for all 546 unique requests. The
+staged procedure below uses tighter pilot and residual gates. Do not execute
+either command without explicit authorization and valid provider credentials.
 
 ```bash
-uv run --extra providers sgchem run-llm-matrix data/cards/cara_lo_paper_50.jsonl \
-  --systems llm_tools,llm_tools_validator \
-  --model-conditions openai_frontier_selector \
-  --out runs/cara_lo_paper_50_selector_matrix \
+uv run --extra providers sgchem run-llm-matrix \
+  data/releases/v0.1.0/system_input_cards.jsonl \
+  --scorer-outcomes data/releases/v0.1.0/scorer_outcomes.jsonl \
+  --systems bare_llm,llm_tools \
+  --model-matrix configs/model_matrix.toml \
+  --model-conditions openai_gpt_5_5_2026_04_23_selector,anthropic_opus_4_8_selector,deepseek_v4_pro_2026_07_16_selector \
+  --cache-dir release/v0.1.0/experiments/llm/matrix/cache \
+  --out release/v0.1.0/experiments/llm/matrix \
   --allow-external \
   --require-cost-estimate \
-  --max-estimated-cost-usd 25 \
-  --max-live-calls 50 \
+  --max-estimated-cost-usd 120 \
+  --max-live-calls 546 \
   --max-input-tokens-per-call 175000
 ```
 
-The command writes `cost_estimate.json` into the run directory and aborts before
-provider calls if any gate fails.
+The runner writes a fresh `cost_estimate.json` and aborts before provider calls
+if any gate fails.
 
-## Resume Behavior
+## Fixed One-Card Pilot Gates
 
-`run-llm-matrix` skips complete trace files by default and reuses response
-caches for incomplete systems. Pass `--force` only when intentionally rerunning a
-completed condition.
+The pilot uses the first frozen task, selected by the stable identifier
+`CARA_LO_CHEMBL1006579_IC50_0001`. It preserves both raw interfaces and all
+three model conditions, so its call limit is exactly six. At the frozen pricing
+snapshot its no-call estimate is USD 0.936717455 and the largest conservative
+input estimate is 25,817 tokens.
 
-## Recommended Ladder
+This command remains unauthorized until the user explicitly approves live
+provider calls:
 
-1. One-card preflight.
-2. Five- or ten-card pilot with cost gates.
-3. Full direct-JSON run after estimated cost is acceptable.
-4. High-reasoning/thinking runs only as small pilots until the interface is
-   redesigned or compressed.
+```bash
+uv run --extra providers sgchem run-llm-matrix \
+  data/releases/v0.1.0/system_input_cards.jsonl \
+  --scorer-outcomes data/releases/v0.1.0/scorer_outcomes.jsonl \
+  --systems bare_llm,llm_tools \
+  --model-matrix configs/model_matrix.toml \
+  --model-conditions openai_gpt_5_5_2026_04_23_selector,anthropic_opus_4_8_selector,deepseek_v4_pro_2026_07_16_selector \
+  --task-id CARA_LO_CHEMBL1006579_IC50_0001 \
+  --cache-dir release/v0.1.0/experiments/llm/matrix/cache \
+  --out release/v0.1.0/experiments/llm/pilot \
+  --allow-external \
+  --require-cost-estimate \
+  --max-estimated-cost-usd 1 \
+  --max-live-calls 6 \
+  --max-input-tokens-per-call 30000
+```
+
+The USD 1, six-call, and 30,000-token gates are pilot-specific. The shared
+matrix cache is mandatory: it prevents the residual run from repurchasing these
+same six requests. The exact offline export and estimate commands are in
+`release/v0.1.0/REPRODUCE.md`.
+
+After all six pilot traces pass review, rerun the complete cost estimate against
+that shared cache. It must report six cached requests and exactly 540 missing
+requests. With the unchanged snapshot, the residual conservative upper bound is
+USD 105.122676615. The cached-cost field records pilot spend already incurred.
+Abort if the counts differ.
+
+Only after that check passes, use the residual gates:
+
+```bash
+uv run --extra providers sgchem run-llm-matrix \
+  data/releases/v0.1.0/system_input_cards.jsonl \
+  --scorer-outcomes data/releases/v0.1.0/scorer_outcomes.jsonl \
+  --systems bare_llm,llm_tools \
+  --model-matrix configs/model_matrix.toml \
+  --model-conditions openai_gpt_5_5_2026_04_23_selector,anthropic_opus_4_8_selector,deepseek_v4_pro_2026_07_16_selector \
+  --cache-dir release/v0.1.0/experiments/llm/matrix/cache \
+  --out release/v0.1.0/experiments/llm/matrix \
+  --allow-external \
+  --require-cost-estimate \
+  --max-estimated-cost-usd 119 \
+  --max-live-calls 540 \
+  --max-input-tokens-per-call 175000
+```
+
+The pilot USD 1 gate plus residual USD 119 gate preserve the USD 120 aggregate
+ceiling. A missing pilot cache entry makes the 540-call gate fail; do not raise
+the gate to work around it.
+
+## Resume and Cache Rules
+
+`run-llm-matrix` skips complete trace files and reuses content-addressed response
+caches by default. Request hashes include the system interface, exact public
+input, prompt profile, provider/model condition, token budget, temperature, and
+reasoning/thinking settings. Pass `--force` only for an intentional, documented
+rerun.
+
+Do not count cached or completed calls twice. Do not overwrite a partial trace
+with an unrelated request configuration. Preserve provider-returned model IDs,
+usage records, errors, and cache keys with the trace.
+
+## Cost-Neutral Post-hoc Repair
+
+After raw traces exist, guarded-system behavior is derived from those same
+responses:
+
+```bash
+uv run sgchem repair-llm-trace \
+  data/releases/v0.1.0/system_input_cards.jsonl \
+  release/v0.1.0/experiments/llm/matrix/CONDITION_ID/INTERFACE_NAME/trace.jsonl \
+  --out release/v0.1.0/experiments/llm/matrix/CONDITION_ID/INTERFACE_NAME/posthoc_repair.trace.jsonl \
+  --scores-out release/v0.1.0/experiments/llm/matrix/CONDITION_ID/INTERFACE_NAME/posthoc_scores \
+  --scorer-outcomes data/releases/v0.1.0/scorer_outcomes.jsonl
+```
+
+This operation is deterministic, makes no network request, and must remain
+separate from raw model performance.

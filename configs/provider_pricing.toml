@@ -1,8 +1,8 @@
 # Provider pricing snapshot for cost estimates.
 #
 # Prices are USD per 1M tokens. Update this file when provider pricing changes.
-# Sources checked 2026-05-12:
-# - OpenAI: https://openai.com/api/pricing/
+# Sources checked 2026-07-16:
+# - OpenAI: https://developers.openai.com/api/docs/models/gpt-5.5
 # - Anthropic: https://platform.claude.com/docs/en/about-claude/pricing
 # - DeepSeek: https://api-docs.deepseek.com/quick_start/pricing
 
@@ -23,6 +23,13 @@ cached_input_per_1m_usd = 0.50
 output_per_1m_usd = 30.00
 source_url = "https://openai.com/api/pricing/"
 notes = "GPT-5.5 standard pricing."
+
+[models.openai_gpt_5_5_2026_04_23_selector]
+input_per_1m_usd = 5.00
+cached_input_per_1m_usd = 0.50
+output_per_1m_usd = 30.00
+source_url = "https://developers.openai.com/api/docs/models/gpt-5.5"
+notes = "GPT-5.5 snapshot standard pricing checked 2026-07-16."
 
 [models.openai_frontier_reasoning_budget]
 input_per_1m_usd = 5.00
@@ -52,6 +59,13 @@ output_per_1m_usd = 25.00
 source_url = "https://platform.claude.com/docs/en/about-claude/pricing"
 notes = "Claude Opus 4.7 base input/output pricing."
 
+[models.anthropic_opus_4_8_selector]
+input_per_1m_usd = 5.00
+cached_input_per_1m_usd = 0.50
+output_per_1m_usd = 25.00
+source_url = "https://platform.claude.com/docs/en/about-claude/pricing"
+notes = "Claude Opus 4.8 base input/output pricing checked 2026-07-16."
+
 [models.anthropic_frontier_thinking_8k]
 input_per_1m_usd = 5.00
 cached_input_per_1m_usd = 0.50
@@ -71,21 +85,28 @@ input_per_1m_usd = 0.435
 cached_input_per_1m_usd = 0.003625
 output_per_1m_usd = 0.87
 source_url = "https://api-docs.deepseek.com/quick_start/pricing"
-notes = "DeepSeek V4 Pro discounted pricing listed through 2026-05-31."
+notes = "DeepSeek V4 Pro pricing checked 2026-07-16."
 
 [models.deepseek_frontier_selector]
 input_per_1m_usd = 0.435
 cached_input_per_1m_usd = 0.003625
 output_per_1m_usd = 0.87
 source_url = "https://api-docs.deepseek.com/quick_start/pricing"
-notes = "DeepSeek V4 Pro discounted pricing listed through 2026-05-31."
+notes = "DeepSeek V4 Pro pricing checked 2026-07-16."
+
+[models.deepseek_v4_pro_2026_07_16_selector]
+input_per_1m_usd = 0.435
+cached_input_per_1m_usd = 0.003625
+output_per_1m_usd = 0.87
+source_url = "https://api-docs.deepseek.com/quick_start/pricing/"
+notes = "DeepSeek V4 Pro pricing checked 2026-07-16."
 
 [models.deepseek_frontier_thinking_32k]
 input_per_1m_usd = 0.435
 cached_input_per_1m_usd = 0.003625
 output_per_1m_usd = 0.87
 source_url = "https://api-docs.deepseek.com/quick_start/pricing"
-notes = "DeepSeek V4 Pro discounted pricing listed through 2026-05-31."
+notes = "DeepSeek V4 Pro pricing checked 2026-07-16."
 
 [models.deepseek_fast]
 input_per_1m_usd = 0.14
