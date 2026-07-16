@@ -2,6 +2,7 @@
 
 **A reproducible benchmark that separates whether a system *followed the rules* from whether it *made a better scientific decision*.**
 
+[![CI](https://github.com/danhussey/constrained-compound-prioritisation/actions/workflows/ci.yml/badge.svg)](https://github.com/danhussey/constrained-compound-prioritisation/actions/workflows/ci.yml)
 ![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
 ![Built with RDKit + scikit-learn](https://img.shields.io/badge/built%20with-RDKit%20%2B%20scikit--learn-8A2BE2)
