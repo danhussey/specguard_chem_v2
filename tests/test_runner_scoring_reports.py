@@ -18,8 +18,11 @@ from specguard_chem_v2.systems.llm import (
     build_llm_request,
     export_llm_requests,
 )
-from specguard_chem_v2.systems.providers import LLMModelConfig
-from specguard_chem_v2.systems.providers import load_model_matrix, select_model_configs
+from specguard_chem_v2.systems.providers import (
+    LLMModelConfig,
+    load_model_matrix,
+    select_model_configs,
+)
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -284,6 +287,10 @@ def test_compare_and_frontier_plot(tmp_path: Path) -> None:
     assert "circle-open" in dashboard_text
     assert "Paired Card-Level Bootstrap" in dashboard_text
     assert "Card-Level Utility Distribution" in dashboard_text
+    assert "Percent of oracle utility" in dashboard_text
+    assert "utility 70 means selected valid compounds averaged about 7.0" in dashboard_text
+    assert "ten valid selections averaging 7.0" in dashboard_text
+    assert "Raw output:" in dashboard_text
     assert "Failure Taxonomy" in dashboard_text
     assert "pairedRows" in dashboard_text
     assert "cardKeyRows" in dashboard_text

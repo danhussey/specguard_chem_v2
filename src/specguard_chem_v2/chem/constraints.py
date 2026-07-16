@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Iterable
 
-from .descriptors import Chem, compute_descriptors, mol_from_smiles
 from ..schemas import CompoundRecord, ConstraintSpec, DecisionCard, ValidationIssue
+from .descriptors import Chem, compute_descriptors, mol_from_smiles
 
 
 def default_constraints() -> list[ConstraintSpec]:

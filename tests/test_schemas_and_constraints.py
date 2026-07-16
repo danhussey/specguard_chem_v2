@@ -5,7 +5,6 @@ from specguard_chem_v2.runner import repair_output, validate_output
 from specguard_chem_v2.schemas import DecisionCard, RunRecord, SelectionItem, SystemOutput
 from specguard_chem_v2.validation import validate_card_semantics
 
-
 FIXTURES = Path(__file__).parent / "fixtures"
 
 

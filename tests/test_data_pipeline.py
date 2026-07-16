@@ -1,5 +1,5 @@
-from pathlib import Path
 import shutil
+from pathlib import Path
 
 from specguard_chem_v2.data.cara import (
     build_cards_from_jsonl,
@@ -10,7 +10,6 @@ from specguard_chem_v2.data.cara import (
 )
 from specguard_chem_v2.io import load_models
 from specguard_chem_v2.schemas import DecisionCard
-
 
 FIXTURES = Path(__file__).parent / "fixtures"
 

@@ -85,7 +85,7 @@ def make_main_utility_plot(rows: list[dict[str, str]]) -> None:
         ("QSAR gradient boosting", "qsar_gbt", "feasible_utility", "feasible_utility_ci_low", "feasible_utility_ci_high", QSAR),
         ("QSAR random forest", "qsar_rf", "feasible_utility", "feasible_utility_ci_low", "feasible_utility_ci_high", QSAR),
         (
-            "OpenAI gpt-5.5 + validation/repair",
+            "GPT-5.5",
             "llm_validator__openai_frontier_selector",
             "feasible_utility",
             "feasible_utility_ci_low",
@@ -93,7 +93,7 @@ def make_main_utility_plot(rows: list[dict[str, str]]) -> None:
             OPENAI,
         ),
         (
-            "OpenAI gpt-5.5 + descriptors\n+ validation/repair",
+            "GPT-5.5 + descriptors",
             "llm_tools_validator__openai_frontier_selector",
             "feasible_utility",
             "feasible_utility_ci_low",
@@ -101,7 +101,7 @@ def make_main_utility_plot(rows: list[dict[str, str]]) -> None:
             OPENAI,
         ),
         (
-            "Anthropic Opus 4.7\n+ validation/repair",
+            "Opus 4.7",
             "llm_validator__anthropic_frontier_selector",
             "feasible_utility",
             "feasible_utility_ci_low",
@@ -109,7 +109,7 @@ def make_main_utility_plot(rows: list[dict[str, str]]) -> None:
             ANTHROPIC,
         ),
         (
-            "Anthropic Opus 4.7 + descriptors\n+ validation/repair",
+            "Opus 4.7 + descriptors",
             "llm_tools_validator__anthropic_frontier_selector",
             "feasible_utility",
             "feasible_utility_ci_low",
@@ -117,7 +117,7 @@ def make_main_utility_plot(rows: list[dict[str, str]]) -> None:
             ANTHROPIC,
         ),
         (
-            "DeepSeek V4 Pro\n+ validation/repair",
+            "DeepSeek V4 Pro",
             "llm_validator__deepseek_frontier_selector",
             "feasible_utility",
             "feasible_utility_ci_low",
@@ -125,7 +125,7 @@ def make_main_utility_plot(rows: list[dict[str, str]]) -> None:
             DEEPSEEK,
         ),
         (
-            "DeepSeek V4 Pro + descriptors\n+ validation/repair",
+            "DeepSeek V4 Pro + descriptors",
             "llm_tools_validator__deepseek_frontier_selector",
             "feasible_utility",
             "feasible_utility_ci_low",
@@ -151,7 +151,7 @@ def make_main_utility_plot(rows: list[dict[str, str]]) -> None:
         )
     data.sort(key=lambda item: item["value"])
 
-    fig, ax = plt.subplots(figsize=(9.4, 7.1), dpi=220)
+    fig, ax = plt.subplots(figsize=(9.6, 7.4), dpi=220)
     fig.patch.set_facecolor("white")
     ax.set_facecolor("white")
 
@@ -180,36 +180,36 @@ def make_main_utility_plot(rows: list[dict[str, str]]) -> None:
             _fmt(item["value"]),
             va="center",
             ha="left",
-            fontsize=8.8,
+            fontsize=11.3,
             color=INK,
             bbox={"facecolor": "white", "edgecolor": "none", "pad": 0.8, "alpha": 0.86},
         )
 
     ax.set_yticks(list(y_positions))
-    ax.set_yticklabels([item["label"] for item in data], fontsize=9.2)
-    ax.set_xlabel("Mean feasible utility across 50 decision cards (higher is better)", fontsize=9.5, color=INK)
-    ax.set_xlim(62, 94)
+    ax.set_yticklabels([item["label"] for item in data], fontsize=12.2)
+    ax.set_xlabel("Mean feasible utility across 50 decision cards (higher is better)", fontsize=12.0, color=INK)
+    ax.set_xlim(63, 92)
     ax.grid(axis="x", color=GRID, linewidth=0.8)
-    ax.tick_params(axis="x", labelsize=8.8, colors=INK)
+    ax.tick_params(axis="x", labelsize=11.0, colors=INK)
     ax.tick_params(axis="y", length=0, colors=INK)
     for spine in ("top", "right", "left"):
         ax.spines[spine].set_visible(False)
     ax.spines["bottom"].set_color(GRID)
-    ax.set_title("Main system comparison", fontsize=13.5, fontweight="bold", color=INK, pad=12)
+    ax.set_title("Main system comparison", fontsize=18.0, fontweight="bold", color=INK, pad=15)
     ax.legend(
         handles=_system_legend(),
         loc="lower right",
         frameon=False,
-        fontsize=7.6,
+        fontsize=10.0,
         ncol=2,
         handletextpad=0.3,
         columnspacing=0.8,
     )
     ax.text(
-        62,
+        63,
         len(data) - 0.35,
-        "Dots show mean feasible utility; bars show 95% bootstrap intervals over cards.",
-        fontsize=8.4,
+        "Dots show mean feasible utility; bars show 95% bootstrap intervals over cards. LLM rows show final output after validation/repair.",
+        fontsize=10.6,
         color=MUTED,
         ha="left",
         va="top",
@@ -224,7 +224,7 @@ def make_ndcg_plot(rows: list[dict[str, str]]) -> None:
         ("QSAR gradient boosting", "qsar_gbt", "ndcg_at_k", "ndcg_at_k_ci_low", "ndcg_at_k_ci_high", QSAR),
         ("QSAR random forest", "qsar_rf", "ndcg_at_k", "ndcg_at_k_ci_low", "ndcg_at_k_ci_high", QSAR),
         (
-            "OpenAI gpt-5.5 + validation/repair",
+            "GPT-5.5",
             "llm_validator__openai_frontier_selector",
             "ndcg_at_k",
             "ndcg_at_k_ci_low",
@@ -232,7 +232,7 @@ def make_ndcg_plot(rows: list[dict[str, str]]) -> None:
             OPENAI,
         ),
         (
-            "OpenAI gpt-5.5 + descriptors\n+ validation/repair",
+            "GPT-5.5 + descriptors",
             "llm_tools_validator__openai_frontier_selector",
             "ndcg_at_k",
             "ndcg_at_k_ci_low",
@@ -240,7 +240,7 @@ def make_ndcg_plot(rows: list[dict[str, str]]) -> None:
             OPENAI,
         ),
         (
-            "Anthropic Opus 4.7\n+ validation/repair",
+            "Opus 4.7",
             "llm_validator__anthropic_frontier_selector",
             "ndcg_at_k",
             "ndcg_at_k_ci_low",
@@ -248,7 +248,7 @@ def make_ndcg_plot(rows: list[dict[str, str]]) -> None:
             ANTHROPIC,
         ),
         (
-            "Anthropic Opus 4.7 + descriptors\n+ validation/repair",
+            "Opus 4.7 + descriptors",
             "llm_tools_validator__anthropic_frontier_selector",
             "ndcg_at_k",
             "ndcg_at_k_ci_low",
@@ -256,7 +256,7 @@ def make_ndcg_plot(rows: list[dict[str, str]]) -> None:
             ANTHROPIC,
         ),
         (
-            "DeepSeek V4 Pro\n+ validation/repair",
+            "DeepSeek V4 Pro",
             "llm_validator__deepseek_frontier_selector",
             "ndcg_at_k",
             "ndcg_at_k_ci_low",
@@ -264,7 +264,7 @@ def make_ndcg_plot(rows: list[dict[str, str]]) -> None:
             DEEPSEEK,
         ),
         (
-            "DeepSeek V4 Pro + descriptors\n+ validation/repair",
+            "DeepSeek V4 Pro + descriptors",
             "llm_tools_validator__deepseek_frontier_selector",
             "ndcg_at_k",
             "ndcg_at_k_ci_low",
@@ -290,7 +290,7 @@ def make_ndcg_plot(rows: list[dict[str, str]]) -> None:
         )
     data.sort(key=lambda item: item["value"])
 
-    fig, ax = plt.subplots(figsize=(9.4, 7.1), dpi=220)
+    fig, ax = plt.subplots(figsize=(9.6, 7.4), dpi=220)
     fig.patch.set_facecolor("white")
     ax.set_facecolor("white")
 
@@ -319,27 +319,27 @@ def make_ndcg_plot(rows: list[dict[str, str]]) -> None:
             _fmt(item["value"]),
             va="center",
             ha="left",
-            fontsize=8.8,
+            fontsize=11.3,
             color=INK,
             bbox={"facecolor": "white", "edgecolor": "none", "pad": 0.8, "alpha": 0.86},
         )
 
     ax.set_yticks(list(y_positions))
-    ax.set_yticklabels([item["label"] for item in data], fontsize=9.2)
-    ax.set_xlabel("NDCG@10 ranking quality across 50 decision cards (higher is better)", fontsize=9.5, color=INK)
-    ax.set_xlim(0.69, 1.055)
+    ax.set_yticklabels([item["label"] for item in data], fontsize=12.2)
+    ax.set_xlabel("NDCG@10 ranking quality across 50 decision cards (higher is better)", fontsize=12.0, color=INK)
+    ax.set_xlim(0.70, 1.03)
     ax.grid(axis="x", color=GRID, linewidth=0.8)
-    ax.tick_params(axis="x", labelsize=8.8, colors=INK)
+    ax.tick_params(axis="x", labelsize=11.0, colors=INK)
     ax.tick_params(axis="y", length=0, colors=INK)
     for spine in ("top", "right", "left"):
         ax.spines[spine].set_visible(False)
     ax.spines["bottom"].set_color(GRID)
-    ax.set_title("Ranking quality by system", fontsize=13.5, fontweight="bold", color=INK, pad=12)
+    ax.set_title("Ranking quality by system", fontsize=18.0, fontweight="bold", color=INK, pad=15)
     ax.legend(
         handles=_system_legend(),
         loc="lower right",
         frameon=False,
-        fontsize=7.6,
+        fontsize=10.0,
         ncol=2,
         handletextpad=0.3,
         columnspacing=0.8,
@@ -347,8 +347,8 @@ def make_ndcg_plot(rows: list[dict[str, str]]) -> None:
     ax.text(
         0.69,
         len(data) - 0.35,
-        "NDCG@10 asks whether higher-activity candidates were placed nearer the top of the shortlist.",
-        fontsize=8.4,
+        "NDCG@10 asks whether higher-activity candidates were placed nearer the top. LLM rows show final output after validation/repair.",
+        fontsize=10.6,
         color=MUTED,
         ha="left",
         va="top",
@@ -358,10 +358,10 @@ def make_ndcg_plot(rows: list[dict[str, str]]) -> None:
 
 def make_raw_final_plot(rows: list[dict[str, str]]) -> None:
     selected = [
-        ("OpenAI gpt-5.5", "llm_validator__openai_frontier_selector"),
-        ("OpenAI gpt-5.5\n+ descriptors", "llm_tools_validator__openai_frontier_selector"),
-        ("Anthropic Opus 4.7", "llm_validator__anthropic_frontier_selector"),
-        ("Anthropic Opus 4.7\n+ descriptors", "llm_tools_validator__anthropic_frontier_selector"),
+        ("GPT-5.5", "llm_validator__openai_frontier_selector"),
+        ("GPT-5.5\n+ descriptors", "llm_tools_validator__openai_frontier_selector"),
+        ("Opus 4.7", "llm_validator__anthropic_frontier_selector"),
+        ("Opus 4.7\n+ descriptors", "llm_tools_validator__anthropic_frontier_selector"),
         ("DeepSeek V4 Pro", "llm_validator__deepseek_frontier_selector"),
         ("DeepSeek V4 Pro\n+ descriptors", "llm_tools_validator__deepseek_frontier_selector"),
     ]
@@ -380,7 +380,7 @@ def make_raw_final_plot(rows: list[dict[str, str]]) -> None:
         )
     data.sort(key=lambda item: item["final"])
 
-    fig, ax = plt.subplots(figsize=(9.0, 5.6), dpi=220)
+    fig, ax = plt.subplots(figsize=(10.6, 6.3), dpi=220)
     fig.patch.set_facecolor("white")
     ax.set_facecolor("white")
 
@@ -389,40 +389,40 @@ def make_raw_final_plot(rows: list[dict[str, str]]) -> None:
         ax.plot([item["raw"], item["final"]], [y, y], color="#c5ccd2", linewidth=4, solid_capstyle="round", zorder=1)
         ax.scatter(item["raw"], y, s=78, color=RAW, edgecolor="white", linewidth=0.9, zorder=3, label="Raw output" if y == 0 else "")
         ax.scatter(item["final"], y, s=90, color=FINAL, edgecolor="white", linewidth=0.9, zorder=4, label="After validation/repair" if y == 0 else "")
-        ax.text(item["raw"] - 0.65, y, _fmt(item["raw"]), ha="right", va="center", fontsize=8.5, color=MUTED)
-        ax.text(item["final"] + 0.65, y, _fmt(item["final"]), ha="left", va="center", fontsize=8.5, color=INK)
+        ax.text(item["raw"] - 0.65, y, _fmt(item["raw"]), ha="right", va="center", fontsize=9.5, color=MUTED)
+        ax.text(item["final"] + 0.65, y, _fmt(item["final"]), ha="left", va="center", fontsize=9.5, color=INK)
         ax.text(
             83.0,
             y,
-            f"repair used on {item['repair']:.0%} of tasks",
+            f"repair on {item['repair']:.0%} of tasks",
             ha="left",
             va="center",
-            fontsize=8.2,
+            fontsize=9.2,
             color=MUTED,
         )
 
     ax.set_yticks(list(y_positions))
-    ax.set_yticklabels([item["label"] for item in data], fontsize=9.2)
-    ax.set_xlabel("Mean feasible utility", fontsize=9.5, color=INK)
+    ax.set_yticklabels([item["label"] for item in data], fontsize=10.3)
+    ax.set_xlabel("Mean feasible utility", fontsize=10.6, color=INK)
     ax.set_xlim(46, 87)
     ax.set_ylim(-0.35, len(data) - 0.35)
     ax.grid(axis="x", color=GRID, linewidth=0.8)
-    ax.tick_params(axis="x", labelsize=8.8, colors=INK)
+    ax.tick_params(axis="x", labelsize=9.6, colors=INK)
     ax.tick_params(axis="y", length=0, colors=INK)
     for spine in ("top", "right", "left"):
         ax.spines[spine].set_visible(False)
     ax.spines["bottom"].set_color(GRID)
-    ax.legend(loc="upper left", bbox_to_anchor=(0.72, 1.02), frameon=False, fontsize=8.2)
-    ax.set_title("Raw versus final utility for selected language models", fontsize=13.0, fontweight="bold", color=INK, pad=12)
+    ax.legend(loc="upper left", bbox_to_anchor=(0.72, 1.02), frameon=False, fontsize=9.2)
+    ax.set_title("Raw versus final utility for selected language models", fontsize=15.0, fontweight="bold", color=INK, pad=13)
     _save_all(fig, "figure_5_raw_vs_final_llm")
 
 
 def make_raw_final_compliance_plot(rows: list[dict[str, str]]) -> None:
     selected = [
-        ("OpenAI gpt-5.5", "llm_validator__openai_frontier_selector"),
-        ("OpenAI gpt-5.5\n+ descriptors", "llm_tools_validator__openai_frontier_selector"),
-        ("Anthropic Opus 4.7", "llm_validator__anthropic_frontier_selector"),
-        ("Anthropic Opus 4.7\n+ descriptors", "llm_tools_validator__anthropic_frontier_selector"),
+        ("GPT-5.5", "llm_validator__openai_frontier_selector"),
+        ("GPT-5.5\n+ descriptors", "llm_tools_validator__openai_frontier_selector"),
+        ("Opus 4.7", "llm_validator__anthropic_frontier_selector"),
+        ("Opus 4.7\n+ descriptors", "llm_tools_validator__anthropic_frontier_selector"),
         ("DeepSeek V4 Pro", "llm_validator__deepseek_frontier_selector"),
         ("DeepSeek V4 Pro\n+ descriptors", "llm_tools_validator__deepseek_frontier_selector"),
     ]
@@ -439,7 +439,7 @@ def make_raw_final_compliance_plot(rows: list[dict[str, str]]) -> None:
         )
     data.sort(key=lambda item: item["raw"])
 
-    fig, ax = plt.subplots(figsize=(9.0, 5.4), dpi=220)
+    fig, ax = plt.subplots(figsize=(10.6, 6.1), dpi=220)
     fig.patch.set_facecolor("white")
     ax.set_facecolor("white")
 
@@ -448,32 +448,32 @@ def make_raw_final_compliance_plot(rows: list[dict[str, str]]) -> None:
         ax.plot([item["raw"], item["final"]], [y, y], color="#c5ccd2", linewidth=4, solid_capstyle="round", zorder=1)
         ax.scatter(item["raw"], y, s=78, color=RAW, edgecolor="white", linewidth=0.9, zorder=3, label="Raw output" if y == 0 else "")
         ax.scatter(item["final"], y, s=90, color=FINAL, edgecolor="white", linewidth=0.9, zorder=4, label="Final guarded output" if y == 0 else "")
-        ax.text(item["raw"] - 0.012, y, _fmt(item["raw"]), ha="right", va="center", fontsize=8.5, color=MUTED)
-        ax.text(item["final"] + 0.010, y, _fmt(item["final"]), ha="left", va="center", fontsize=8.5, color=INK)
+        ax.text(item["raw"] - 0.012, y, _fmt(item["raw"]), ha="right", va="center", fontsize=9.5, color=MUTED)
+        ax.text(item["final"] + 0.010, y, _fmt(item["final"]), ha="left", va="center", fontsize=9.5, color=INK)
         ax.text(
             1.070,
             y,
-            f"repair used on {item['repair']:.0%} of tasks",
+            f"repair on {item['repair']:.0%} of tasks",
             ha="left",
             va="center",
-            fontsize=8.2,
+            fontsize=9.2,
             color=MUTED,
         )
 
     ax.set_yticks(list(y_positions))
-    ax.set_yticklabels([item["label"] for item in data], fontsize=9.0)
-    ax.set_xlabel("Compliance: valid selected entries divided by requested top-10 list", fontsize=9.3, color=INK)
+    ax.set_yticklabels([item["label"] for item in data], fontsize=10.3)
+    ax.set_xlabel("Compliance: valid selected entries divided by requested top-10 list", fontsize=10.5, color=INK)
     ax.set_xlim(0.66, 1.13)
     ax.set_ylim(-0.35, len(data) - 0.35)
     ax.set_xticks([0.70, 0.80, 0.90, 1.00])
     ax.grid(axis="x", color=GRID, linewidth=0.8)
-    ax.tick_params(axis="x", labelsize=8.8, colors=INK)
+    ax.tick_params(axis="x", labelsize=9.6, colors=INK)
     ax.tick_params(axis="y", length=0, colors=INK)
     for spine in ("top", "right", "left"):
         ax.spines[spine].set_visible(False)
     ax.spines["bottom"].set_color(GRID)
-    ax.legend(loc="upper left", bbox_to_anchor=(0.70, 1.03), frameon=False, fontsize=8.2)
-    ax.set_title("Raw versus final compliance for selected language models", fontsize=13.0, fontweight="bold", color=INK, pad=12)
+    ax.legend(loc="upper left", bbox_to_anchor=(0.70, 1.03), frameon=False, fontsize=9.2)
+    ax.set_title("Raw versus final compliance for selected language models", fontsize=15.0, fontweight="bold", color=INK, pad=13)
     _save_all(fig, "figure_6_raw_vs_final_compliance")
 
 
@@ -483,20 +483,20 @@ def make_leaderboard_summary(rows: list[dict[str, str]]) -> None:
         ("QSAR linear\nSVR", "qsar_svm", "feasible_utility", QSAR),
         ("QSAR gradient\nboosting", "qsar_gbt", "feasible_utility", QSAR),
         ("QSAR random\nforest", "qsar_rf", "feasible_utility", QSAR),
-        ("OpenAI gpt-5.5\n+ validation/repair", "llm_validator__openai_frontier_selector", "feasible_utility", OPENAI),
-        ("OpenAI gpt-5.5\n+ descriptors", "llm_tools_validator__openai_frontier_selector", "feasible_utility", OPENAI),
+        ("GPT-5.5", "llm_validator__openai_frontier_selector", "feasible_utility", OPENAI),
+        ("GPT-5.5\n+ descriptors", "llm_tools_validator__openai_frontier_selector", "feasible_utility", OPENAI),
     ]
     ndcg_specs = [
         ("Oracle", "oracle_valid_topk", "ndcg_at_k", ORACLE),
         ("QSAR linear\nSVR", "qsar_svm", "ndcg_at_k", QSAR),
         ("QSAR random\nforest", "qsar_rf", "ndcg_at_k", QSAR),
         ("QSAR gradient\nboosting", "qsar_gbt", "ndcg_at_k", QSAR),
-        ("OpenAI gpt-5.5\n+ validation/repair", "llm_validator__openai_frontier_selector", "ndcg_at_k", OPENAI),
-        ("OpenAI gpt-5.5\n+ descriptors", "llm_tools_validator__openai_frontier_selector", "ndcg_at_k", OPENAI),
+        ("GPT-5.5", "llm_validator__openai_frontier_selector", "ndcg_at_k", OPENAI),
+        ("GPT-5.5\n+ descriptors", "llm_tools_validator__openai_frontier_selector", "ndcg_at_k", OPENAI),
     ]
     compliance_specs = [
-        ("OpenAI gpt-5.5\n+ descriptors", "llm_tools_validator__openai_frontier_selector", "raw_compliance_rate", OPENAI),
-        ("OpenAI gpt-5.5", "llm_validator__openai_frontier_selector", "raw_compliance_rate", OPENAI),
+        ("GPT-5.5\n+ descriptors", "llm_tools_validator__openai_frontier_selector", "raw_compliance_rate", OPENAI),
+        ("GPT-5.5", "llm_validator__openai_frontier_selector", "raw_compliance_rate", OPENAI),
         ("DeepSeek V4 Pro\n+ descriptors", "llm_tools_validator__deepseek_frontier_selector", "raw_compliance_rate", DEEPSEEK),
         ("Anthropic Opus 4.7\n+ descriptors", "llm_tools_validator__anthropic_frontier_selector", "raw_compliance_rate", ANTHROPIC),
         ("DeepSeek V4 Pro", "llm_validator__deepseek_frontier_selector", "raw_compliance_rate", DEEPSEEK),
@@ -509,7 +509,7 @@ def make_leaderboard_summary(rows: list[dict[str, str]]) -> None:
         ("Raw LLM compliance", "Before validation/repair", compliance_specs, (0.66, 1.02), "{:.3f}"),
     ]
 
-    fig, axes = plt.subplots(1, 3, figsize=(12.5, 5.2), dpi=220)
+    fig, axes = plt.subplots(3, 1, figsize=(10.6, 9.8), dpi=220)
     fig.patch.set_facecolor("white")
     for ax, (title, subtitle, specs, xlim, fmt) in zip(axes, panels, strict=True):
         data = []
@@ -536,13 +536,13 @@ def make_leaderboard_summary(rows: list[dict[str, str]]) -> None:
                 fmt.format(item["value"]),
                 ha="left",
                 va="center",
-                fontsize=7.7,
+                fontsize=9.5,
                 color=INK,
             )
         ax.set_yticks(list(y_positions))
-        ax.set_yticklabels([item["label"] for item in data], fontsize=7.3)
+        ax.set_yticklabels([item["label"] for item in data], fontsize=10.0)
         ax.set_xlim(*xlim)
-        ax.set_title(title, fontsize=11.0, fontweight="bold", color=INK, pad=15)
+        ax.set_title(title, fontsize=12.8, fontweight="bold", color=INK, pad=16)
         ax.text(
             0.5,
             1.01,
@@ -550,27 +550,27 @@ def make_leaderboard_summary(rows: list[dict[str, str]]) -> None:
             transform=ax.transAxes,
             ha="center",
             va="bottom",
-            fontsize=7.5,
+            fontsize=9.0,
             color=MUTED,
         )
         ax.grid(axis="x", color=GRID, linewidth=0.7)
-        ax.tick_params(axis="x", labelsize=7.4, colors=INK)
+        ax.tick_params(axis="x", labelsize=9.0, colors=INK)
         ax.tick_params(axis="y", length=0, colors=INK)
         for spine in ("top", "right", "left"):
             ax.spines[spine].set_visible(False)
         ax.spines["bottom"].set_color(GRID)
 
-    fig.suptitle("Leaderboard snapshot", fontsize=15.0, fontweight="bold", color=INK, y=0.995)
+    fig.suptitle("Leaderboard snapshot", fontsize=16.4, fontweight="bold", color=INK, y=0.995)
     fig.text(
         0.5,
         0.015,
         "Compliance panel uses raw language-model outputs. Final guarded compliance is 1.000 after validation/repair for these rows.",
         ha="center",
         va="bottom",
-        fontsize=8.0,
+        fontsize=9.0,
         color=MUTED,
     )
-    fig.tight_layout(rect=(0.02, 0.055, 0.995, 0.945), w_pad=2.2)
+    fig.tight_layout(rect=(0.04, 0.055, 0.995, 0.955), h_pad=2.25)
     _save_all(fig, "figure_7_leaderboard_summary")
 
 

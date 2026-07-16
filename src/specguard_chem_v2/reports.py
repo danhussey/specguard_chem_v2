@@ -1,18 +1,17 @@
 from __future__ import annotations
 
-from itertools import combinations
 import json
+import textwrap
 from datetime import datetime, timezone
 from html import escape
+from itertools import combinations
 from pathlib import Path
-import textwrap
 
 import numpy as np
 import pandas as pd
 from plotly.offline import get_plotlyjs
 
 from .io import read_json, read_jsonl
-
 
 ABLATION_PAIRS = [
     ("bare_llm", "llm_validator", "validator_delta"),
@@ -624,13 +623,21 @@ def _make_card_level_plots(table_dir: Path, out_dir: Path) -> list[Path]:
     available_series = [series for series in series_order if series in set(key["series"])]
     if available_series:
         plot_data = [
-            key.loc[key["series"] == series, "feasible_utility"].dropna().astype(float).to_numpy()
+            (
+                key.loc[key["series"] == series, "feasible_utility"].astype(float)
+                / key.loc[key["series"] == series, "oracle_utility"].astype(float)
+                * 100
+            )
+            .replace([np.inf, -np.inf], np.nan)
+            .dropna()
+            .to_numpy()
             for series in available_series
         ]
         fig, ax = plt.subplots(figsize=(8.5, 5.5))
         ax.boxplot(plot_data, tick_labels=[_wrap_tick(series) for series in available_series], showfliers=False)
-        ax.set_ylabel("Per-card feasible utility")
-        ax.set_title("Card-Level Utility Distribution")
+        ax.axhline(100, color="#64717f", linewidth=1, linestyle="--", alpha=0.75)
+        ax.set_ylabel("Utility (% of oracle valid top-k)")
+        ax.set_title("Card-Level Utility Distribution (Oracle-Normalized)")
         ax.grid(axis="y", alpha=0.25)
         fig.tight_layout()
         output = out_dir / "card_level_utility_distribution.png"
@@ -821,8 +828,8 @@ CONDITION_METADATA = {
 
 
 METRIC_DESCRIPTIONS = {
-    "feasible_utility": "Final utility after any validator repair. Sums hidden activity for selected candidates that satisfy hard constraints. Higher is better.",
-    "raw_feasible_utility": "Utility before validator repair. This is the closer measure of raw LLM behavior. Higher is better.",
+    "feasible_utility": "Final utility after any validator repair. It sums hidden activity for selected candidates that satisfy hard constraints. For paper-50, k=10, so utility 70 roughly means ten valid selections averaging 7.0 pIC50/pChEMBL. Higher is better.",
+    "raw_feasible_utility": "Utility before validator repair. This is the closer measure of raw LLM behavior. For paper-50, k=10, so raw utility 70 roughly means ten valid raw selections averaging 7.0 pIC50/pChEMBL. Higher is better.",
     "ndcg_at_k": "Final ranking quality using hidden activity as graded relevance. 1.0 is ideal.",
     "raw_ndcg_at_k": "NDCG before validator repair.",
     "constrained_regret": "Oracle valid top-k utility minus observed feasible utility. Lower is better.",
@@ -836,7 +843,7 @@ METRIC_DESCRIPTIONS = {
 
 
 METRIC_EXAMPLES = {
-    "feasible_utility": "Example: k=3 and the final valid selections have hidden activities 7.2, 6.8, and 0.0 for an invalid or missing slot. feasible_utility = 7.2 + 6.8 + 0.0 = 14.0.",
+    "feasible_utility": "Example: k=10 and the final valid selections have hidden activities that sum to 70.0. That is an average selected activity of 7.0 pIC50/pChEMBL. Invalid or missing slots contribute 0.",
     "raw_feasible_utility": "Same calculation as feasible_utility, but applied to the model's raw output before deterministic validator repair.",
     "ndcg_at_k": "Example: the best possible valid ranking has DCG=18.0 and the system ranking has DCG=14.4. NDCG@k = 14.4 / 18.0 = 0.80.",
     "raw_ndcg_at_k": "Same NDCG@k calculation, but on the raw model output before validator repair.",
@@ -1251,6 +1258,12 @@ def write_results_dashboard(
       gap: 8px;
       margin: 4px 0 12px;
     }}
+    .definition-strip {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }}
     .metric-chip {{
       background: #edf0ec;
       border: 1px solid var(--line);
@@ -1290,6 +1303,12 @@ def write_results_dashboard(
   </header>
   <main>
     <section class="grid summary-grid" id="summaryCards"></section>
+    <section class="definition-strip" aria-label="Key metric definitions">
+      {table_terms["feasible_utility"]}
+      {table_terms["ndcg_at_k"]}
+      {table_terms["compliance_rate"]}
+      {table_terms["raw_feasible_utility"]}
+    </section>
 
     <section class="panel" style="margin-top:16px">
       <h2>{run_pipeline_term}</h2>
@@ -1336,7 +1355,17 @@ def write_results_dashboard(
 
     <section class="grid plot-grid" style="margin-top:16px" id="cardDiagnosticsSection">
       <div class="panel">
-        <h2><span class="term" tabindex="0" data-tooltip="Per-card feasible utility distribution for key systems. This shows whether aggregate results are driven by many cards or a few outliers.">Card-Level Utility Distribution</span></h2>
+        <h2><span class="term" tabindex="0" data-tooltip="Per-card utility distribution for key systems. The default normalizes each card by its own oracle valid top-k utility, because absolute utility ranges differ by assay/card.">Card-Level Utility Distribution</span></h2>
+        <div class="controls compact-controls">
+          <label><span class="term" tabindex="0" data-tooltip="Controls how per-card utility is plotted. Oracle-normalized utility is the clearest cross-card view; absolute utility is available for auditing the raw scale.">Card metric</span>
+            <select id="cardUtilityMode">
+              <option value="normalized">Percent of oracle utility</option>
+              <option value="regret">Constrained regret</option>
+              <option value="absolute">Absolute feasible utility</option>
+            </select>
+          </label>
+        </div>
+        <p class="subtle" id="cardUtilityNote"></p>
         <div id="cardUtilityBoxes" class="chart"></div>
       </div>
       <div class="panel">
@@ -1972,27 +2001,107 @@ def write_results_dashboard(
         return;
       }}
       section.style.display = "";
+      const cardMode = document.getElementById("cardUtilityMode")?.value || "normalized";
+      const cardModeMeta = {{
+        normalized: {{
+          title: "Per-card utility as percent of oracle",
+          yTitle: "utility (% of oracle valid top-k)",
+          note: "Default view. Each card is normalized to its own oracle valid top-k utility, so the boxplots compare relative performance rather than mixing assay-specific activity scales. QSAR/LLM boxes use the strongest aggregate system from the summary table, then show that same system card by card."
+        }},
+        regret: {{
+          title: "Per-card constrained regret",
+          yTitle: "oracle utility - system utility",
+          note: "Lower is better. Regret measures how far each system is from the best possible valid top-k selection on the same card."
+        }},
+        absolute: {{
+          title: "Per-card absolute feasible utility",
+          yTitle: "sum of selected valid hidden activity",
+          note: "Audit view. Absolute utility is the sum of selected valid hidden activity values; with k=10, utility 70 means selected valid compounds averaged about 7.0 pIC50/pChEMBL. Different cards have different oracle ceilings, so cross-system boxplots can look misleading."
+        }}
+      }}[cardMode];
+      const cardValue = row => {{
+        if (cardMode === "regret") return row.constrained_regret;
+        if (cardMode === "absolute") return row.feasible_utility;
+        const oracle = Number(row.oracle_utility);
+        return oracle > 0 ? Number(row.feasible_utility) / oracle * 100 : null;
+      }};
+      const note = document.getElementById("cardUtilityNote");
+      if (note) note.textContent = cardModeMeta.note;
       const order = ["Oracle upper-bound", "Best QSAR", "Best final LLM", "Best raw LLM", "Similarity baseline", "Rules-only baseline"];
-      const boxTraces = order
+      const cardModeHover = {{
+        normalized: {{label: "percent of oracle", suffix: "%"}},
+        regret: {{label: "constrained regret", suffix: ""}},
+        absolute: {{label: "absolute feasible utility", suffix: ""}}
+      }}[cardMode];
+      const seriesLabel = (series, rows) => {{
+        const display = String(rows[0]?.row?.display_label || series);
+        return series === "Best raw LLM" ? "Raw output: " + display : display;
+      }};
+      const cardSeries = order
         .map(series => {{
-          const values = cardKeyRows
-            .filter(row => row.series === series && row.feasible_utility !== null)
-            .map(row => row.feasible_utility);
-          if (!values.length) return null;
-          return {{
-            type: "box",
-            name: series,
-            y: values,
-            boxpoints: "outliers",
-            marker: {{color: series.includes("QSAR") ? colors.QSAR : series.includes("LLM") ? colors.LLM : series.includes("Oracle") ? colors.Oracle : colors.Baseline}}
-          }};
+          const rows = cardKeyRows
+            .filter(row => row.series === series)
+            .map(row => ({{row, value: cardValue(row)}}))
+            .filter(item => item.value !== null && item.value !== undefined && Number.isFinite(Number(item.value)));
+          if (!rows.length) return null;
+          const label = seriesLabel(series, rows);
+          const color = series.includes("QSAR") ? colors.QSAR : series.includes("LLM") ? colors.LLM : series.includes("Oracle") ? colors.Oracle : colors.Baseline;
+          return {{series, label, rows, color}};
         }})
         .filter(Boolean);
+      const boxTraces = cardSeries.map(item => {{
+          return {{
+            type: "box",
+            orientation: "h",
+            name: item.label,
+            x: item.rows.map(entry => entry.value),
+            y: item.rows.map(() => item.label),
+            boxpoints: false,
+            hoverinfo: "skip",
+            marker: {{color: item.color}},
+            line: {{color: item.color}},
+            fillcolor: item.color
+          }};
+        }});
+      const pointTraces = cardSeries.map(item => ({{
+        type: "scatter",
+        mode: "markers",
+        name: item.label + " cards",
+        x: item.rows.map(entry => entry.value),
+        y: item.rows.map(() => item.label),
+        customdata: item.rows.map(entry => [
+          wrapIdentifier(entry.row.task_id),
+          entry.value,
+          entry.row.feasible_utility,
+          entry.row.oracle_utility,
+          entry.row.constrained_regret,
+          wrapHoverText(item.label, 52)
+        ]),
+        hovertemplate: "<b>%{{customdata[5]}}</b><br>%{{customdata[0]}}<br>" + cardModeHover.label + ": %{{customdata[1]:.2f}}" + cardModeHover.suffix + "<br>absolute feasible utility: %{{customdata[2]:.2f}}<br>oracle utility: %{{customdata[3]:.2f}}<br>constrained regret: %{{customdata[4]:.2f}}<extra></extra>",
+        marker: {{size: 5, color: item.color, opacity: 0.34, line: {{color: "#ffffff", width: 0.5}}}},
+        showlegend: false
+      }}));
       if (boxTraces.length) {{
-        const layout = plotlyLayout("Per-card feasible utility", "", "feasible_utility", 450);
+        const layout = plotlyLayout(cardModeMeta.title, cardModeMeta.yTitle, "", 520);
+        layout.margin = {{l: 220, r: 24, t: 52, b: 64}};
         layout.showlegend = false;
-        layout.xaxis.tickangle = -20;
-        Plotly.react("cardUtilityBoxes", boxTraces, layout, plotlyConfig);
+        layout.yaxis.categoryorder = "array";
+        layout.yaxis.categoryarray = cardSeries.map(item => item.label).reverse();
+        layout.yaxis.tickvals = cardSeries.map(item => item.label);
+        layout.yaxis.ticktext = cardSeries.map(item => wrapHoverText(item.label, 28));
+        if (cardMode === "normalized") {{
+          layout.xaxis.range = [Math.max(0, Math.min(...boxTraces.flatMap(trace => trace.x)) - 5), 102];
+          layout.shapes = [{{
+            type: "line",
+            yref: "paper",
+            x0: 100,
+            x1: 100,
+            y0: 0,
+            y1: 1,
+            line: {{color: "#64717f", width: 1, dash: "dash"}}
+          }}];
+        }}
+        Plotly.react("cardUtilityBoxes", [...boxTraces, ...pointTraces], layout, plotlyConfig);
       }}
       const scatterRows = cardDiagnosticRows.filter(row => row.best_qsar_utility !== null && row.best_final_llm_utility !== null);
       if (!scatterRows.length) {{
@@ -2179,6 +2288,7 @@ def write_results_dashboard(
     renderFailureTaxonomy();
     renderTable();
     renderMetricDefinitions();
+    document.getElementById("cardUtilityMode")?.addEventListener("change", renderCardDiagnostics);
   </script>
 </body>
 </html>
