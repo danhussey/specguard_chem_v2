@@ -21,11 +21,13 @@ end-to-end drug-discovery programme or establish autonomous-laboratory readiness
 | Corrected 91-card system-input artifact | Frozen and audited |
 | Separate scorer-only outcomes | Frozen and hash-bound to each input card |
 | Deterministic baseline runs | Completed on the corrected cards |
-| Exact paper-facing LLM requests | Exported without provider calls |
-| LLM cost estimates | Pre-run and post-pilot upper bounds saved |
-| Fixed one-card LLM pilot | **Completed and audited: 6/6 traces and caches** |
-| Full 91-card LLM matrix and cross-model results | **Pending; 540 calls remain** |
-| Manuscript and supplementary material | Compiled pre-run drafts; final results pending |
+| Exact paper-facing LLM requests | Frozen and matched to all 546 response records |
+| LLM cost estimates | Historical pre-run and post-pilot upper bounds retained |
+| Fixed one-card LLM pilot | Completed and retained as a historical execution checkpoint |
+| Full 91-card LLM matrix | **Completed and audited: 546/546 responses** |
+| Raw and repaired LLM evidence | **Six 91-card raw traces plus six zero-call repaired traces** |
+| Canonical cross-system comparison | **Completed with paired uncertainty and raw/final attribution** |
+| Manuscript and supplementary material | Corrected results regenerated; final archival review pending |
 | Wheel and source distribution | Built and smoke-tested in an isolated environment |
 | Canonical release manifest and `SHA256SUMS` | **Deliberately pending final freeze** |
 | `v0.1.0` tag, archive DOI, and release date | **Not created** |
@@ -48,7 +50,7 @@ data/releases/v0.1.0/
 
 release/v0.1.0/
   experiments/baselines/         corrected deterministic traces and scores
-  experiments/llm/               exact requests, pilot traces/caches/scores, and cost estimates
+  experiments/llm/               exact requests, full matrix, replay cache, comparison, and pilot provenance
   software/                      verified v0.1.0 wheel and source distribution
   README.md                      this status and bundle guide
   RELEASE_NOTES.md               draft release notes
@@ -67,31 +69,42 @@ provenance, and canonical input hashes.
 
 ## Evidence status
 
-The corrected deterministic baselines establish an offline comparison ladder.
-They are not a substitute for the pending paper-facing LLM experiment. The LLM
-directory contains the exact 546 request payloads plus a completed fixed pilot:
-six response caches, raw traces, scores, deterministic post-hoc views, and
-complete model/usage/latency/cost provenance for one task. The other 540 calls
-and any cross-model paper result remain pending.
+The corrected deterministic baselines and completed LLM matrix now establish
+the paper-facing comparison ladder. The LLM directory contains the exact 546
+request payloads, 546 content-addressed response records, six raw 91-card
+traces, six separately attributed deterministic post-hoc repair traces, and
+their score directories. The
+[matrix manifest](experiments/llm/matrix/manifest.json) records all six raw
+provider/interface runs, while the
+[canonical comparison](experiments/llm/comparison/primary_leaderboard.csv)
+combines the deterministic systems, raw LLM actions, and repaired system views.
+
+The completed audit matched every response to the frozen request order and
+request SHA256, found one provider attempt for every successful response, and
+confirmed 100% usage, latency, and usage-derived cost coverage. Applying the
+frozen token prices to provider-reported usage gives USD 58.95671601 across the
+six unique live conditions. Post-hoc repair added no provider calls; repaired
+scores characterize the model-plus-deterministic-harness system and must not be
+read as unaided model performance.
 
 No artifact or response cache derived from the invalid historical paper-50
 import will be reused. See
 [the invalid-results notice](../../INVALID_RESULTS_NOTICE.md).
 
-The fixed pilot selects task `CARA_LO_CHEMBL1006579_IC50_0001` across both
-interfaces and all three model conditions. All six calls completed with one
-provider attempt each for an actual recorded cost of USD 0.449700535, below the
-USD 0.936717455 pilot gate. A cache-only replay reproduced all score artifacts.
-The shared full-matrix cache now contains those six responses, and the saved
-post-pilot estimate reports 540 missing calls with a USD 105.122676615
-conservative upper bound. See the [pilot record](experiments/llm/pilot/README.md).
+The fixed pilot remains useful historical provenance. It selected task
+`CARA_LO_CHEMBL1006579_IC50_0001` across both interfaces and all three model
+conditions. All six calls completed with one provider attempt each for a
+usage-derived cost of USD 0.449700535, below the USD 0.936717455 pilot gate.
+At that checkpoint, the saved post-pilot estimate reported 540 missing calls
+with a USD 105.122676615 conservative upper bound. Those calls have since
+completed into the same shared cache. See the
+[pilot record](experiments/llm/pilot/README.md).
 
 ## Release gates
 
-The archival release remains blocked until all of the following are true:
+The LLM execution, replay, attribution, and comparison gates have passed. The
+archival release remains blocked until all of the following are true:
 
-- any approved live LLM conditions have run with explicit external-call
-  authorization, saved replay data, and hard cost/call/token gates;
 - paper tables, figures, and claims are regenerated only from corrected inputs;
 - the manuscript, supplement, package distributions, and licensing metadata
   are final;

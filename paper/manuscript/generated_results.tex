@@ -3,7 +3,7 @@
 % Canonical baseline source SHA256: 06fdafcb4f2bb2f65e29d52093549c38c1c17a5ea8c1c12e3d84dae2b0b11395
 % Values were cross-checked against every per-system scores/summary.json artifact.
 \newif\ifllmresultsavailable
-\llmresultsavailablefalse
+\llmresultsavailabletrue
 
 \newcommand{\NumCards}{91}
 \newcommand{\BudgetK}{10}
@@ -15,9 +15,15 @@
 \newcommand{\RulesUtility}{66.922}
 \newcommand{\OracleUtility}{79.563}
 
-% No canonical corrected LLM comparison artifact exists; keep the paper in pre-run mode.
-\newcommand{\BestLLMLabel}{PENDING}
-\newcommand{\BestLLMUtility}{PENDING}
-\newcommand{\BestLLMNDCG}{PENDING}
-\newcommand{\BestLLMActionValidity}{PENDING}
-\newcommand{\BestLLMCost}{PENDING}
+% Populated from the canonical corrected LLM comparison artifact.
+\newcommand{\BestLLMLabel}{Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON}
+\newcommand{\BestLLMUtility}{73.964}
+\newcommand{\BestLLMNDCG}{0.929}
+\newcommand{\BestLLMActionValidity}{0.791}
+\newcommand{\BestLLMCost}{11.623}
+\newcommand{\BestLLMRawUtility}{72.966}
+\newcommand{\BestLLMRepairRate}{0.209}
+\newcommand{\BestQSARMinusLLMUtility}{1.003}
+\newcommand{\BestQSARMinusLLMUtilityCILow}{0.405}
+\newcommand{\BestQSARMinusLLMUtilityCIHigh}{1.647}
+\newcommand{\TotalLLMCost}{58.957}

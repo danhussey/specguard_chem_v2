@@ -1,0 +1,36 @@
+system_name,display_label,system_group,failure_type,num_cards,cards_with_type,card_rate,total_issue_count,mean_issue_count_per_card
+llm_tools__deepseek_v4_pro_2026_07_16_selector,"LLM plus tool summaries - DeepSeek deepseek-v4-pro, thinking off, direct JSON",LLM,constraint_failure,91,46,0.5054945054945055,199.0,2.1868131868131866
+bare_llm__deepseek_v4_pro_2026_07_16_selector,"Bare LLM - DeepSeek deepseek-v4-pro, thinking off, direct JSON",LLM,constraint_failure,91,46,0.5054945054945055,192.0,2.10989010989011
+bare_llm__anthropic_opus_4_8_selector,"Bare LLM - Anthropic claude-opus-4-8, no extended thinking, direct JSON",LLM,constraint_failure,91,46,0.5054945054945055,182.0,2.0
+llm_tools__anthropic_opus_4_8_selector,"LLM plus tool summaries - Anthropic claude-opus-4-8, no extended thinking, direct JSON",LLM,constraint_failure,91,45,0.4945054945054945,163.0,1.7912087912087913
+llm_tools__openai_gpt_5_5_2026_04_23_selector,"LLM plus tool summaries - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",LLM,constraint_failure,91,10,0.10989010989010989,15.0,0.16483516483516483
+bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",LLM,constraint_failure,91,10,0.10989010989010989,14.0,0.15384615384615385
+bare_llm__anthropic_opus_4_8_selector__posthoc_repair,"Bare LLM + post-hoc repair - Anthropic claude-opus-4-8, no extended thinking, direct JSON",LLM,none,91,91,1.0,0.0,0.0
+bare_llm__deepseek_v4_pro_2026_07_16_selector__posthoc_repair,"Bare LLM + post-hoc repair - DeepSeek deepseek-v4-pro, thinking off, direct JSON",LLM,none,91,91,1.0,0.0,0.0
+bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",LLM,none,91,91,1.0,0.0,0.0
+llm_tools__anthropic_opus_4_8_selector__posthoc_repair,"LLM plus tool summaries + post-hoc repair - Anthropic claude-opus-4-8, no extended thinking, direct JSON",LLM,none,91,91,1.0,0.0,0.0
+llm_tools__deepseek_v4_pro_2026_07_16_selector__posthoc_repair,"LLM plus tool summaries + post-hoc repair - DeepSeek deepseek-v4-pro, thinking off, direct JSON",LLM,none,91,91,1.0,0.0,0.0
+llm_tools__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"LLM plus tool summaries + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",LLM,none,91,91,1.0,0.0,0.0
+oracle_valid_topk,Oracle upper-bound,Oracle,none,91,91,1.0,0.0,0.0
+qsar_gbt,QSAR gradient boosting,QSAR,none,91,91,1.0,0.0,0.0
+qsar_rf,QSAR random forest,QSAR,none,91,91,1.0,0.0,0.0
+qsar_svm,QSAR linear SVR,QSAR,none,91,91,1.0,0.0,0.0
+random_valid,Random valid baseline,Baseline,none,91,91,1.0,0.0,0.0
+rules_only,Rule/desirability baseline,Baseline,none,91,91,1.0,0.0,0.0
+similarity_to_best_active,Similarity-to-best-active baseline,Baseline,none,91,91,1.0,0.0,0.0
+bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",LLM,none,91,72,0.7912087912087912,0.0,0.0
+llm_tools__openai_gpt_5_5_2026_04_23_selector,"LLM plus tool summaries - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",LLM,none,91,68,0.7472527472527473,0.0,0.0
+llm_tools__anthropic_opus_4_8_selector,"LLM plus tool summaries - Anthropic claude-opus-4-8, no extended thinking, direct JSON",LLM,none,91,22,0.24175824175824176,0.0,0.0
+llm_tools__deepseek_v4_pro_2026_07_16_selector,"LLM plus tool summaries - DeepSeek deepseek-v4-pro, thinking off, direct JSON",LLM,none,91,22,0.24175824175824176,0.0,0.0
+bare_llm__anthropic_opus_4_8_selector,"Bare LLM - Anthropic claude-opus-4-8, no extended thinking, direct JSON",LLM,none,91,17,0.18681318681318682,0.0,0.0
+bare_llm__deepseek_v4_pro_2026_07_16_selector,"Bare LLM - DeepSeek deepseek-v4-pro, thinking off, direct JSON",LLM,none,91,8,0.08791208791208792,0.0,0.0
+bare_llm__deepseek_v4_pro_2026_07_16_selector,"Bare LLM - DeepSeek deepseek-v4-pro, thinking off, direct JSON",LLM,schema_failure,91,22,0.24175824175824176,45.0,0.4945054945054945
+bare_llm__anthropic_opus_4_8_selector,"Bare LLM - Anthropic claude-opus-4-8, no extended thinking, direct JSON",LLM,schema_failure,91,18,0.1978021978021978,36.0,0.3956043956043956
+llm_tools__openai_gpt_5_5_2026_04_23_selector,"LLM plus tool summaries - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",LLM,schema_failure,91,14,0.15384615384615385,28.0,0.3076923076923077
+bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",LLM,schema_failure,91,13,0.14285714285714285,26.0,0.2857142857142857
+llm_tools__anthropic_opus_4_8_selector,"LLM plus tool summaries - Anthropic claude-opus-4-8, no extended thinking, direct JSON",LLM,schema_failure,91,7,0.07692307692307693,14.0,0.15384615384615385
+llm_tools__deepseek_v4_pro_2026_07_16_selector,"LLM plus tool summaries - DeepSeek deepseek-v4-pro, thinking off, direct JSON",LLM,schema_failure,91,5,0.054945054945054944,8.0,0.08791208791208792
+bare_llm__deepseek_v4_pro_2026_07_16_selector,"Bare LLM - DeepSeek deepseek-v4-pro, thinking off, direct JSON",LLM,selection_contract_failure,91,51,0.5604395604395604,356.0,3.912087912087912
+bare_llm__anthropic_opus_4_8_selector,"Bare LLM - Anthropic claude-opus-4-8, no extended thinking, direct JSON",LLM,selection_contract_failure,91,44,0.4835164835164835,90.0,0.989010989010989
+llm_tools__anthropic_opus_4_8_selector,"LLM plus tool summaries - Anthropic claude-opus-4-8, no extended thinking, direct JSON",LLM,selection_contract_failure,91,42,0.46153846153846156,76.0,0.8351648351648352
+llm_tools__deepseek_v4_pro_2026_07_16_selector,"LLM plus tool summaries - DeepSeek deepseek-v4-pro, thinking off, direct JSON",LLM,selection_contract_failure,91,32,0.3516483516483517,184.0,2.021978021978022

@@ -1,0 +1,547 @@
+task_id,series,system_name,display_label,metric_source,feasible_utility,ndcg_at_k,action_validity,compliance_rate,constrained_regret,oracle_utility
+CARA_LO_CHEMBL1006579_IC50_0001,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,78.57,1.0,1.0,1.0,0.0,78.57
+CARA_LO_CHEMBL1048115_IC50_0002,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,77.0,1.0,1.0,1.0,0.0,77.0
+CARA_LO_CHEMBL1243978_IC50_0003,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,70.86,1.0,1.0,1.0,0.0,70.86
+CARA_LO_CHEMBL1614295_Potency_0004,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,57.239999999999995,1.0,1.0,1.0,0.0,57.239999999999995
+CARA_LO_CHEMBL2032586_IC50_0005,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,88.24,1.0,1.0,1.0,0.0,88.24
+CARA_LO_CHEMBL2038596_IC50_0006,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,79.01,1.0,1.0,1.0,0.0,79.01
+CARA_LO_CHEMBL2046255_IC50_0007,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,71.82,1.0,1.0,1.0,0.0,71.82
+CARA_LO_CHEMBL2328568_IC50_0008,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,85.99000000000001,1.0,1.0,1.0,0.0,85.99000000000001
+CARA_LO_CHEMBL3431931_IC50_0009,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,63.300000000000004,1.0,1.0,1.0,0.0,63.300000000000004
+CARA_LO_CHEMBL3705123_IC50_0010,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,80.49999999999999,1.0,1.0,1.0,0.0,80.49999999999999
+CARA_LO_CHEMBL3705125_IC50_0011,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,78.92,1.0,1.0,1.0,0.0,78.92
+CARA_LO_CHEMBL3705142_IC50_0012,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,72.94000000000001,1.0,1.0,1.0,0.0,72.94000000000001
+CARA_LO_CHEMBL3705264_IC50_0013,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,70.76,1.0,1.0,1.0,0.0,70.76
+CARA_LO_CHEMBL3705271_IC50_0014,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,82.18999999999998,1.0,1.0,1.0,0.0,82.18999999999998
+CARA_LO_CHEMBL3705334_IC50_0015,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,72.96999999999998,1.0,1.0,1.0,0.0,72.96999999999998
+CARA_LO_CHEMBL3705357_IC50_0016,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,95.22999999999998,1.0,1.0,1.0,0.0,95.22999999999998
+CARA_LO_CHEMBL3705358_IC50_0017,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,73.38,1.0,1.0,1.0,0.0,73.38
+CARA_LO_CHEMBL3705399_Ki_0018,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,87.44000000000001,1.0,1.0,1.0,0.0,87.44000000000001
+CARA_LO_CHEMBL3705467_IC50_0019,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,73.1,1.0,1.0,1.0,0.0,73.1
+CARA_LO_CHEMBL3705476_IC50_0020,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,71.79999999999998,1.0,1.0,1.0,0.0,71.79999999999998
+CARA_LO_CHEMBL3705480_Ki_0021,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,95.5,1.0,1.0,1.0,0.0,95.5
+CARA_LO_CHEMBL3705486_Ki_0022,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,83.565,1.0,1.0,1.0,0.0,83.565
+CARA_LO_CHEMBL3705705_IC50_0023,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,80.045,1.0,1.0,1.0,0.0,80.045
+CARA_LO_CHEMBL3705715_Ki_0024,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,97.74999999999999,1.0,1.0,1.0,0.0,97.74999999999999
+CARA_LO_CHEMBL3705825_Ki_0025,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,82.4,1.0,1.0,1.0,0.0,82.4
+CARA_LO_CHEMBL3705860_IC50_0026,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,91.41,1.0,1.0,1.0,0.0,91.41
+CARA_LO_CHEMBL3705868_IC50_0027,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,73.55,1.0,1.0,1.0,0.0,73.55
+CARA_LO_CHEMBL3705882_Ki_0028,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,86.34999999999998,1.0,1.0,1.0,0.0,86.34999999999998
+CARA_LO_CHEMBL3705899_IC50_0029,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,84.27,1.0,1.0,1.0,0.0,84.27
+CARA_LO_CHEMBL3705917_IC50_0030,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,72.78999999999999,1.0,1.0,1.0,0.0,72.78999999999999
+CARA_LO_CHEMBL3705960_IC50_0031,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,90.17,1.0,1.0,1.0,0.0,90.17
+CARA_LO_CHEMBL3705963_IC50_0032,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,68.44,1.0,1.0,1.0,0.0,68.44
+CARA_LO_CHEMBL3705983_IC50_0033,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,71.49000000000001,1.0,1.0,1.0,0.0,71.49000000000001
+CARA_LO_CHEMBL3706272_IC50_0034,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,85.58999999999999,1.0,1.0,1.0,0.0,85.58999999999999
+CARA_LO_CHEMBL3706298_IC50_0035,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,91.16,1.0,1.0,1.0,0.0,91.16
+CARA_LO_CHEMBL3706356_IC50_0036,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,81.66499999999999,1.0,1.0,1.0,0.0,81.66499999999999
+CARA_LO_CHEMBL3706360_IC50_0037,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,80.38,1.0,1.0,1.0,0.0,80.38
+CARA_LO_CHEMBL3707497_IC50_0038,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,75.73999999999998,1.0,1.0,1.0,0.0,75.73999999999998
+CARA_LO_CHEMBL3707783_IC50_0039,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,79.38,1.0,1.0,1.0,0.0,79.38
+CARA_LO_CHEMBL3707789_Ki_0040,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,85.22000000000001,1.0,1.0,1.0,0.0,85.22000000000001
+CARA_LO_CHEMBL3707834_Ki_0041,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,83.56,1.0,1.0,1.0,0.0,83.56
+CARA_LO_CHEMBL3707951_IC50_0042,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,77.65,1.0,1.0,1.0,0.0,77.65
+CARA_LO_CHEMBL3707962_IC50_0043,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,86.0,1.0,1.0,1.0,0.0,86.0
+CARA_LO_CHEMBL3734174_IC50_0044,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,86.5,1.0,1.0,1.0,0.0,86.5
+CARA_LO_CHEMBL3734552_EC50_0045,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,94.77000000000001,1.0,1.0,1.0,0.0,94.77000000000001
+CARA_LO_CHEMBL3883076_IC50_0046,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,65.04,1.0,1.0,1.0,0.0,65.04
+CARA_LO_CHEMBL3887029_Ki_0047,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,82.6,1.0,1.0,1.0,0.0,82.6
+CARA_LO_CHEMBL3887030_Ki_0048,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,65.26,1.0,1.0,1.0,0.0,65.26
+CARA_LO_CHEMBL3887063_IC50_0049,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,88.62,1.0,1.0,1.0,0.0,88.62
+CARA_LO_CHEMBL3887074_IC50_0050,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,90.91999999999999,1.0,1.0,1.0,0.0,90.91999999999999
+CARA_LO_CHEMBL3887224_IC50_0051,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,55.910000000000004,1.0,1.0,1.0,0.0,55.910000000000004
+CARA_LO_CHEMBL3887259_EC50_0052,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,72.4,1.0,1.0,1.0,0.0,72.4
+CARA_LO_CHEMBL3887288_IC50_0053,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,90.0,1.0,1.0,1.0,0.0,90.0
+CARA_LO_CHEMBL3887334_IC50_0054,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,81.57,1.0,1.0,1.0,0.0,81.57
+CARA_LO_CHEMBL3887429_IC50_0055,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,84.21,1.0,1.0,1.0,0.0,84.21
+CARA_LO_CHEMBL3887731_Ki_0056,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,93.75,1.0,1.0,1.0,0.0,93.75
+CARA_LO_CHEMBL3887866_IC50_0057,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,78.16999999999999,1.0,1.0,1.0,0.0,78.16999999999999
+CARA_LO_CHEMBL3887887_IC50_0058,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,78.94,1.0,1.0,1.0,0.0,78.94
+CARA_LO_CHEMBL3888033_IC50_0059,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,93.69999999999999,1.0,1.0,1.0,0.0,93.69999999999999
+CARA_LO_CHEMBL3888094_IC50_0060,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,77.9,1.0,1.0,1.0,0.0,77.9
+CARA_LO_CHEMBL3888209_IC50_0061,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,74.86000000000001,1.0,1.0,1.0,0.0,74.86000000000001
+CARA_LO_CHEMBL3888296_IC50_0062,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,95.39500000000001,1.0,1.0,1.0,0.0,95.39500000000001
+CARA_LO_CHEMBL3888825_IC50_0063,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,89.42999999999999,1.0,1.0,1.0,0.0,89.42999999999999
+CARA_LO_CHEMBL3888867_IC50_0064,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,67.75,1.0,1.0,1.0,0.0,67.75
+CARA_LO_CHEMBL3888870_IC50_0065,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,86.94,1.0,1.0,1.0,0.0,86.94
+CARA_LO_CHEMBL3889097_IC50_0066,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,82.34,1.0,1.0,1.0,0.0,82.34
+CARA_LO_CHEMBL3889159_IC50_0067,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,93.60999999999999,1.0,1.0,1.0,0.0,93.60999999999999
+CARA_LO_CHEMBL3889186_IC50_0068,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,94.03,1.0,1.0,1.0,0.0,94.03
+CARA_LO_CHEMBL3889262_IC50_0069,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,88.25000000000001,1.0,1.0,1.0,0.0,88.25000000000001
+CARA_LO_CHEMBL4388634_IC50_0070,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,41.56000000000001,1.0,1.0,1.0,0.0,41.56000000000001
+CARA_LO_CHEMBL4404752_IC50_0071,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,80.91,1.0,1.0,1.0,0.0,80.91
+CARA_LO_CHEMBL4418470_EC50_0072,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,73.49999999999999,1.0,1.0,1.0,0.0,73.49999999999999
+CARA_LO_CHEMBL4476912_IC50_0073,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,61.230000000000004,1.0,1.0,1.0,0.0,61.230000000000004
+CARA_LO_CHEMBL4476963_IC50_0074,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,53.53999999999999,1.0,1.0,1.0,0.0,53.53999999999999
+CARA_LO_CHEMBL4477153_IC50_0075,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,82.44999999999997,1.0,1.0,1.0,0.0,82.44999999999997
+CARA_LO_CHEMBL4712750_IC50_0076,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,65.39999999999999,1.0,1.0,1.0,0.0,65.39999999999999
+CARA_LO_CHEMBL4739819_EC50_0077,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,80.19,1.0,1.0,1.0,0.0,80.19
+CARA_LO_CHEMBL641707_IC50_0078,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,54.18,1.0,1.0,1.0,0.0,54.18
+CARA_LO_CHEMBL648337_IC50_0079,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,89.49000000000001,1.0,1.0,1.0,0.0,89.49000000000001
+CARA_LO_CHEMBL652259_IC50_0080,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,76.48,1.0,1.0,1.0,0.0,76.48
+CARA_LO_CHEMBL656248_IC50_0081,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,84.92,1.0,1.0,1.0,0.0,84.92
+CARA_LO_CHEMBL658042_Ki_0082,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,84.41,1.0,1.0,1.0,0.0,84.41
+CARA_LO_CHEMBL658217_Ki_0083,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,78.45,1.0,1.0,1.0,0.0,78.45
+CARA_LO_CHEMBL663407_Ki_0084,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,76.82000000000001,1.0,1.0,1.0,0.0,76.82000000000001
+CARA_LO_CHEMBL664960_Ki_0085,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,83.66999999999999,1.0,1.0,1.0,0.0,83.66999999999999
+CARA_LO_CHEMBL819742_Ki_0086,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,72.58,1.0,1.0,1.0,0.0,72.58
+CARA_LO_CHEMBL829091_IC50_0087,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,86.57,1.0,1.0,1.0,0.0,86.57
+CARA_LO_CHEMBL830957_IC50_0088,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,79.79,1.0,1.0,1.0,0.0,79.79
+CARA_LO_CHEMBL856174_IC50_0089,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,94.50000000000001,1.0,1.0,1.0,0.0,94.50000000000001
+CARA_LO_CHEMBL863649_EC50_0090,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,80.28999999999999,1.0,1.0,1.0,0.0,80.28999999999999
+CARA_LO_CHEMBL879102_Ki_0091,Oracle upper-bound,oracle_valid_topk,Oracle upper-bound,final,71.07000000000001,1.0,1.0,1.0,0.0,71.07000000000001
+CARA_LO_CHEMBL1006579_IC50_0001,Best QSAR,qsar_svm,QSAR linear SVR,final,74.66000000000001,0.9272884496124656,1.0,1.0,3.9099999999999824,78.57
+CARA_LO_CHEMBL1048115_IC50_0002,Best QSAR,qsar_svm,QSAR linear SVR,final,75.05999999999999,0.9696617096906208,1.0,1.0,1.940000000000012,77.0
+CARA_LO_CHEMBL1243978_IC50_0003,Best QSAR,qsar_svm,QSAR linear SVR,final,58.81999999999999,0.8075406535799229,1.0,1.0,12.040000000000006,70.86
+CARA_LO_CHEMBL1614295_Potency_0004,Best QSAR,qsar_svm,QSAR linear SVR,final,49.730000000000004,0.8636907734773122,1.0,1.0,7.509999999999991,57.239999999999995
+CARA_LO_CHEMBL2032586_IC50_0005,Best QSAR,qsar_svm,QSAR linear SVR,final,80.33,0.9111531054662406,1.0,1.0,7.909999999999997,88.24
+CARA_LO_CHEMBL2038596_IC50_0006,Best QSAR,qsar_svm,QSAR linear SVR,final,77.91999999999999,0.9877864564447103,1.0,1.0,1.0900000000000176,79.01
+CARA_LO_CHEMBL2046255_IC50_0007,Best QSAR,qsar_svm,QSAR linear SVR,final,65.8,0.918500070673542,1.0,1.0,6.019999999999996,71.82
+CARA_LO_CHEMBL2328568_IC50_0008,Best QSAR,qsar_svm,QSAR linear SVR,final,76.62,0.8669346786595452,1.0,1.0,9.370000000000005,85.99000000000001
+CARA_LO_CHEMBL3431931_IC50_0009,Best QSAR,qsar_svm,QSAR linear SVR,final,61.44,0.9662662797984385,1.0,1.0,1.8600000000000065,63.300000000000004
+CARA_LO_CHEMBL3705123_IC50_0010,Best QSAR,qsar_svm,QSAR linear SVR,final,71.90000000000002,0.8977300718940989,1.0,1.0,8.599999999999966,80.49999999999999
+CARA_LO_CHEMBL3705125_IC50_0011,Best QSAR,qsar_svm,QSAR linear SVR,final,71.09,0.8686783234822727,1.0,1.0,7.829999999999998,78.92
+CARA_LO_CHEMBL3705142_IC50_0012,Best QSAR,qsar_svm,QSAR linear SVR,final,71.94,0.9852203464779873,1.0,1.0,1.0000000000000142,72.94000000000001
+CARA_LO_CHEMBL3705264_IC50_0013,Best QSAR,qsar_svm,QSAR linear SVR,final,62.71,0.892951209166115,1.0,1.0,8.050000000000004,70.76
+CARA_LO_CHEMBL3705271_IC50_0014,Best QSAR,qsar_svm,QSAR linear SVR,final,78.72,0.9409734625861453,1.0,1.0,3.4699999999999847,82.18999999999998
+CARA_LO_CHEMBL3705334_IC50_0015,Best QSAR,qsar_svm,QSAR linear SVR,final,69.77,0.9518482443587123,1.0,1.0,3.1999999999999886,72.96999999999998
+CARA_LO_CHEMBL3705357_IC50_0016,Best QSAR,qsar_svm,QSAR linear SVR,final,89.05999999999999,0.9116465743632931,1.0,1.0,6.1699999999999875,95.22999999999998
+CARA_LO_CHEMBL3705358_IC50_0017,Best QSAR,qsar_svm,QSAR linear SVR,final,68.74,0.9372657571413284,1.0,1.0,4.640000000000001,73.38
+CARA_LO_CHEMBL3705399_Ki_0018,Best QSAR,qsar_svm,QSAR linear SVR,final,84.21000000000001,0.9565667946543478,1.0,1.0,3.230000000000004,87.44000000000001
+CARA_LO_CHEMBL3705467_IC50_0019,Best QSAR,qsar_svm,QSAR linear SVR,final,72.05999999999999,0.978759992666859,1.0,1.0,1.0400000000000063,73.1
+CARA_LO_CHEMBL3705476_IC50_0020,Best QSAR,qsar_svm,QSAR linear SVR,final,67.55,0.9545032633397112,1.0,1.0,4.249999999999986,71.79999999999998
+CARA_LO_CHEMBL3705480_Ki_0021,Best QSAR,qsar_svm,QSAR linear SVR,final,92.27999999999999,0.9662088062117965,1.0,1.0,3.220000000000013,95.5
+CARA_LO_CHEMBL3705486_Ki_0022,Best QSAR,qsar_svm,QSAR linear SVR,final,79.345,0.9433677623484013,1.0,1.0,4.219999999999999,83.565
+CARA_LO_CHEMBL3705705_IC50_0023,Best QSAR,qsar_svm,QSAR linear SVR,final,77.52499999999999,0.9710217583021283,1.0,1.0,2.5200000000000102,80.045
+CARA_LO_CHEMBL3705715_Ki_0024,Best QSAR,qsar_svm,QSAR linear SVR,final,96.08999999999999,0.9845984519952337,1.0,1.0,1.6599999999999966,97.74999999999999
+CARA_LO_CHEMBL3705825_Ki_0025,Best QSAR,qsar_svm,QSAR linear SVR,final,77.00999999999999,0.9116343174741786,1.0,1.0,5.390000000000015,82.4
+CARA_LO_CHEMBL3705860_IC50_0026,Best QSAR,qsar_svm,QSAR linear SVR,final,89.76,0.9746178863078067,1.0,1.0,1.6499999999999915,91.41
+CARA_LO_CHEMBL3705868_IC50_0027,Best QSAR,qsar_svm,QSAR linear SVR,final,68.16999999999999,0.9136390102212248,1.0,1.0,5.38000000000001,73.55
+CARA_LO_CHEMBL3705882_Ki_0028,Best QSAR,qsar_svm,QSAR linear SVR,final,80.33999999999999,0.9333537037527839,1.0,1.0,6.009999999999991,86.34999999999998
+CARA_LO_CHEMBL3705899_IC50_0029,Best QSAR,qsar_svm,QSAR linear SVR,final,78.03,0.9138268894660433,1.0,1.0,6.239999999999995,84.27
+CARA_LO_CHEMBL3705917_IC50_0030,Best QSAR,qsar_svm,QSAR linear SVR,final,69.28,0.9496781939966061,1.0,1.0,3.509999999999991,72.78999999999999
+CARA_LO_CHEMBL3705960_IC50_0031,Best QSAR,qsar_svm,QSAR linear SVR,final,79.39000000000001,0.8716131252398499,1.0,1.0,10.779999999999987,90.17
+CARA_LO_CHEMBL3705963_IC50_0032,Best QSAR,qsar_svm,QSAR linear SVR,final,66.79,0.9748285322751995,1.0,1.0,1.6499999999999915,68.44
+CARA_LO_CHEMBL3705983_IC50_0033,Best QSAR,qsar_svm,QSAR linear SVR,final,67.10000000000001,0.9418234407369722,1.0,1.0,4.390000000000001,71.49000000000001
+CARA_LO_CHEMBL3706272_IC50_0034,Best QSAR,qsar_svm,QSAR linear SVR,final,79.495,0.9205708072058352,1.0,1.0,6.094999999999985,85.58999999999999
+CARA_LO_CHEMBL3706298_IC50_0035,Best QSAR,qsar_svm,QSAR linear SVR,final,87.35999999999999,0.9534478777610796,1.0,1.0,3.8000000000000114,91.16
+CARA_LO_CHEMBL3706356_IC50_0036,Best QSAR,qsar_svm,QSAR linear SVR,final,77.17999999999999,0.9426591242608144,1.0,1.0,4.484999999999999,81.66499999999999
+CARA_LO_CHEMBL3706360_IC50_0037,Best QSAR,qsar_svm,QSAR linear SVR,final,77.57,0.9728209684820996,1.0,1.0,2.8100000000000023,80.38
+CARA_LO_CHEMBL3707497_IC50_0038,Best QSAR,qsar_svm,QSAR linear SVR,final,70.24,0.9233686819283432,1.0,1.0,5.499999999999986,75.73999999999998
+CARA_LO_CHEMBL3707783_IC50_0039,Best QSAR,qsar_svm,QSAR linear SVR,final,77.91999999999999,0.9824460781851555,1.0,1.0,1.460000000000008,79.38
+CARA_LO_CHEMBL3707789_Ki_0040,Best QSAR,qsar_svm,QSAR linear SVR,final,85.03,0.9972471398680912,1.0,1.0,0.19000000000001194,85.22000000000001
+CARA_LO_CHEMBL3707834_Ki_0041,Best QSAR,qsar_svm,QSAR linear SVR,final,82.65,0.9849436479061301,1.0,1.0,0.9099999999999966,83.56
+CARA_LO_CHEMBL3707951_IC50_0042,Best QSAR,qsar_svm,QSAR linear SVR,final,69.41,0.8615942857925643,1.0,1.0,8.240000000000009,77.65
+CARA_LO_CHEMBL3707962_IC50_0043,Best QSAR,qsar_svm,QSAR linear SVR,final,82.94,0.9529715472658453,1.0,1.0,3.0600000000000023,86.0
+CARA_LO_CHEMBL3734174_IC50_0044,Best QSAR,qsar_svm,QSAR linear SVR,final,79.81,0.8902069282545555,1.0,1.0,6.689999999999998,86.5
+CARA_LO_CHEMBL3734552_EC50_0045,Best QSAR,qsar_svm,QSAR linear SVR,final,85.53000000000002,0.9091723328747561,1.0,1.0,9.239999999999995,94.77000000000001
+CARA_LO_CHEMBL3883076_IC50_0046,Best QSAR,qsar_svm,QSAR linear SVR,final,57.72,0.876393234538476,1.0,1.0,7.320000000000007,65.04
+CARA_LO_CHEMBL3887029_Ki_0047,Best QSAR,qsar_svm,QSAR linear SVR,final,76.09,0.9222070529219637,1.0,1.0,6.509999999999991,82.6
+CARA_LO_CHEMBL3887030_Ki_0048,Best QSAR,qsar_svm,QSAR linear SVR,final,62.69,0.942059863485672,1.0,1.0,2.5700000000000074,65.26
+CARA_LO_CHEMBL3887063_IC50_0049,Best QSAR,qsar_svm,QSAR linear SVR,final,83.99,0.9474794083250799,1.0,1.0,4.63000000000001,88.62
+CARA_LO_CHEMBL3887074_IC50_0050,Best QSAR,qsar_svm,QSAR linear SVR,final,87.0,0.9590096026066457,1.0,1.0,3.9199999999999875,90.91999999999999
+CARA_LO_CHEMBL3887224_IC50_0051,Best QSAR,qsar_svm,QSAR linear SVR,final,55.64,0.985741479970635,1.0,1.0,0.2700000000000031,55.910000000000004
+CARA_LO_CHEMBL3887259_EC50_0052,Best QSAR,qsar_svm,QSAR linear SVR,final,66.16000000000001,0.9055742693552568,1.0,1.0,6.239999999999995,72.4
+CARA_LO_CHEMBL3887288_IC50_0053,Best QSAR,qsar_svm,QSAR linear SVR,final,88.14,0.9795085127628435,1.0,1.0,1.8599999999999994,90.0
+CARA_LO_CHEMBL3887334_IC50_0054,Best QSAR,qsar_svm,QSAR linear SVR,final,74.61,0.9287576139076931,1.0,1.0,6.959999999999994,81.57
+CARA_LO_CHEMBL3887429_IC50_0055,Best QSAR,qsar_svm,QSAR linear SVR,final,77.91999999999999,0.9268222874648956,1.0,1.0,6.290000000000006,84.21
+CARA_LO_CHEMBL3887731_Ki_0056,Best QSAR,qsar_svm,QSAR linear SVR,final,90.53999999999999,0.965304590061896,1.0,1.0,3.210000000000008,93.75
+CARA_LO_CHEMBL3887866_IC50_0057,Best QSAR,qsar_svm,QSAR linear SVR,final,69.19,0.8724848523480907,1.0,1.0,8.97999999999999,78.16999999999999
+CARA_LO_CHEMBL3887887_IC50_0058,Best QSAR,qsar_svm,QSAR linear SVR,final,70.63,0.8970933303598133,1.0,1.0,8.310000000000002,78.94
+CARA_LO_CHEMBL3888033_IC50_0059,Best QSAR,qsar_svm,QSAR linear SVR,final,89.60000000000001,0.9419061941054839,1.0,1.0,4.09999999999998,93.69999999999999
+CARA_LO_CHEMBL3888094_IC50_0060,Best QSAR,qsar_svm,QSAR linear SVR,final,75.44000000000001,0.9692843572261246,1.0,1.0,2.4599999999999937,77.9
+CARA_LO_CHEMBL3888209_IC50_0061,Best QSAR,qsar_svm,QSAR linear SVR,final,69.83,0.9287202746267018,1.0,1.0,5.030000000000015,74.86000000000001
+CARA_LO_CHEMBL3888296_IC50_0062,Best QSAR,qsar_svm,QSAR linear SVR,final,92.88,0.9726222293908858,1.0,1.0,2.515000000000015,95.39500000000001
+CARA_LO_CHEMBL3888825_IC50_0063,Best QSAR,qsar_svm,QSAR linear SVR,final,85.6,0.9541373027728645,1.0,1.0,3.8299999999999983,89.42999999999999
+CARA_LO_CHEMBL3888867_IC50_0064,Best QSAR,qsar_svm,QSAR linear SVR,final,62.260000000000005,0.8984692682035339,1.0,1.0,5.489999999999995,67.75
+CARA_LO_CHEMBL3888870_IC50_0065,Best QSAR,qsar_svm,QSAR linear SVR,final,85.44,0.9753430960409024,1.0,1.0,1.5,86.94
+CARA_LO_CHEMBL3889097_IC50_0066,Best QSAR,qsar_svm,QSAR linear SVR,final,75.35,0.9126562124815095,1.0,1.0,6.990000000000009,82.34
+CARA_LO_CHEMBL3889159_IC50_0067,Best QSAR,qsar_svm,QSAR linear SVR,final,85.55,0.915045965617969,1.0,1.0,8.059999999999988,93.60999999999999
+CARA_LO_CHEMBL3889186_IC50_0068,Best QSAR,qsar_svm,QSAR linear SVR,final,86.08999999999999,0.9298707697103336,1.0,1.0,7.940000000000012,94.03
+CARA_LO_CHEMBL3889262_IC50_0069,Best QSAR,qsar_svm,QSAR linear SVR,final,85.82,0.9755755000109717,1.0,1.0,2.430000000000021,88.25000000000001
+CARA_LO_CHEMBL4388634_IC50_0070,Best QSAR,qsar_svm,QSAR linear SVR,final,41.5,0.9970175051413277,1.0,1.0,0.06000000000000938,41.56000000000001
+CARA_LO_CHEMBL4404752_IC50_0071,Best QSAR,qsar_svm,QSAR linear SVR,final,74.71,0.9241756406756754,1.0,1.0,6.200000000000003,80.91
+CARA_LO_CHEMBL4418470_EC50_0072,Best QSAR,qsar_svm,QSAR linear SVR,final,70.9,0.958400915691217,1.0,1.0,2.59999999999998,73.49999999999999
+CARA_LO_CHEMBL4476912_IC50_0073,Best QSAR,qsar_svm,QSAR linear SVR,final,54.43,0.8991615256966025,1.0,1.0,6.800000000000004,61.230000000000004
+CARA_LO_CHEMBL4476963_IC50_0074,Best QSAR,qsar_svm,QSAR linear SVR,final,51.95,0.9598549294447554,1.0,1.0,1.5899999999999892,53.53999999999999
+CARA_LO_CHEMBL4477153_IC50_0075,Best QSAR,qsar_svm,QSAR linear SVR,final,80.65999999999998,0.982939017171861,1.0,1.0,1.789999999999992,82.44999999999997
+CARA_LO_CHEMBL4712750_IC50_0076,Best QSAR,qsar_svm,QSAR linear SVR,final,63.61,0.960585178074761,1.0,1.0,1.789999999999992,65.39999999999999
+CARA_LO_CHEMBL4739819_EC50_0077,Best QSAR,qsar_svm,QSAR linear SVR,final,75.64999999999999,0.9352425331266351,1.0,1.0,4.540000000000006,80.19
+CARA_LO_CHEMBL641707_IC50_0078,Best QSAR,qsar_svm,QSAR linear SVR,final,54.00999999999999,0.9831572158976445,1.0,1.0,0.1700000000000088,54.18
+CARA_LO_CHEMBL648337_IC50_0079,Best QSAR,qsar_svm,QSAR linear SVR,final,81.62,0.9065402875368124,1.0,1.0,7.8700000000000045,89.49000000000001
+CARA_LO_CHEMBL652259_IC50_0080,Best QSAR,qsar_svm,QSAR linear SVR,final,74.91000000000001,0.9845858748071673,1.0,1.0,1.5699999999999932,76.48
+CARA_LO_CHEMBL656248_IC50_0081,Best QSAR,qsar_svm,QSAR linear SVR,final,80.56,0.9548263381741199,1.0,1.0,4.359999999999999,84.92
+CARA_LO_CHEMBL658042_Ki_0082,Best QSAR,qsar_svm,QSAR linear SVR,final,83.98999999999998,0.9859730419597355,1.0,1.0,0.4200000000000159,84.41
+CARA_LO_CHEMBL658217_Ki_0083,Best QSAR,qsar_svm,QSAR linear SVR,final,77.03999999999999,0.9859564869334679,1.0,1.0,1.4100000000000108,78.45
+CARA_LO_CHEMBL663407_Ki_0084,Best QSAR,qsar_svm,QSAR linear SVR,final,71.52,0.9220540500575942,1.0,1.0,5.300000000000011,76.82000000000001
+CARA_LO_CHEMBL664960_Ki_0085,Best QSAR,qsar_svm,QSAR linear SVR,final,77.9,0.903549083186083,1.0,1.0,5.769999999999982,83.66999999999999
+CARA_LO_CHEMBL819742_Ki_0086,Best QSAR,qsar_svm,QSAR linear SVR,final,66.37,0.9022891448080136,1.0,1.0,6.209999999999994,72.58
+CARA_LO_CHEMBL829091_IC50_0087,Best QSAR,qsar_svm,QSAR linear SVR,final,80.07,0.9387636110136819,1.0,1.0,6.5,86.57
+CARA_LO_CHEMBL830957_IC50_0088,Best QSAR,qsar_svm,QSAR linear SVR,final,75.595,0.9330319410137968,1.0,1.0,4.195000000000007,79.79
+CARA_LO_CHEMBL856174_IC50_0089,Best QSAR,qsar_svm,QSAR linear SVR,final,80.8,0.8574731382742803,1.0,1.0,13.700000000000017,94.50000000000001
+CARA_LO_CHEMBL863649_EC50_0090,Best QSAR,qsar_svm,QSAR linear SVR,final,75.25,0.9373513528868083,1.0,1.0,5.039999999999992,80.28999999999999
+CARA_LO_CHEMBL879102_Ki_0091,Best QSAR,qsar_svm,QSAR linear SVR,final,70.34,0.9838144496906895,1.0,1.0,0.730000000000004,71.07000000000001
+CARA_LO_CHEMBL1006579_IC50_0001,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,74.69,0.9277738115622729,1.0,1.0,3.8799999999999955,78.57
+CARA_LO_CHEMBL1048115_IC50_0002,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,72.94,0.928367292638554,1.0,1.0,4.060000000000002,77.0
+CARA_LO_CHEMBL1243978_IC50_0003,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,66.71000000000001,0.9217454816763058,1.0,1.0,4.1499999999999915,70.86
+CARA_LO_CHEMBL1614295_Potency_0004,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,51.66,0.8959726416338891,1.0,1.0,5.580000000000005,57.24
+CARA_LO_CHEMBL2032586_IC50_0005,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,85.01,0.9541164722254167,1.0,1.0,3.2299999999999898,88.24
+CARA_LO_CHEMBL2038596_IC50_0006,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,75.28,0.9628365813965778,1.0,1.0,3.730000000000004,79.01
+CARA_LO_CHEMBL2046255_IC50_0007,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,68.53,0.9506996863117019,1.0,1.0,3.289999999999992,71.82
+CARA_LO_CHEMBL2328568_IC50_0008,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,72.02,0.8539748036959954,1.0,1.0,13.969999999999999,85.99
+CARA_LO_CHEMBL3431931_IC50_0009,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,61.37,0.9714570047422886,1.0,1.0,1.9299999999999997,63.3
+CARA_LO_CHEMBL3705123_IC50_0010,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,72.04,0.8991678205172882,1.0,1.0,8.459999999999994,80.5
+CARA_LO_CHEMBL3705125_IC50_0011,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,73.49,0.9274465479510121,1.0,1.0,5.430000000000007,78.92
+CARA_LO_CHEMBL3705142_IC50_0012,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,72.41,0.986662849258818,1.0,1.0,0.5300000000000011,72.94
+CARA_LO_CHEMBL3705264_IC50_0013,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,65.9,0.9292621008566082,1.0,1.0,4.859999999999999,70.76
+CARA_LO_CHEMBL3705271_IC50_0014,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,75.94,0.9211704991413675,1.0,1.0,6.25,82.19
+CARA_LO_CHEMBL3705334_IC50_0015,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,66.97,0.9051396369849837,1.0,1.0,6.0,72.97
+CARA_LO_CHEMBL3705357_IC50_0016,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,83.03,0.8796293975607042,1.0,1.0,12.200000000000003,95.23
+CARA_LO_CHEMBL3705358_IC50_0017,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,65.375,0.917132163326291,1.0,1.0,8.004999999999995,73.38
+CARA_LO_CHEMBL3705399_Ki_0018,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,83.41,0.9469204471018615,1.0,1.0,4.030000000000001,87.44
+CARA_LO_CHEMBL3705467_IC50_0019,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,72.5,0.9921118963413892,1.0,1.0,0.5999999999999943,73.1
+CARA_LO_CHEMBL3705476_IC50_0020,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,65.44,0.9221891735435088,1.0,1.0,6.359999999999999,71.8
+CARA_LO_CHEMBL3705480_Ki_0021,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,90.59,0.9516471201401773,1.0,1.0,4.909999999999997,95.5
+CARA_LO_CHEMBL3705486_Ki_0022,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,73.4,0.8882196787466582,1.0,1.0,10.164999999999992,83.565
+CARA_LO_CHEMBL3705705_IC50_0023,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,76.815,0.959901662186619,1.0,1.0,3.230000000000004,80.045
+CARA_LO_CHEMBL3705715_Ki_0024,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,93.15,0.9554407787164869,1.0,1.0,4.599999999999994,97.75
+CARA_LO_CHEMBL3705825_Ki_0025,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,73.465,0.886007650307942,1.0,1.0,8.935000000000002,82.4
+CARA_LO_CHEMBL3705860_IC50_0026,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,85.35000000000001,0.9346181981940299,1.0,1.0,6.059999999999988,91.41
+CARA_LO_CHEMBL3705868_IC50_0027,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,68.09,0.9444321125821314,1.0,1.0,5.459999999999994,73.55
+CARA_LO_CHEMBL3705882_Ki_0028,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,82.74,0.9555856774536836,1.0,1.0,3.6099999999999994,86.35
+CARA_LO_CHEMBL3705899_IC50_0029,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,74.03,0.8919665193190943,1.0,1.0,10.239999999999995,84.27
+CARA_LO_CHEMBL3705917_IC50_0030,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,70.3,0.9680796505605787,1.0,1.0,2.490000000000009,72.79
+CARA_LO_CHEMBL3705960_IC50_0031,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,82.35,0.9070282069238903,1.0,1.0,7.820000000000007,90.17
+CARA_LO_CHEMBL3705963_IC50_0032,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,65.59,0.9361181962881023,1.0,1.0,2.8499999999999943,68.44
+CARA_LO_CHEMBL3705983_IC50_0033,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,62.72,0.8854156504198089,1.0,1.0,8.769999999999996,71.49
+CARA_LO_CHEMBL3706272_IC50_0034,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,79.785,0.9185985681051184,1.0,1.0,5.805000000000007,85.59
+CARA_LO_CHEMBL3706298_IC50_0035,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,86.47,0.9569386558110211,1.0,1.0,4.689999999999998,91.16
+CARA_LO_CHEMBL3706356_IC50_0036,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,78.36,0.9610958850578685,1.0,1.0,3.305000000000007,81.665
+CARA_LO_CHEMBL3706360_IC50_0037,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,73.66,0.9352802035769049,1.0,1.0,6.720000000000013,80.38000000000001
+CARA_LO_CHEMBL3707497_IC50_0038,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,70.97,0.917998924622001,1.0,1.0,4.769999999999996,75.74
+CARA_LO_CHEMBL3707783_IC50_0039,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,77.4,0.9687122556084135,1.0,1.0,1.9799999999999898,79.38
+CARA_LO_CHEMBL3707789_Ki_0040,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,85.03,0.9903991822801254,1.0,1.0,0.18999999999999773,85.22
+CARA_LO_CHEMBL3707834_Ki_0041,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,81.48,0.981485869115389,1.0,1.0,2.0799999999999983,83.56
+CARA_LO_CHEMBL3707951_IC50_0042,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,71.81,0.9079013899860944,1.0,1.0,5.840000000000003,77.65
+CARA_LO_CHEMBL3707962_IC50_0043,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,78.59,0.9132383603403764,1.0,1.0,7.409999999999997,86.0
+CARA_LO_CHEMBL3734174_IC50_0044,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,77.13,0.8684511296605928,1.0,1.0,9.370000000000005,86.5
+CARA_LO_CHEMBL3734552_EC50_0045,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,80.23,0.8493927627633793,1.0,1.0,14.539999999999992,94.77
+CARA_LO_CHEMBL3883076_IC50_0046,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,55.49,0.8575478359956342,1.0,1.0,9.54999999999999,65.03999999999999
+CARA_LO_CHEMBL3887029_Ki_0047,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,74.7,0.9153973841971955,1.0,1.0,7.8999999999999915,82.6
+CARA_LO_CHEMBL3887030_Ki_0048,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,60.26,0.9159508642518216,1.0,1.0,5.000000000000007,65.26
+CARA_LO_CHEMBL3887063_IC50_0049,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,83.59,0.9452559833247101,1.0,1.0,5.030000000000001,88.62
+CARA_LO_CHEMBL3887074_IC50_0050,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,85.42,0.9327975863063331,1.0,1.0,5.5,90.92
+CARA_LO_CHEMBL3887224_IC50_0051,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,55.39,0.9518323404813108,1.0,1.0,0.519999999999996,55.91
+CARA_LO_CHEMBL3887259_EC50_0052,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,65.37,0.8938104922861326,1.0,1.0,7.030000000000001,72.4
+CARA_LO_CHEMBL3887288_IC50_0053,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,84.92,0.9536473413690182,1.0,1.0,5.079999999999998,90.0
+CARA_LO_CHEMBL3887334_IC50_0054,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,74.11,0.9158893917307503,1.0,1.0,7.460000000000008,81.57000000000001
+CARA_LO_CHEMBL3887429_IC50_0055,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,78.48,0.9368789396663386,1.0,1.0,5.730000000000004,84.21000000000001
+CARA_LO_CHEMBL3887731_Ki_0056,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,90.66,0.9712738717768259,1.0,1.0,3.0900000000000034,93.75
+CARA_LO_CHEMBL3887866_IC50_0057,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,72.22,0.9048591922020095,1.0,1.0,5.950000000000003,78.17
+CARA_LO_CHEMBL3887887_IC50_0058,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,66.79,0.8354145216871468,1.0,1.0,12.149999999999991,78.94
+CARA_LO_CHEMBL3888033_IC50_0059,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,87.34,0.9168070613088639,1.0,1.0,6.359999999999999,93.7
+CARA_LO_CHEMBL3888094_IC50_0060,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,71.21,0.9138420459365253,1.0,1.0,6.690000000000012,77.9
+CARA_LO_CHEMBL3888209_IC50_0061,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,67.25,0.8967661492711597,1.0,1.0,7.609999999999999,74.86
+CARA_LO_CHEMBL3888296_IC50_0062,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,91.955,0.9629784678964647,1.0,1.0,3.4399999999999977,95.395
+CARA_LO_CHEMBL3888825_IC50_0063,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,82.71,0.9100850976362136,1.0,1.0,6.720000000000013,89.43
+CARA_LO_CHEMBL3888867_IC50_0064,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,62.32,0.9199915354208317,1.0,1.0,5.43,67.75
+CARA_LO_CHEMBL3888870_IC50_0065,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,85.47999999999999,0.9724656971797155,1.0,1.0,1.460000000000008,86.94
+CARA_LO_CHEMBL3889097_IC50_0066,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,77.36,0.9447031984266038,1.0,1.0,4.980000000000004,82.34
+CARA_LO_CHEMBL3889159_IC50_0067,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,87.19,0.9312372819729606,1.0,1.0,6.420000000000002,93.61
+CARA_LO_CHEMBL3889186_IC50_0068,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,87.98,0.9523122433704627,1.0,1.0,6.049999999999997,94.03
+CARA_LO_CHEMBL3889262_IC50_0069,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,82.45,0.9228918541827934,1.0,1.0,5.799999999999997,88.25
+CARA_LO_CHEMBL4388634_IC50_0070,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,41.36,0.9925221053963182,1.0,1.0,0.20000000000000284,41.56
+CARA_LO_CHEMBL4404752_IC50_0071,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,76.74,0.9410620114288673,1.0,1.0,4.170000000000002,80.91
+CARA_LO_CHEMBL4418470_EC50_0072,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,67.1,0.9355421016509129,1.0,1.0,6.400000000000006,73.5
+CARA_LO_CHEMBL4476912_IC50_0073,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,55.71,0.9168313953970523,1.0,1.0,5.519999999999996,61.23
+CARA_LO_CHEMBL4476963_IC50_0074,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,51.69,0.9553107220162766,1.0,1.0,1.8500000000000014,53.54
+CARA_LO_CHEMBL4477153_IC50_0075,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,80.83,0.9784886871289477,1.0,1.0,1.6200000000000045,82.45
+CARA_LO_CHEMBL4712750_IC50_0076,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,60.68,0.9384664511204417,1.0,1.0,4.720000000000006,65.4
+CARA_LO_CHEMBL4739819_EC50_0077,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,73.31,0.9294710161351778,1.0,1.0,6.8799999999999955,80.19
+CARA_LO_CHEMBL641707_IC50_0078,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,54.18,0.9797184892147426,1.0,1.0,0.0,54.18
+CARA_LO_CHEMBL648337_IC50_0079,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,86.33,0.9479433860751753,1.0,1.0,3.1599999999999966,89.49
+CARA_LO_CHEMBL652259_IC50_0080,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,60.72,0.7877981520490375,1.0,1.0,15.760000000000005,76.48
+CARA_LO_CHEMBL656248_IC50_0081,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,76.52,0.898709534954498,1.0,1.0,8.400000000000006,84.92
+CARA_LO_CHEMBL658042_Ki_0082,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,81.83,0.9625495499946944,1.0,1.0,2.5799999999999983,84.41
+CARA_LO_CHEMBL658217_Ki_0083,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,76.84,0.9850656262820051,1.0,1.0,1.6099999999999994,78.45
+CARA_LO_CHEMBL663407_Ki_0084,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,67.96000000000001,0.9090690247957395,1.0,1.0,8.86,76.82000000000001
+CARA_LO_CHEMBL664960_Ki_0085,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,73.09,0.8984477823202741,1.0,1.0,10.579999999999998,83.67
+CARA_LO_CHEMBL819742_Ki_0086,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,71.39,0.9826389244375652,1.0,1.0,1.1899999999999977,72.58
+CARA_LO_CHEMBL829091_IC50_0087,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,79.71,0.9173856232259575,1.0,1.0,6.859999999999999,86.57
+CARA_LO_CHEMBL830957_IC50_0088,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,74.76,0.9301008877763052,1.0,1.0,5.029999999999987,79.78999999999999
+CARA_LO_CHEMBL856174_IC50_0089,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,79.3,0.8289128681982467,1.0,1.0,15.200000000000003,94.5
+CARA_LO_CHEMBL863649_EC50_0090,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,77.11,0.9454897407364935,1.0,1.0,3.180000000000007,80.29
+CARA_LO_CHEMBL879102_Ki_0091,Best final LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair,"Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",final,68.67,0.9613597239316811,1.0,1.0,2.3999999999999915,71.07
+CARA_LO_CHEMBL1006579_IC50_0001,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,74.69,0.9277738115622729,1.0,1.0,3.8799999999999955,78.57
+CARA_LO_CHEMBL1048115_IC50_0002,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,72.94,0.928367292638554,1.0,1.0,4.060000000000002,77.0
+CARA_LO_CHEMBL1243978_IC50_0003,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,66.71000000000001,0.9217454816763058,1.0,1.0,4.1499999999999915,70.86
+CARA_LO_CHEMBL1614295_Potency_0004,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,51.66,0.8959726416338891,1.0,1.0,5.580000000000005,57.24
+CARA_LO_CHEMBL2032586_IC50_0005,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,85.01,0.9541164722254167,1.0,1.0,3.2299999999999898,88.24
+CARA_LO_CHEMBL2038596_IC50_0006,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,69.89,0.7627591861834726,0.0,0.9,9.120000000000005,79.01
+CARA_LO_CHEMBL2046255_IC50_0007,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,68.53,0.9506996863117019,1.0,1.0,3.289999999999992,71.82
+CARA_LO_CHEMBL2328568_IC50_0008,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,72.02,0.8539748036959954,1.0,1.0,13.969999999999999,85.99
+CARA_LO_CHEMBL3431931_IC50_0009,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,61.37,0.9714570047422886,1.0,1.0,1.9299999999999997,63.3
+CARA_LO_CHEMBL3705123_IC50_0010,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,65.87,0.782060241432734,0.0,0.9,14.629999999999995,80.5
+CARA_LO_CHEMBL3705125_IC50_0011,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,73.49,0.9274465479510121,1.0,1.0,5.430000000000007,78.92
+CARA_LO_CHEMBL3705142_IC50_0012,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,72.41,0.986662849258818,1.0,1.0,0.5300000000000011,72.94
+CARA_LO_CHEMBL3705264_IC50_0013,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,65.9,0.9292621008566082,1.0,1.0,4.859999999999999,70.76
+CARA_LO_CHEMBL3705271_IC50_0014,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,75.94,0.9211704991413675,1.0,1.0,6.25,82.19
+CARA_LO_CHEMBL3705334_IC50_0015,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,66.97,0.9051396369849837,1.0,1.0,6.0,72.97
+CARA_LO_CHEMBL3705357_IC50_0016,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,83.03,0.8796293975607042,1.0,1.0,12.200000000000003,95.23
+CARA_LO_CHEMBL3705358_IC50_0017,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,65.375,0.917132163326291,1.0,1.0,8.004999999999995,73.38
+CARA_LO_CHEMBL3705399_Ki_0018,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,83.41,0.9469204471018615,1.0,1.0,4.030000000000001,87.44
+CARA_LO_CHEMBL3705467_IC50_0019,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,72.5,0.9921118963413892,1.0,1.0,0.5999999999999943,73.1
+CARA_LO_CHEMBL3705476_IC50_0020,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,65.44,0.9221891735435088,1.0,1.0,6.359999999999999,71.8
+CARA_LO_CHEMBL3705480_Ki_0021,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,90.59,0.9516471201401773,0.0,1.0,4.909999999999997,95.5
+CARA_LO_CHEMBL3705486_Ki_0022,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,66.45,0.8102838100974398,0.0,0.9,17.114999999999995,83.565
+CARA_LO_CHEMBL3705705_IC50_0023,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,76.815,0.959901662186619,1.0,1.0,3.230000000000004,80.045
+CARA_LO_CHEMBL3705715_Ki_0024,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,93.15,0.9554407787164869,1.0,1.0,4.599999999999994,97.75
+CARA_LO_CHEMBL3705825_Ki_0025,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,73.465,0.886007650307942,1.0,1.0,8.935000000000002,82.4
+CARA_LO_CHEMBL3705860_IC50_0026,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,85.35000000000001,0.9346181981940299,1.0,1.0,6.059999999999988,91.41
+CARA_LO_CHEMBL3705868_IC50_0027,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,68.09,0.9444321125821314,1.0,1.0,5.459999999999994,73.55
+CARA_LO_CHEMBL3705882_Ki_0028,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,82.74,0.9555856774536836,1.0,1.0,3.6099999999999994,86.35
+CARA_LO_CHEMBL3705899_IC50_0029,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,74.03,0.8919665193190943,1.0,1.0,10.239999999999995,84.27
+CARA_LO_CHEMBL3705917_IC50_0030,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,70.3,0.9680796505605787,0.0,1.0,2.490000000000009,72.79
+CARA_LO_CHEMBL3705960_IC50_0031,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,82.35,0.9070282069238903,1.0,1.0,7.820000000000007,90.17
+CARA_LO_CHEMBL3705963_IC50_0032,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,65.59,0.9361181962881023,1.0,1.0,2.8499999999999943,68.44
+CARA_LO_CHEMBL3705983_IC50_0033,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,62.72,0.8854156504198089,1.0,1.0,8.769999999999996,71.49
+CARA_LO_CHEMBL3706272_IC50_0034,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,79.785,0.9185985681051184,1.0,1.0,5.805000000000007,85.59
+CARA_LO_CHEMBL3706298_IC50_0035,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,86.47,0.9569386558110211,1.0,1.0,4.689999999999998,91.16
+CARA_LO_CHEMBL3706356_IC50_0036,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,78.36,0.9610958850578685,1.0,1.0,3.305000000000007,81.665
+CARA_LO_CHEMBL3706360_IC50_0037,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,73.66,0.9352802035769049,1.0,1.0,6.720000000000013,80.38000000000001
+CARA_LO_CHEMBL3707497_IC50_0038,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,70.97,0.917998924622001,1.0,1.0,4.769999999999996,75.74
+CARA_LO_CHEMBL3707783_IC50_0039,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,77.4,0.9687122556084135,1.0,1.0,1.9799999999999898,79.38
+CARA_LO_CHEMBL3707789_Ki_0040,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,85.03,0.9903991822801254,1.0,1.0,0.18999999999999773,85.22
+CARA_LO_CHEMBL3707834_Ki_0041,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,81.48,0.981485869115389,1.0,1.0,2.0799999999999983,83.56
+CARA_LO_CHEMBL3707951_IC50_0042,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,71.81,0.9079013899860944,1.0,1.0,5.840000000000003,77.65
+CARA_LO_CHEMBL3707962_IC50_0043,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,78.59,0.9132383603403764,1.0,1.0,7.409999999999997,86.0
+CARA_LO_CHEMBL3734174_IC50_0044,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,77.13,0.8684511296605928,0.0,1.0,9.370000000000005,86.5
+CARA_LO_CHEMBL3734552_EC50_0045,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,73.79,0.7981537785604558,0.0,0.9,20.97999999999999,94.77
+CARA_LO_CHEMBL3883076_IC50_0046,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,55.49,0.8575478359956342,1.0,1.0,9.54999999999999,65.03999999999999
+CARA_LO_CHEMBL3887029_Ki_0047,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,74.7,0.9153973841971955,1.0,1.0,7.8999999999999915,82.6
+CARA_LO_CHEMBL3887030_Ki_0048,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,60.26,0.9159508642518216,1.0,1.0,5.000000000000007,65.26
+CARA_LO_CHEMBL3887063_IC50_0049,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,83.59,0.9452559833247101,1.0,1.0,5.030000000000001,88.62
+CARA_LO_CHEMBL3887074_IC50_0050,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,85.42,0.9327975863063331,0.0,1.0,5.5,90.92
+CARA_LO_CHEMBL3887224_IC50_0051,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,55.39,0.9518323404813108,1.0,1.0,0.519999999999996,55.91
+CARA_LO_CHEMBL3887259_EC50_0052,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,59.49,0.8337200314463837,0.0,0.9,12.910000000000004,72.4
+CARA_LO_CHEMBL3887288_IC50_0053,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,84.92,0.9536473413690182,1.0,1.0,5.079999999999998,90.0
+CARA_LO_CHEMBL3887334_IC50_0054,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,74.11,0.9158893917307503,1.0,1.0,7.460000000000008,81.57000000000001
+CARA_LO_CHEMBL3887429_IC50_0055,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,78.48,0.9368789396663386,0.0,1.0,5.730000000000004,84.21000000000001
+CARA_LO_CHEMBL3887731_Ki_0056,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,90.66,0.9712738717768259,1.0,1.0,3.0900000000000034,93.75
+CARA_LO_CHEMBL3887866_IC50_0057,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,72.22,0.9048591922020095,0.0,1.0,5.950000000000003,78.17
+CARA_LO_CHEMBL3887887_IC50_0058,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,61.36,0.7873704284636859,0.0,0.9,17.58,78.94
+CARA_LO_CHEMBL3888033_IC50_0059,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,87.34,0.9168070613088639,1.0,1.0,6.359999999999999,93.7
+CARA_LO_CHEMBL3888094_IC50_0060,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,71.21,0.9138420459365253,1.0,1.0,6.690000000000012,77.9
+CARA_LO_CHEMBL3888209_IC50_0061,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,67.25,0.8967661492711597,1.0,1.0,7.609999999999999,74.86
+CARA_LO_CHEMBL3888296_IC50_0062,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,91.955,0.9629784678964647,0.0,1.0,3.4399999999999977,95.395
+CARA_LO_CHEMBL3888825_IC50_0063,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,82.71,0.9100850976362136,1.0,1.0,6.720000000000013,89.43
+CARA_LO_CHEMBL3888867_IC50_0064,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,62.32,0.9199915354208317,0.0,1.0,5.43,67.75
+CARA_LO_CHEMBL3888870_IC50_0065,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,85.47999999999999,0.9724656971797155,1.0,1.0,1.460000000000008,86.94
+CARA_LO_CHEMBL3889097_IC50_0066,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,77.36,0.9447031984266038,1.0,1.0,4.980000000000004,82.34
+CARA_LO_CHEMBL3889159_IC50_0067,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,77.59,0.8374541994390702,0.0,0.9,16.019999999999996,93.61
+CARA_LO_CHEMBL3889186_IC50_0068,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,87.98,0.9523122433704627,1.0,1.0,6.049999999999997,94.03
+CARA_LO_CHEMBL3889262_IC50_0069,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,82.45,0.9228918541827934,1.0,1.0,5.799999999999997,88.25
+CARA_LO_CHEMBL4388634_IC50_0070,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,41.36,0.9925221053963182,1.0,1.0,0.20000000000000284,41.56
+CARA_LO_CHEMBL4404752_IC50_0071,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,76.74,0.9410620114288673,1.0,1.0,4.170000000000002,80.91
+CARA_LO_CHEMBL4418470_EC50_0072,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,43.4,0.6318161247518607,0.0,0.6,30.1,73.5
+CARA_LO_CHEMBL4476912_IC50_0073,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,55.71,0.9168313953970523,1.0,1.0,5.519999999999996,61.23
+CARA_LO_CHEMBL4476963_IC50_0074,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,51.69,0.9553107220162766,1.0,1.0,1.8500000000000014,53.54
+CARA_LO_CHEMBL4477153_IC50_0075,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,80.83,0.9784886871289477,1.0,1.0,1.6200000000000045,82.45
+CARA_LO_CHEMBL4712750_IC50_0076,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,60.68,0.9384664511204417,1.0,1.0,4.720000000000006,65.4
+CARA_LO_CHEMBL4739819_EC50_0077,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,73.31,0.9294710161351778,1.0,1.0,6.8799999999999955,80.19
+CARA_LO_CHEMBL641707_IC50_0078,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,54.18,0.9797184892147426,1.0,1.0,0.0,54.18
+CARA_LO_CHEMBL648337_IC50_0079,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,86.33,0.9479433860751753,1.0,1.0,3.1599999999999966,89.49
+CARA_LO_CHEMBL652259_IC50_0080,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,60.72,0.7877981520490375,0.0,1.0,15.760000000000005,76.48
+CARA_LO_CHEMBL656248_IC50_0081,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,76.52,0.898709534954498,1.0,1.0,8.400000000000006,84.92
+CARA_LO_CHEMBL658042_Ki_0082,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,73.73,0.8930040838025622,0.0,0.9,10.679999999999993,84.41
+CARA_LO_CHEMBL658217_Ki_0083,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,76.84,0.9850656262820051,1.0,1.0,1.6099999999999994,78.45
+CARA_LO_CHEMBL663407_Ki_0084,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,67.96000000000001,0.9090690247957395,1.0,1.0,8.86,76.82000000000001
+CARA_LO_CHEMBL664960_Ki_0085,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,60.0,0.7297071534757965,0.0,0.8,23.67,83.67
+CARA_LO_CHEMBL819742_Ki_0086,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,71.39,0.9826389244375652,1.0,1.0,1.1899999999999977,72.58
+CARA_LO_CHEMBL829091_IC50_0087,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,79.71,0.9173856232259575,1.0,1.0,6.859999999999999,86.57
+CARA_LO_CHEMBL830957_IC50_0088,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,74.76,0.9301008877763052,1.0,1.0,5.029999999999987,79.78999999999999
+CARA_LO_CHEMBL856174_IC50_0089,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,79.3,0.8289128681982467,1.0,1.0,15.200000000000003,94.5
+CARA_LO_CHEMBL863649_EC50_0090,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,77.11,0.9454897407364935,1.0,1.0,3.180000000000007,80.29
+CARA_LO_CHEMBL879102_Ki_0091,Best raw LLM,bare_llm__openai_gpt_5_5_2026_04_23_selector,"Bare LLM - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON",raw,68.67,0.9613597239316811,1.0,1.0,2.3999999999999915,71.07
+CARA_LO_CHEMBL1006579_IC50_0001,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,74.79,0.9451204626738883,1.0,1.0,3.779999999999987,78.57
+CARA_LO_CHEMBL1048115_IC50_0002,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,72.6,0.933001415282856,1.0,1.0,4.400000000000006,77.0
+CARA_LO_CHEMBL1243978_IC50_0003,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,60.59,0.8489211018781196,1.0,1.0,10.269999999999996,70.86
+CARA_LO_CHEMBL1614295_Potency_0004,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,49.959999999999994,0.8687136325541075,1.0,1.0,7.280000000000001,57.239999999999995
+CARA_LO_CHEMBL2032586_IC50_0005,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,82.42999999999999,0.9447432584156493,1.0,1.0,5.810000000000002,88.24
+CARA_LO_CHEMBL2038596_IC50_0006,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,63.71000000000001,0.7770386313603188,1.0,1.0,15.299999999999997,79.01
+CARA_LO_CHEMBL2046255_IC50_0007,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,63.34,0.8450816942823741,1.0,1.0,8.47999999999999,71.82
+CARA_LO_CHEMBL2328568_IC50_0008,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,71.72999999999999,0.8420761165470204,1.0,1.0,14.26000000000002,85.99000000000001
+CARA_LO_CHEMBL3431931_IC50_0009,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,62.56999999999999,0.9843135140537592,1.0,1.0,0.7300000000000111,63.300000000000004
+CARA_LO_CHEMBL3705123_IC50_0010,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,77.28,0.9566344514031375,1.0,1.0,3.2199999999999847,80.49999999999999
+CARA_LO_CHEMBL3705125_IC50_0011,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,71.33999999999999,0.8997283113598658,1.0,1.0,7.5800000000000125,78.92
+CARA_LO_CHEMBL3705142_IC50_0012,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,71.78,0.9399098187018121,1.0,1.0,1.1600000000000108,72.94000000000001
+CARA_LO_CHEMBL3705264_IC50_0013,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,62.6,0.875892655350704,1.0,1.0,8.160000000000004,70.76
+CARA_LO_CHEMBL3705271_IC50_0014,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,75.44999999999999,0.9181917210906566,1.0,1.0,6.739999999999995,82.18999999999998
+CARA_LO_CHEMBL3705334_IC50_0015,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,67.49,0.9296464122938111,1.0,1.0,5.47999999999999,72.96999999999998
+CARA_LO_CHEMBL3705357_IC50_0016,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,91.34,0.9556851402345725,1.0,1.0,3.889999999999972,95.22999999999998
+CARA_LO_CHEMBL3705358_IC50_0017,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,67.11,0.9141650130256423,1.0,1.0,6.269999999999996,73.38
+CARA_LO_CHEMBL3705399_Ki_0018,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,83.54,0.937446158130718,1.0,1.0,3.9000000000000057,87.44000000000001
+CARA_LO_CHEMBL3705467_IC50_0019,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,69.42999999999999,0.9518238307467031,1.0,1.0,3.6700000000000017,73.1
+CARA_LO_CHEMBL3705476_IC50_0020,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,68.23,0.9572891940599074,1.0,1.0,3.569999999999979,71.79999999999998
+CARA_LO_CHEMBL3705480_Ki_0021,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,89.41999999999999,0.9248629336784867,1.0,1.0,6.0800000000000125,95.5
+CARA_LO_CHEMBL3705486_Ki_0022,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,76.63,0.9228683563191944,1.0,1.0,6.935000000000002,83.565
+CARA_LO_CHEMBL3705705_IC50_0023,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,78.00999999999999,0.9653339754824208,1.0,1.0,2.035000000000011,80.045
+CARA_LO_CHEMBL3705715_Ki_0024,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,87.71000000000001,0.8938718751812678,1.0,1.0,10.039999999999978,97.74999999999999
+CARA_LO_CHEMBL3705825_Ki_0025,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,74.545,0.9096127103939282,1.0,1.0,7.855000000000004,82.4
+CARA_LO_CHEMBL3705860_IC50_0026,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,87.68,0.9670967519838247,1.0,1.0,3.7299999999999898,91.41
+CARA_LO_CHEMBL3705868_IC50_0027,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,66.33999999999999,0.9167918660000963,1.0,1.0,7.210000000000008,73.55
+CARA_LO_CHEMBL3705882_Ki_0028,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,79.39999999999999,0.9229503592178395,1.0,1.0,6.949999999999989,86.34999999999998
+CARA_LO_CHEMBL3705899_IC50_0029,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,79.35,0.9526153233720009,1.0,1.0,4.920000000000002,84.27
+CARA_LO_CHEMBL3705917_IC50_0030,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,70.44,0.9593892939888469,1.0,1.0,2.3499999999999943,72.78999999999999
+CARA_LO_CHEMBL3705960_IC50_0031,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,83.28999999999999,0.9378189209259338,1.0,1.0,6.88000000000001,90.17
+CARA_LO_CHEMBL3705963_IC50_0032,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,63.83,0.9258830453486642,1.0,1.0,4.609999999999999,68.44
+CARA_LO_CHEMBL3705983_IC50_0033,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,66.44,0.930435834008504,1.0,1.0,5.050000000000011,71.49000000000001
+CARA_LO_CHEMBL3706272_IC50_0034,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,80.15499999999999,0.9253737361515056,1.0,1.0,5.435000000000002,85.58999999999999
+CARA_LO_CHEMBL3706298_IC50_0035,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,88.32999999999998,0.9706862925465929,1.0,1.0,2.8300000000000125,91.16
+CARA_LO_CHEMBL3706356_IC50_0036,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,74.64,0.92404896752572,1.0,1.0,7.0249999999999915,81.66499999999999
+CARA_LO_CHEMBL3706360_IC50_0037,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,74.5,0.9358258318234715,1.0,1.0,5.8799999999999955,80.38
+CARA_LO_CHEMBL3707497_IC50_0038,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,69.46999999999998,0.9210646530331754,1.0,1.0,6.269999999999996,75.73999999999998
+CARA_LO_CHEMBL3707783_IC50_0039,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,75.99,0.9574000295099367,1.0,1.0,3.3900000000000006,79.38
+CARA_LO_CHEMBL3707789_Ki_0040,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,84.02999999999999,0.9861650348153468,1.0,1.0,1.1900000000000261,85.22000000000001
+CARA_LO_CHEMBL3707834_Ki_0041,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,81.52,0.9811658778548862,1.0,1.0,2.0400000000000063,83.56
+CARA_LO_CHEMBL3707951_IC50_0042,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,72.59,0.9141380561363083,1.0,1.0,5.060000000000002,77.65
+CARA_LO_CHEMBL3707962_IC50_0043,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,74.9,0.8682692849368292,1.0,1.0,11.099999999999994,86.0
+CARA_LO_CHEMBL3734174_IC50_0044,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,78.79,0.8809912897178075,1.0,1.0,7.709999999999994,86.5
+CARA_LO_CHEMBL3734552_EC50_0045,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,82.995,0.8807611841797139,1.0,1.0,11.775000000000006,94.77000000000001
+CARA_LO_CHEMBL3883076_IC50_0046,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,59.91999999999999,0.919822023539422,1.0,1.0,5.120000000000019,65.04
+CARA_LO_CHEMBL3887029_Ki_0047,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,77.135,0.9403565747236042,1.0,1.0,5.464999999999989,82.6
+CARA_LO_CHEMBL3887030_Ki_0048,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,61.86,0.9454880494190764,1.0,1.0,3.4000000000000057,65.26
+CARA_LO_CHEMBL3887063_IC50_0049,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,74.45,0.8262959620376722,1.0,1.0,14.170000000000002,88.62
+CARA_LO_CHEMBL3887074_IC50_0050,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,81.32,0.9019831052985904,1.0,1.0,9.599999999999994,90.91999999999999
+CARA_LO_CHEMBL3887224_IC50_0051,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,55.83,0.9607377781021612,1.0,1.0,0.0800000000000054,55.910000000000004
+CARA_LO_CHEMBL3887259_EC50_0052,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,64.08,0.8776082954951069,1.0,1.0,8.320000000000007,72.4
+CARA_LO_CHEMBL3887288_IC50_0053,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,87.14,0.9745802416664653,1.0,1.0,2.8599999999999994,90.0
+CARA_LO_CHEMBL3887334_IC50_0054,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,74.84,0.8908107998068722,1.0,1.0,6.72999999999999,81.57
+CARA_LO_CHEMBL3887429_IC50_0055,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,75.55,0.899907830149396,1.0,1.0,8.659999999999997,84.21
+CARA_LO_CHEMBL3887731_Ki_0056,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,88.59999999999998,0.9485760631440988,1.0,1.0,5.15000000000002,93.75
+CARA_LO_CHEMBL3887866_IC50_0057,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,65.65,0.8397405155560699,1.0,1.0,12.519999999999982,78.16999999999999
+CARA_LO_CHEMBL3887887_IC50_0058,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,67.39,0.8499761781902153,1.0,1.0,11.549999999999997,78.94
+CARA_LO_CHEMBL3888033_IC50_0059,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,86.98,0.9227206641581277,1.0,1.0,6.719999999999985,93.69999999999999
+CARA_LO_CHEMBL3888094_IC50_0060,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,68.69,0.8977082109268636,1.0,1.0,9.210000000000008,77.9
+CARA_LO_CHEMBL3888209_IC50_0061,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,66.17,0.8786701409040811,1.0,1.0,8.690000000000012,74.86000000000001
+CARA_LO_CHEMBL3888296_IC50_0062,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,90.30000000000001,0.9552677330633642,1.0,1.0,5.094999999999999,95.39500000000001
+CARA_LO_CHEMBL3888825_IC50_0063,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,74.66000000000001,0.8469553423563383,1.0,1.0,14.769999999999982,89.42999999999999
+CARA_LO_CHEMBL3888867_IC50_0064,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,62.949999999999996,0.9169464164206791,1.0,1.0,4.800000000000004,67.75
+CARA_LO_CHEMBL3888870_IC50_0065,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,83.97,0.962155349018727,1.0,1.0,2.969999999999999,86.94
+CARA_LO_CHEMBL3889097_IC50_0066,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,76.76999999999998,0.9263985931444841,1.0,1.0,5.570000000000022,82.34
+CARA_LO_CHEMBL3889159_IC50_0067,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,86.53,0.9244731904962747,1.0,1.0,7.079999999999984,93.60999999999999
+CARA_LO_CHEMBL3889186_IC50_0068,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,88.41000000000001,0.9511441411622776,1.0,1.0,5.61999999999999,94.03
+CARA_LO_CHEMBL3889262_IC50_0069,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,85.95,0.9576306936463068,1.0,1.0,2.3000000000000114,88.25000000000001
+CARA_LO_CHEMBL4388634_IC50_0070,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,41.16,0.9856502399452168,1.0,1.0,0.4000000000000128,41.56000000000001
+CARA_LO_CHEMBL4404752_IC50_0071,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,75.21,0.9313688173158228,1.0,1.0,5.700000000000003,80.91
+CARA_LO_CHEMBL4418470_EC50_0072,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,71.1,0.9712631335498119,1.0,1.0,2.3999999999999915,73.49999999999999
+CARA_LO_CHEMBL4476912_IC50_0073,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,54.370000000000005,0.8693673282784926,1.0,1.0,6.859999999999999,61.230000000000004
+CARA_LO_CHEMBL4476963_IC50_0074,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,51.86,0.9526867229614662,1.0,1.0,1.6799999999999926,53.53999999999999
+CARA_LO_CHEMBL4477153_IC50_0075,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,78.91999999999999,0.9593594493412357,1.0,1.0,3.529999999999987,82.44999999999997
+CARA_LO_CHEMBL4712750_IC50_0076,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,63.199999999999996,0.9651240026484279,1.0,1.0,2.1999999999999957,65.39999999999999
+CARA_LO_CHEMBL4739819_EC50_0077,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,73.41999999999999,0.9215509657255063,1.0,1.0,6.77000000000001,80.19
+CARA_LO_CHEMBL641707_IC50_0078,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,52.739999999999995,0.9509516684884393,1.0,1.0,1.4400000000000048,54.18
+CARA_LO_CHEMBL648337_IC50_0079,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,70.74000000000001,0.8209958422458171,1.0,1.0,18.75,89.49000000000001
+CARA_LO_CHEMBL652259_IC50_0080,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,73.41,0.9073582995336869,1.0,1.0,3.0700000000000074,76.48
+CARA_LO_CHEMBL656248_IC50_0081,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,80.44999999999999,0.9447871794738847,1.0,1.0,4.470000000000013,84.92
+CARA_LO_CHEMBL658042_Ki_0082,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,77.56,0.9168790412681708,1.0,1.0,6.849999999999994,84.41
+CARA_LO_CHEMBL658217_Ki_0083,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,69.61,0.8928063571474486,1.0,1.0,8.840000000000003,78.45
+CARA_LO_CHEMBL663407_Ki_0084,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,66.27,0.8885893629391323,1.0,1.0,10.550000000000011,76.82000000000001
+CARA_LO_CHEMBL664960_Ki_0085,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,74.06,0.8800414038119699,1.0,1.0,9.609999999999985,83.66999999999999
+CARA_LO_CHEMBL819742_Ki_0086,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,67.64999999999999,0.9342799929954044,1.0,1.0,4.930000000000007,72.58
+CARA_LO_CHEMBL829091_IC50_0087,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,79.82000000000001,0.8913084057151577,1.0,1.0,6.749999999999986,86.57
+CARA_LO_CHEMBL830957_IC50_0088,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,74.55,0.9203008455739369,1.0,1.0,5.240000000000009,79.79
+CARA_LO_CHEMBL856174_IC50_0089,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,73.39999999999999,0.7860044884258583,1.0,1.0,21.100000000000023,94.50000000000001
+CARA_LO_CHEMBL863649_EC50_0090,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,78.88000000000001,0.9620442498934563,1.0,1.0,1.4099999999999824,80.28999999999999
+CARA_LO_CHEMBL879102_Ki_0091,Similarity baseline,similarity_to_best_active,Similarity-to-best-active baseline,final,67.39999999999999,0.933681982383476,1.0,1.0,3.670000000000016,71.07000000000001
+CARA_LO_CHEMBL1006579_IC50_0001,Rules-only baseline,rules_only,Rule/desirability baseline,final,64.125,0.8124131794181539,1.0,1.0,14.444999999999993,78.57
+CARA_LO_CHEMBL1048115_IC50_0002,Rules-only baseline,rules_only,Rule/desirability baseline,final,66.64,0.8359244681113739,1.0,1.0,10.36,77.0
+CARA_LO_CHEMBL1243978_IC50_0003,Rules-only baseline,rules_only,Rule/desirability baseline,final,53.4,0.7066682146994125,1.0,1.0,17.46,70.86
+CARA_LO_CHEMBL1614295_Potency_0004,Rules-only baseline,rules_only,Rule/desirability baseline,final,50.410000000000004,0.8716084415369112,1.0,1.0,6.829999999999991,57.239999999999995
+CARA_LO_CHEMBL2032586_IC50_0005,Rules-only baseline,rules_only,Rule/desirability baseline,final,77.53,0.8573033223504726,1.0,1.0,10.709999999999994,88.24
+CARA_LO_CHEMBL2038596_IC50_0006,Rules-only baseline,rules_only,Rule/desirability baseline,final,61.63000000000001,0.7582960892424206,1.0,1.0,17.379999999999995,79.01
+CARA_LO_CHEMBL2046255_IC50_0007,Rules-only baseline,rules_only,Rule/desirability baseline,final,61.65,0.8375088586006945,1.0,1.0,10.169999999999995,71.82
+CARA_LO_CHEMBL2328568_IC50_0008,Rules-only baseline,rules_only,Rule/desirability baseline,final,60.550000000000004,0.6790282465246221,1.0,1.0,25.440000000000005,85.99000000000001
+CARA_LO_CHEMBL3431931_IC50_0009,Rules-only baseline,rules_only,Rule/desirability baseline,final,50.190000000000005,0.7572454460792316,1.0,1.0,13.11,63.300000000000004
+CARA_LO_CHEMBL3705123_IC50_0010,Rules-only baseline,rules_only,Rule/desirability baseline,final,64.28,0.7883430181700588,1.0,1.0,16.219999999999985,80.49999999999999
+CARA_LO_CHEMBL3705125_IC50_0011,Rules-only baseline,rules_only,Rule/desirability baseline,final,71.34,0.8740104386605105,1.0,1.0,7.579999999999998,78.92
+CARA_LO_CHEMBL3705142_IC50_0012,Rules-only baseline,rules_only,Rule/desirability baseline,final,70.53,0.9203281104256295,1.0,1.0,2.410000000000011,72.94000000000001
+CARA_LO_CHEMBL3705264_IC50_0013,Rules-only baseline,rules_only,Rule/desirability baseline,final,57.85000000000001,0.8029345436833843,1.0,1.0,12.909999999999997,70.76
+CARA_LO_CHEMBL3705271_IC50_0014,Rules-only baseline,rules_only,Rule/desirability baseline,final,74.105,0.8880159011739386,1.0,1.0,8.08499999999998,82.18999999999998
+CARA_LO_CHEMBL3705334_IC50_0015,Rules-only baseline,rules_only,Rule/desirability baseline,final,56.8,0.751166370907921,1.0,1.0,16.169999999999987,72.96999999999998
+CARA_LO_CHEMBL3705357_IC50_0016,Rules-only baseline,rules_only,Rule/desirability baseline,final,71.96000000000001,0.7588624902995322,1.0,1.0,23.269999999999968,95.22999999999998
+CARA_LO_CHEMBL3705358_IC50_0017,Rules-only baseline,rules_only,Rule/desirability baseline,final,62.18,0.8321321347504603,1.0,1.0,11.199999999999996,73.38
+CARA_LO_CHEMBL3705399_Ki_0018,Rules-only baseline,rules_only,Rule/desirability baseline,final,77.18,0.8727347832650205,1.0,1.0,10.260000000000005,87.44000000000001
+CARA_LO_CHEMBL3705467_IC50_0019,Rules-only baseline,rules_only,Rule/desirability baseline,final,66.69,0.9273579105659493,1.0,1.0,6.409999999999997,73.1
+CARA_LO_CHEMBL3705476_IC50_0020,Rules-only baseline,rules_only,Rule/desirability baseline,final,58.95,0.8297315885340244,1.0,1.0,12.84999999999998,71.79999999999998
+CARA_LO_CHEMBL3705480_Ki_0021,Rules-only baseline,rules_only,Rule/desirability baseline,final,81.08000000000001,0.8556940875200472,1.0,1.0,14.419999999999987,95.5
+CARA_LO_CHEMBL3705486_Ki_0022,Rules-only baseline,rules_only,Rule/desirability baseline,final,68.87,0.8131307602511763,1.0,1.0,14.694999999999993,83.565
+CARA_LO_CHEMBL3705705_IC50_0023,Rules-only baseline,rules_only,Rule/desirability baseline,final,74.06,0.9334426293007569,1.0,1.0,5.984999999999999,80.045
+CARA_LO_CHEMBL3705715_Ki_0024,Rules-only baseline,rules_only,Rule/desirability baseline,final,88.02999999999999,0.8933849097280966,1.0,1.0,9.719999999999999,97.74999999999999
+CARA_LO_CHEMBL3705825_Ki_0025,Rules-only baseline,rules_only,Rule/desirability baseline,final,72.97999999999999,0.8635792664091075,1.0,1.0,9.420000000000016,82.4
+CARA_LO_CHEMBL3705860_IC50_0026,Rules-only baseline,rules_only,Rule/desirability baseline,final,87.11999999999999,0.9333816750269445,1.0,1.0,4.290000000000006,91.41
+CARA_LO_CHEMBL3705868_IC50_0027,Rules-only baseline,rules_only,Rule/desirability baseline,final,54.410000000000004,0.7191954458119187,1.0,1.0,19.139999999999993,73.55
+CARA_LO_CHEMBL3705882_Ki_0028,Rules-only baseline,rules_only,Rule/desirability baseline,final,64.96000000000001,0.74593984083115,1.0,1.0,21.389999999999972,86.34999999999998
+CARA_LO_CHEMBL3705899_IC50_0029,Rules-only baseline,rules_only,Rule/desirability baseline,final,60.949999999999996,0.7495292354468672,1.0,1.0,23.32,84.27
+CARA_LO_CHEMBL3705917_IC50_0030,Rules-only baseline,rules_only,Rule/desirability baseline,final,54.47,0.7047143618070445,1.0,1.0,18.319999999999993,72.78999999999999
+CARA_LO_CHEMBL3705960_IC50_0031,Rules-only baseline,rules_only,Rule/desirability baseline,final,68.6,0.7612294602665072,1.0,1.0,21.570000000000007,90.17
+CARA_LO_CHEMBL3705963_IC50_0032,Rules-only baseline,rules_only,Rule/desirability baseline,final,59.57000000000001,0.85930907791204,1.0,1.0,8.86999999999999,68.44
+CARA_LO_CHEMBL3705983_IC50_0033,Rules-only baseline,rules_only,Rule/desirability baseline,final,53.68,0.7353473368430804,1.0,1.0,17.81000000000001,71.49000000000001
+CARA_LO_CHEMBL3706272_IC50_0034,Rules-only baseline,rules_only,Rule/desirability baseline,final,70.05499999999999,0.8061633960520602,1.0,1.0,15.534999999999997,85.58999999999999
+CARA_LO_CHEMBL3706298_IC50_0035,Rules-only baseline,rules_only,Rule/desirability baseline,final,81.63,0.8735531394017207,1.0,1.0,9.530000000000001,91.16
+CARA_LO_CHEMBL3706356_IC50_0036,Rules-only baseline,rules_only,Rule/desirability baseline,final,62.800000000000004,0.7620243289916347,1.0,1.0,18.864999999999988,81.66499999999999
+CARA_LO_CHEMBL3706360_IC50_0037,Rules-only baseline,rules_only,Rule/desirability baseline,final,69.06,0.8432227176255487,1.0,1.0,11.319999999999993,80.38
+CARA_LO_CHEMBL3707497_IC50_0038,Rules-only baseline,rules_only,Rule/desirability baseline,final,65.01,0.852288268943958,1.0,1.0,10.729999999999976,75.73999999999998
+CARA_LO_CHEMBL3707783_IC50_0039,Rules-only baseline,rules_only,Rule/desirability baseline,final,59.11,0.7267399919781592,1.0,1.0,20.269999999999996,79.38
+CARA_LO_CHEMBL3707789_Ki_0040,Rules-only baseline,rules_only,Rule/desirability baseline,final,78.72999999999999,0.9013493978967778,1.0,1.0,6.490000000000023,85.22000000000001
+CARA_LO_CHEMBL3707834_Ki_0041,Rules-only baseline,rules_only,Rule/desirability baseline,final,76.09,0.9123094030980125,1.0,1.0,7.469999999999999,83.56
+CARA_LO_CHEMBL3707951_IC50_0042,Rules-only baseline,rules_only,Rule/desirability baseline,final,56.129999999999995,0.689284130641769,1.0,1.0,21.52000000000001,77.65
+CARA_LO_CHEMBL3707962_IC50_0043,Rules-only baseline,rules_only,Rule/desirability baseline,final,80.91,0.9086744086040968,1.0,1.0,5.090000000000003,86.0
+CARA_LO_CHEMBL3734174_IC50_0044,Rules-only baseline,rules_only,Rule/desirability baseline,final,77.14,0.8646670549850278,1.0,1.0,9.36,86.5
+CARA_LO_CHEMBL3734552_EC50_0045,Rules-only baseline,rules_only,Rule/desirability baseline,final,71.82000000000001,0.7553593580624177,1.0,1.0,22.950000000000003,94.77000000000001
+CARA_LO_CHEMBL3883076_IC50_0046,Rules-only baseline,rules_only,Rule/desirability baseline,final,52.63,0.8209966087983696,1.0,1.0,12.410000000000004,65.04
+CARA_LO_CHEMBL3887029_Ki_0047,Rules-only baseline,rules_only,Rule/desirability baseline,final,71.38,0.8394764938774417,1.0,1.0,11.219999999999999,82.6
+CARA_LO_CHEMBL3887030_Ki_0048,Rules-only baseline,rules_only,Rule/desirability baseline,final,54.65,0.8333621701939685,1.0,1.0,10.610000000000007,65.26
+CARA_LO_CHEMBL3887063_IC50_0049,Rules-only baseline,rules_only,Rule/desirability baseline,final,57.74,0.6423308516442909,1.0,1.0,30.880000000000003,88.62
+CARA_LO_CHEMBL3887074_IC50_0050,Rules-only baseline,rules_only,Rule/desirability baseline,final,69.24,0.7336653976746992,1.0,1.0,21.679999999999993,90.91999999999999
+CARA_LO_CHEMBL3887224_IC50_0051,Rules-only baseline,rules_only,Rule/desirability baseline,final,54.739999999999995,0.9478816684873563,1.0,1.0,1.1700000000000088,55.910000000000004
+CARA_LO_CHEMBL3887259_EC50_0052,Rules-only baseline,rules_only,Rule/desirability baseline,final,59.660000000000004,0.8267545529169918,1.0,1.0,12.740000000000002,72.4
+CARA_LO_CHEMBL3887288_IC50_0053,Rules-only baseline,rules_only,Rule/desirability baseline,final,82.58,0.8968198410263891,1.0,1.0,7.420000000000002,90.0
+CARA_LO_CHEMBL3887334_IC50_0054,Rules-only baseline,rules_only,Rule/desirability baseline,final,54.96999999999999,0.6462770217175365,1.0,1.0,26.6,81.57
+CARA_LO_CHEMBL3887429_IC50_0055,Rules-only baseline,rules_only,Rule/desirability baseline,final,75.58,0.8930038613845154,1.0,1.0,8.629999999999995,84.21
+CARA_LO_CHEMBL3887731_Ki_0056,Rules-only baseline,rules_only,Rule/desirability baseline,final,87.6,0.9201744124534473,1.0,1.0,6.150000000000006,93.75
+CARA_LO_CHEMBL3887866_IC50_0057,Rules-only baseline,rules_only,Rule/desirability baseline,final,66.09,0.8059207700971207,1.0,1.0,12.079999999999984,78.16999999999999
+CARA_LO_CHEMBL3887887_IC50_0058,Rules-only baseline,rules_only,Rule/desirability baseline,final,62.73,0.7698501005975382,1.0,1.0,16.21,78.94
+CARA_LO_CHEMBL3888033_IC50_0059,Rules-only baseline,rules_only,Rule/desirability baseline,final,70.66,0.7221164820394674,1.0,1.0,23.039999999999992,93.69999999999999
+CARA_LO_CHEMBL3888094_IC50_0060,Rules-only baseline,rules_only,Rule/desirability baseline,final,59.64,0.7464088116184354,1.0,1.0,18.260000000000005,77.9
+CARA_LO_CHEMBL3888209_IC50_0061,Rules-only baseline,rules_only,Rule/desirability baseline,final,59.54,0.7863356533697,1.0,1.0,15.320000000000014,74.86000000000001
+CARA_LO_CHEMBL3888296_IC50_0062,Rules-only baseline,rules_only,Rule/desirability baseline,final,89.2,0.9276906828775106,1.0,1.0,6.195000000000007,95.39500000000001
+CARA_LO_CHEMBL3888825_IC50_0063,Rules-only baseline,rules_only,Rule/desirability baseline,final,76.78500000000001,0.8658528271046823,1.0,1.0,12.644999999999982,89.42999999999999
+CARA_LO_CHEMBL3888867_IC50_0064,Rules-only baseline,rules_only,Rule/desirability baseline,final,54.92999999999999,0.8098955565435991,1.0,1.0,12.820000000000007,67.75
+CARA_LO_CHEMBL3888870_IC50_0065,Rules-only baseline,rules_only,Rule/desirability baseline,final,77.67999999999999,0.8845056816070209,1.0,1.0,9.260000000000005,86.94
+CARA_LO_CHEMBL3889097_IC50_0066,Rules-only baseline,rules_only,Rule/desirability baseline,final,74.9,0.88869935216064,1.0,1.0,7.439999999999998,82.34
+CARA_LO_CHEMBL3889159_IC50_0067,Rules-only baseline,rules_only,Rule/desirability baseline,final,89.00000000000001,0.9558833059629902,1.0,1.0,4.609999999999971,93.60999999999999
+CARA_LO_CHEMBL3889186_IC50_0068,Rules-only baseline,rules_only,Rule/desirability baseline,final,80.25999999999999,0.8459053385012866,1.0,1.0,13.77000000000001,94.03
+CARA_LO_CHEMBL3889262_IC50_0069,Rules-only baseline,rules_only,Rule/desirability baseline,final,81.13,0.9064932374094404,1.0,1.0,7.120000000000019,88.25000000000001
+CARA_LO_CHEMBL4388634_IC50_0070,Rules-only baseline,rules_only,Rule/desirability baseline,final,40.86999999999999,0.9738467569281161,1.0,1.0,0.690000000000019,41.56000000000001
+CARA_LO_CHEMBL4404752_IC50_0071,Rules-only baseline,rules_only,Rule/desirability baseline,final,65.36,0.7823111974626216,1.0,1.0,15.549999999999997,80.91
+CARA_LO_CHEMBL4418470_EC50_0072,Rules-only baseline,rules_only,Rule/desirability baseline,final,62.3,0.8377399391875113,1.0,1.0,11.199999999999989,73.49999999999999
+CARA_LO_CHEMBL4476912_IC50_0073,Rules-only baseline,rules_only,Rule/desirability baseline,final,49.55,0.7989513302314497,1.0,1.0,11.680000000000007,61.230000000000004
+CARA_LO_CHEMBL4476963_IC50_0074,Rules-only baseline,rules_only,Rule/desirability baseline,final,49.730000000000004,0.9093242315176788,1.0,1.0,3.809999999999988,53.53999999999999
+CARA_LO_CHEMBL4477153_IC50_0075,Rules-only baseline,rules_only,Rule/desirability baseline,final,63.760000000000005,0.770755766524178,1.0,1.0,18.68999999999997,82.44999999999997
+CARA_LO_CHEMBL4712750_IC50_0076,Rules-only baseline,rules_only,Rule/desirability baseline,final,57.8,0.8724541333880292,1.0,1.0,7.599999999999994,65.39999999999999
+CARA_LO_CHEMBL4739819_EC50_0077,Rules-only baseline,rules_only,Rule/desirability baseline,final,61.18,0.7558844428587547,1.0,1.0,19.009999999999998,80.19
+CARA_LO_CHEMBL641707_IC50_0078,Rules-only baseline,rules_only,Rule/desirability baseline,final,52.69,0.9172410814422406,1.0,1.0,1.490000000000002,54.18
+CARA_LO_CHEMBL648337_IC50_0079,Rules-only baseline,rules_only,Rule/desirability baseline,final,72.86000000000001,0.754646765070517,1.0,1.0,16.629999999999995,89.49000000000001
+CARA_LO_CHEMBL652259_IC50_0080,Rules-only baseline,rules_only,Rule/desirability baseline,final,60.63999999999999,0.7595361974825279,1.0,1.0,15.84000000000001,76.48
+CARA_LO_CHEMBL656248_IC50_0081,Rules-only baseline,rules_only,Rule/desirability baseline,final,65.09,0.7136842475954072,1.0,1.0,19.83,84.92
+CARA_LO_CHEMBL658042_Ki_0082,Rules-only baseline,rules_only,Rule/desirability baseline,final,78.3,0.9208841158542217,1.0,1.0,6.109999999999999,84.41
+CARA_LO_CHEMBL658217_Ki_0083,Rules-only baseline,rules_only,Rule/desirability baseline,final,73.64,0.9481864711375225,1.0,1.0,4.810000000000002,78.45
+CARA_LO_CHEMBL663407_Ki_0084,Rules-only baseline,rules_only,Rule/desirability baseline,final,51.47,0.656700552256178,1.0,1.0,25.35000000000001,76.82000000000001
+CARA_LO_CHEMBL664960_Ki_0085,Rules-only baseline,rules_only,Rule/desirability baseline,final,73.22,0.8574016028649919,1.0,1.0,10.449999999999989,83.66999999999999
+CARA_LO_CHEMBL819742_Ki_0086,Rules-only baseline,rules_only,Rule/desirability baseline,final,63.31,0.8692226068230738,1.0,1.0,9.269999999999996,72.58
+CARA_LO_CHEMBL829091_IC50_0087,Rules-only baseline,rules_only,Rule/desirability baseline,final,75.41000000000001,0.8836178745020118,1.0,1.0,11.159999999999982,86.57
+CARA_LO_CHEMBL830957_IC50_0088,Rules-only baseline,rules_only,Rule/desirability baseline,final,67.86,0.8398615912683819,1.0,1.0,11.930000000000007,79.79
+CARA_LO_CHEMBL856174_IC50_0089,Rules-only baseline,rules_only,Rule/desirability baseline,final,82.0,0.8668299606971681,1.0,1.0,12.500000000000014,94.50000000000001
+CARA_LO_CHEMBL863649_EC50_0090,Rules-only baseline,rules_only,Rule/desirability baseline,final,76.76,0.9415808681947514,1.0,1.0,3.529999999999987,80.28999999999999
+CARA_LO_CHEMBL879102_Ki_0091,Rules-only baseline,rules_only,Rule/desirability baseline,final,67.49000000000001,0.9357573632315984,1.0,1.0,3.5799999999999983,71.07000000000001

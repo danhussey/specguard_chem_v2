@@ -334,3 +334,142 @@ was run, what happened, and what to do next.
 - Follow-up: retain the pilot as operational case-study evidence, require
   separate explicit approval before the residual 540 calls, then perform the
   prespecified 91-card paired uncertainty and raw-versus-repaired analysis.
+
+## 2026-07-25 corrected indexing-recovery reproduction
+
+- Artifacts: ignored verification outputs under
+  `runs/reproduce-v0.1.0-data/`,
+  `runs/reproduce-v0.1.0-baselines/`,
+  `runs/reproduce-v0.1.0-pilot-replay/`, and
+  `runs/reproduce-v0.1.0-post-pilot-cost-estimate.json`; execution log
+  `plans/logs/2026-07-25-0035-corrected-analysis-reproduction.md`.
+- Scope: original local CARA v1.0.1 archive; all 24,588 official `LO_All`
+  support/query references; 91 corrected cards; seven deterministic systems;
+  and the six cached one-card provider responses.
+- Question: independently verify that the positional-index fix, frozen card
+  artifacts, corrected deterministic analysis, and no-call replay reproduce
+  before considering the residual provider spend.
+- Status: offline reproduction complete. No external call was made; the
+  91-card LLM comparison remains incomplete.
+- Headline: normalized records, system inputs, scorer outcomes, build metadata,
+  and inclusion audit reproduced byte-for-byte. All deterministic decisions
+  matched and per-card score drift was at most `3.55e-14`. The cache-only pilot
+  reproduced all score artifacts byte-for-byte.
+- Surprise / interpretation: later operational-provenance hardening adds null
+  fields to freshly generated deterministic traces, so whole trace bytes differ
+  even though task coverage, selections, issues, and metrics reproduce. This is
+  recorded as schema evolution rather than scientific drift.
+- Follow-up: obtain explicit approval before the 540 residual calls. The fresh
+  frozen-price estimate remains `$105.122676615`, with hard residual gates of
+  `$119`, 540 calls, and 175,000 input tokens per call.
+
+## 2026-07-25 corrected full LLM matrix partial execution
+
+- Artifacts: `release/v0.1.0/experiments/llm/matrix/`,
+  `runs/approved-full-v0.1.0-preflight-cost-estimate.json`,
+  `runs/approved-full-v0.1.0-deepseek-cost-estimate.json`,
+  `runs/approved-full-v0.1.0-after-deepseek-cost-estimate.json`, and execution
+  log `plans/logs/2026-07-25-0036-corrected-full-llm-matrix-partial.md`.
+- Scope: explicitly approved 540-call residual matrix over 91 corrected cards,
+  two raw interfaces, and the frozen OpenAI, Anthropic, and DeepSeek
+  conditions; default single-worker execution with shared content-addressed
+  caches and no SDK retries.
+- Question: complete the corrected provider evidence while preserving exact
+  requests, one-attempt attribution, cost gates, and resumability.
+- Status: partial due to external provider credit state. Both OpenAI and both
+  DeepSeek conditions are complete at 91/91. Anthropic `bare_llm` has 20/91
+  cached responses and `llm_tools` retains its pilot response; the next
+  Anthropic request stopped with an insufficient-credit error. Four raw and four
+  zero-call repaired traces are complete; the final paired comparison has not
+  been generated.
+- Headline: 385/546 responses are cached or represented by complete traces.
+  The four completed raw traces have exact 91-task coverage, one attempt per
+  response, complete model/response/usage/latency evidence, and 100% operational
+  coverage. Recorded spend so far is `$31.74575601`; the remaining 161
+  Anthropic calls have a `$44.010805` conservative estimate.
+- Surprise / interpretation: the initial post-stop estimator field
+  `actual_cached_cost_usd` covers cache-only rows and excludes rows already
+  represented by complete traces. Total recorded spend therefore requires the
+  four complete operational summaries plus the 21 Anthropic cache-only rows.
+  The combined recorded-plus-worst-case remaining amount is `$75.75656101`,
+  still below the authorized `$120` ceiling.
+- Follow-up: add Anthropic provider credits, resume the remaining 161 calls
+  against the same cache without `--force`, create the two remaining repaired
+  views, write a canonical six-condition manifest, and only then regenerate the
+  final paired statistics, figures, dashboard, manuscript results, and release
+  validation.
+
+## 2026-07-25 corrected full LLM matrix completion and analysis
+
+- Artifacts: `release/v0.1.0/experiments/llm/matrix/`,
+  `release/v0.1.0/experiments/llm/comparison/`,
+  `paper/RESULTS_SUMMARY.md`, `paper/RESULTS_DASHBOARD.html`,
+  `paper/figures/v0.1.0/`, the revised manuscript/supplement, and execution log
+  `plans/logs/2026-07-25-0037-corrected-full-llm-matrix-complete.md`.
+- Scope: all 91 corrected cards, two raw interfaces, three frozen provider
+  conditions, six zero-call repaired views, seven deterministic/oracle
+  comparators, and the complete paired/card-level/operational analysis.
+- Question: finish the interrupted Anthropic slice from cache and determine
+  whether the tested LLM systems add decision value over strong assay-local
+  baselines, while leaving diversity for a future version.
+- Status: complete. The matrix has 546/546 successful cached responses, six
+  raw and six repaired 91-row traces, one canonical six-run manifest, one
+  19-system comparison, exactly one provider attempt per successful response,
+  and 100% usage, latency, and pricing-derived cost coverage. Repair added zero
+  provider calls.
+- Headline: QSAR SVM led primary utility at `74.9664`; the best final LLM was
+  OpenAI bare plus post-hoc repair at `73.9637`. The paired QSAR-minus-LLM
+  utility difference was `1.0027` (95% interval `0.4049` to `1.6475`). The best
+  LLM's raw utility/action validity were `72.9664` and `72/91`; repair changed
+  `19/91` actions. Total usage-derived token-pricing cost for the six unique
+  live conditions was `$58.95671601` across 14,780,538 tokens.
+- Surprise / interpretation: deterministic repair made every final action
+  valid, but repaired `75.82%` to `91.21%` of Anthropic/DeepSeek actions, so
+  those final scores are strongly harness-dominated. Descriptor enrichment did
+  not improve the best OpenAI condition and showed a clear benefit only for
+  DeepSeek. The result supports routing this bounded action to a specialized
+  QSAR ranker; repaired rows must remain labeled as model-plus-harness systems.
+- Validation: 60 tests, Ruff lint/format, 91-card input/scorer validation,
+  zero-missing cache estimate, manuscript evidence gate, lock check, wheel/sdist
+  build, seven-page manuscript and two-page supplement compilation, nine-page
+  visual PDF QA, independent artifact/cost recount, and `git diff --check` all
+  passed.
+- Follow-up: keep task-selection and chemical-diversity work for a separately
+  versioned future analysis. Finish v0.1.0 licensing/manuscript metadata,
+  bundle checksums, clean-checkout reproduction, and tag/publication only as
+  separately authorized release actions.
+
+## 2026-07-25 corrected report-figure regeneration
+
+- Artifacts: `paper/figures/v0.1.0/`, the embedded figure section in
+  `paper/RESULTS_SUMMARY.md`, `paper/FIGURE_PACKAGE.md`, figure index in
+  `paper/README.md`, reusable plot generation in
+  `src/specguard_chem_v2/{reports,figure_schematics,figure_review_series}.py`,
+  and execution log
+  `plans/logs/2026-07-25-0038-corrected-report-figures.md`.
+- Scope: the corrected split artifacts, completed 19-system comparison,
+  failure taxonomy, and paired 91-card bootstrap tables; no new provider calls,
+  task-selection changes, or diversity analysis.
+- Question: replace the complete retired paper-50 Figure 1–8 series, not only
+  the two newer core plots, while keeping raw-versus-repaired attribution,
+  whole-action validity, system ranking, and paired uncertainty legible.
+- Status: complete. The report embeds corrected numbered Figures 1–8 and the
+  two additional inferential views, then links the remaining diagnostics.
+  Numbered figures have 300-dpi PNG, PDF, and searchable SVG exports.
+- Headline: Figures 1–2 document the corrected leakage boundary and 91-card
+  pipeline; Figures 3–4 compare final utility and NDCG@10; Figures 5–6 show raw
+  versus zero-call-repaired LLM utility and strict action validity; Figures 7–8
+  summarize the leaderboard and raw failure taxonomy. The paired-effect plot
+  shows QSAR minus best repaired LLM at `1.003` (`0.405` to `1.647`), with each
+  label moved clearly above its interval.
+- Surprise / interpretation: the retired Figure 6 used a weaker
+  valid-selection concept. Rebuilding it against strict zero-issue
+  whole-action validity makes the scale of deterministic intervention explicit
+  without conflating that intervention with added provider value.
+- Validation: 66 tests, Ruff lint/format, SVG text checks,
+  input-completeness gates, visual QA of all numbered and refreshed card-level
+  PNGs, PDF/SVG export checks, and `git diff --check` passed.
+  A second complete build reproduced all 40 figure exports byte-for-byte.
+- Follow-up: retain the corrected Figure 1–8 package plus the two inferential
+  views for this report. Keep chemical-diversity and task-selection extensions
+  for a future benchmark version.

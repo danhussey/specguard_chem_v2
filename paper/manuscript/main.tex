@@ -32,7 +32,7 @@
 
 \title{\textbf{Before the Lab Acts: Benchmarking Language Models for Constrained Compound Selection}}
 \author{Daniel Hussey\\The University of Sydney}
-\date{SpecGuard-Chem 0.1.0 pilot-audited pre-run manuscript, 16 July 2026}
+\date{SpecGuard-Chem 0.1.0 corrected full-matrix manuscript, 25 July 2026}
 
 \begin{document}
 \maketitle
@@ -56,13 +56,15 @@ filtering. The preregistered model experiment compares basic and descriptor-
 enriched interfaces for three current provider conditions, with post-hoc repair
 applied to the same raw outputs rather than purchased as separate calls.
 \ifllmresultsavailable
-The strongest LLM condition, \BestLLMLabel{}, achieved utility
-\BestLLMUtility{}, NDCG@10 \BestLLMNDCG{}, and raw action validity
-\BestLLMActionValidity{}.
+The strongest guarded LLM condition achieved utility \BestLLMUtility{} and
+NDCG@10 \BestLLMNDCG{}, but the best QSAR remained higher by
+\BestQSARMinusLLMUtility{} utility points (paired 95\% CI
+\BestQSARMinusLLMUtilityCILow{}--\BestQSARMinusLLMUtilityCIHigh{}). Its raw
+action validity was \BestLLMActionValidity{} before deterministic repair.
 \else
-A fixed one-card provider pilot has completed as an execution and provenance
-check but is excluded from model comparison. Provider results are intentionally
-withheld until the separately authorized 91-card run is complete.
+Canonical LLM results are withheld because the manuscript generator's complete
+91-card evidence gate did not pass; partial provider evidence is never promoted
+to a model-comparison claim.
 \fi
 SpecGuard-Chem does not claim a new biological dataset or a complete model of
 drug discovery. It contributes a reproducible action-evaluation layer over
@@ -144,7 +146,7 @@ Evaluation unit & Compound/task predictive performance & Whole experimental allo
 Budget & Not intrinsic to each prediction & Explicit finite assay capacity \\
 Constraints & Molecular prediction domain & Candidate eligibility plus executable output contract \\
 Failure semantics & Prediction error & Opportunity cost and/or unexecutable action \\
-Artifact protocol & Activity benchmark data/splits & Separate system inputs and hash-bound scorer outcomes; exact requests and eventual traces, costs, repair attribution \\
+Artifact protocol & Activity benchmark data/splits & Separate system inputs and hash-bound scorer outcomes; exact requests, complete traces, costs, repair attribution \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -281,8 +283,10 @@ and DeepSeek V4 Pro as checked on 16 July 2026
 \cite{openai2026gpt55,anthropic2026models,deepseek2026pricing}. Exact requests are frozen before
 execution. Provider-returned model identifiers, settings, timestamps, token
 counts, latency, and errors are retained in traces. A conservative estimate
-places the full uncached matrix at \$106.06, with an explicit \$120 stop gate.
-No call occurs unless the command also receives \texttt{--allow-external}.
+placed the full uncached matrix at \$106.06, with an explicit \$120 stop gate.
+The authorized execution completed with \TotalLLMCost{} dollars of
+usage-derived token-pricing cost. No call occurs unless the command also
+receives \texttt{--allow-external}.
 
 \subsection{Post-hoc deterministic repair}
 
@@ -364,19 +368,37 @@ deployable system.}
 
 \ifllmresultsavailable
 The strongest LLM system was \BestLLMLabel{}, with feasible utility
-\BestLLMUtility{} and NDCG@10 \BestLLMNDCG{}. Its paired difference from the
-best QSAR comparator, raw-versus-repaired attribution, and cost are reported in
-the canonical generated tables.
+\BestLLMUtility{} and NDCG@10 \BestLLMNDCG{}. The best QSAR comparator remained
+higher by \BestQSARMinusLLMUtility{} utility points (paired 95\% CI
+\BestQSARMinusLLMUtilityCILow{}--\BestQSARMinusLLMUtilityCIHigh{}), so the
+corrected result supports a QSAR-family lead rather than added decision value
+from the tested LLMs.
+
+The same OpenAI bare-interface response stream had raw utility
+\BestLLMRawUtility{} and whole-action validity \BestLLMActionValidity{}.
+Deterministic repair changed \BestLLMRepairRate{} of card actions and raised
+the guarded-system utility to \BestLLMUtility{}. That improvement belongs to
+the model-plus-harness system, not the unaided model. Descriptor enrichment did
+not improve the best-performing OpenAI condition, and effects varied by
+provider rather than supporting a general tool-summary benefit. The six raw
+conditions cost \TotalLLMCost{} dollars in total under provider-reported usage
+and the frozen token-pricing rules; the best condition accounted for
+\BestLLMCost{} dollars. Repair added no provider calls.
 \else
-This subsection is a declared pre-run placeholder. The 546 exact requests and
-conservative cost estimate are frozen. Six responses for one fixed card have
-been acquired and audited solely to verify execution, provenance, scoring, and
-raw-versus-repaired attribution; they are not a model comparison and cannot
-open the paper's 91-card result gate. Consequently, this manuscript does not
-reuse or report any historical paper-50 LLM number. The final paper will lead
-with paired per-task utility and regret versus QSAR, followed by representation,
-raw validity, post-hoc repair, latency, tokens, and cost.
+The canonical six-condition comparison failed the manuscript generator's
+completeness or provenance gate. No partial, pilot-only, substituted, or
+historical paper-50 number is reported in its place.
 \fi
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{../figures/v0.1.0/compliance_utility_frontier.png}
+\caption{Action utility versus whole-action validity. Crosses are raw LLM
+outputs; open triangles are deterministic post-hoc-repaired outputs from the
+same responses. Connecting lines therefore show harness intervention, not an
+additional model call.}
+\label{fig:utility_validity_frontier}
+\end{figure}
 
 \section{Discussion}
 
@@ -389,13 +411,13 @@ where a model's scores become an experimental commitment. That boundary makes
 invalid actions, opportunity cost, deterministic repair, system inputs, and
 operational cost measurable together.
 
-The corrected baseline ladder shows that the benchmark has independent legs:
+The corrected evidence shows that the benchmark has independent legs:
 constraints do not collapse the task, transparent molecular models improve
-materially on heuristic selection, and oracle headroom remains. If LLMs fail to
-beat QSAR, the result is still informative for system design: a future lab
-should route this action to the smaller specialized ranker. If an LLM improves
-on QSAR, the paired per-task analysis and interface ablation identify where that
-incremental value appears.
+materially on heuristic selection, and oracle headroom remains. The tested LLMs
+did not beat the best assay-local QSAR systems. For this bounded action, a
+future lab should therefore route prioritization to the smaller specialized
+ranker and treat an LLM, if used, as an auditable interface rather than the
+default scientific decision engine.
 
 \subsection{What the benchmark does not establish}
 
@@ -430,8 +452,9 @@ consequential action against strong non-language alternatives under a contract
 that can be audited exactly. SpecGuard-Chem turns CARA's assay-grounded evidence
 into such a test: a finite, constrained next-batch decision with hidden outcomes,
 measurable opportunity cost, and explicit executability. Its claim is modest
-but operationally important---whether an LLM adds value at the moment a
-prediction would begin to spend laboratory resources.
+but operationally important: in the corrected 91-card run, conventional
+assay-local QSAR retained the lead, while deterministic repair was essential
+to make many LLM actions executable.
 
 \section*{Data, code, and AI-use statement}
 

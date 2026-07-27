@@ -12,29 +12,33 @@
 \usepackage{xurl}
 \usepackage[colorlinks=true,urlcolor=blue!55!black]{hyperref}
 
+\input{generated_results.tex}
+
 \setlist{nosep,leftmargin=*}
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 
 \title{\textbf{Supplementary Methods and Artifact Record}\\
 SpecGuard-Chem 0.1.0}
 \author{Daniel Hussey}
-\date{Pilot-audited pre-run draft, 16 July 2026}
+\date{Corrected full-matrix draft, 25 July 2026}
 
 \begin{document}
 \maketitle
 
 \section{Release status}
 
-This supplement accompanies the pre-run manuscript \emph{Before the Lab Acts:
+This supplement accompanies the results manuscript \emph{Before the Lab Acts:
 Benchmarking Language Models for Constrained Compound Selection}. The corrected
-data and deterministic baselines are complete. A fixed one-card, six-request
-provider pilot is complete as an execution and provenance check. The residual
-540-call paper-facing run remains pending separate explicit authorization; no
-historical paper-50 response or score is reported here.
+data, deterministic baselines, and full 546-response provider matrix are
+complete and audited. The fixed one-card pilot remains a staged-execution
+record; model comparisons use the six complete 91-card raw traces and their six
+zero-call post-hoc-repaired views. No historical paper-50 response or score is
+reported here.
 Those artifacts are invalid because positional split references were previously
 misread as dataframe labels; they remain only as immutable provenance.
 Tagging also remains blocked on the final paper, licensing, clean-checkout
-verification, and bundle checksums.
+verification, and bundle checksums. Chemical-diversity extensions are deferred
+to a separately versioned future analysis.
 
 \section{Artifact visibility contract}
 
@@ -149,11 +153,14 @@ contract and an explicit instruction that pChEMBL is higher-is-better. The
 conservative uncached pre-run estimate is \$106.06, with maximum estimated
 input 158,274 tokens and a planned hard cost ceiling of \$120.
 
-The one-card pilot completed all six calls with one recorded attempt each, full
-provenance, and \$0.449700535 aggregate cost; cache-only replay reproduced every
-score artifact. Six calls are cached and 540 remain, with a \$105.122676615
-residual upper bound. The pilot is operational evidence only and is not used for
-model ranking, representation inference, or a paper headline result.
+The staged pilot completed all six calls with one recorded attempt each, full
+provenance, and \$0.449700535 aggregate usage-derived cost; cache-only replay
+reproduced every score artifact. The later authorized matrix completed all 546
+responses. Each of the six raw conditions has one successful provider attempt
+per card and complete model, response, usage, latency, request-hash, and retained
+content evidence. The six repaired traces cover the same 91 cards and add zero
+provider calls. Usage-derived token-pricing cost is \TotalLLMCost{} dollars for
+the full matrix, with complete cost coverage.
 
 \section{Deterministic post-hoc repair}
 

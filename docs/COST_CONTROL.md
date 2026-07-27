@@ -19,6 +19,12 @@ repair is applied post hoc to recorded traces and adds zero provider requests.
 The former four-prompt matrix, which paid separately for validator prompt
 variants, is historical and is not the v0.1.0 design.
 
+The matrix is now complete: 546/546 requests have successful
+content-addressed cache records; six raw and six zero-call post-hoc-repaired
+traces each cover all 91 cards; and the canonical manifest and comparison are
+present. Usage, latency, and pricing-derived cost coverage are 100%. The
+usage-derived token-pricing total is USD 58.95671601.
+
 ## Estimate Before Running
 
 ```bash
@@ -46,10 +52,11 @@ record the change as a new condition/version.
 
 ## Pre-Pilot Whole-Matrix Ceiling
 
-The following records the pre-pilot ceiling for all 546 unique requests. The
-staged procedure below uses tighter pilot and residual gates. The six-call pilot
-has since been authorized and completed; the residual command still requires
-separate explicit authorization and valid provider credentials.
+The following records the historical pre-pilot ceiling for all 546 unique
+requests. The staged procedure used tighter pilot and residual gates. The
+six-call pilot and separately authorized residual execution have both since
+completed; this command is retained as pre-execution provenance, not standing
+authorization to purchase responses.
 
 ```bash
 uv run --extra providers sgchem run-llm-matrix \
@@ -98,9 +105,10 @@ uv run --extra providers sgchem run-llm-matrix \
   --max-input-tokens-per-call 30000
 ```
 
-The USD 1, six-call, and 30,000-token gates are pilot-specific. The shared
-matrix cache is mandatory: it prevents the residual run from repurchasing these
-same six requests. The exact offline export and estimate commands are in
+The USD 1, six-call, and 30,000-token gates were pilot-specific. The shared
+matrix cache was mandatory for the residual execution because it prevented
+repurchasing those same six requests, and it remains mandatory for provenance-
+preserving replay. The exact offline export and estimate commands are in
 `release/v0.1.0/REPRODUCE.md`.
 
 The pilot completed six of six requests with one provider attempt per request,
@@ -116,14 +124,14 @@ single raw action. A transport/API exception aborts execution rather than being
 converted into a zero-utility model response. Every successful response must
 record `provider_attempt_count = 1`; otherwise the run is not release evidence.
 
-The post-pilot estimate has passed review: it reports six cached requests,
-exactly 540 missing requests, a residual conservative upper bound of USD
-105.122676615, and USD 0.449700535 of cached actual pilot cost. Recompute it
-immediately before any residual run and abort if the counts or current pricing
-differ.
+The historical post-pilot estimate passed review: it reported six cached
+requests, exactly 540 missing requests, a residual conservative upper bound of
+USD 105.122676615, and USD 0.449700535 of cached actual pilot cost. It was
+recomputed immediately before the residual execution, and the counts and
+frozen pricing still satisfied the gates.
 
-The check passing does not itself authorize spend. Only after separate explicit
-approval may the residual gates be used:
+The check passing did not itself authorize spend. Separate explicit approval
+was received before the residual gates were used:
 
 ```bash
 uv run --extra providers sgchem run-llm-matrix \
@@ -144,6 +152,16 @@ uv run --extra providers sgchem run-llm-matrix \
 The pilot USD 1 gate plus residual USD 119 gate preserve the USD 120 aggregate
 ceiling. A missing pilot cache entry makes the 540-call gate fail; do not raise
 the gate to work around it.
+
+The completed cache now has 546/546 successful provider responses. The
+canonical output contains six raw and six zero-call post-hoc-repaired 91-card
+traces, one six-condition manifest, and the combined comparison. Operational
+usage, latency, and pricing-derived cost coverage are 100%; actual recorded
+usage under the frozen token-pricing snapshot totals USD 58.95671601. No
+additional external call is required to replay or rescore this matrix.
+
+Task-selection and chemical-diversity changes were deliberately excluded from
+the corrected execution and are deferred to a future benchmark version.
 
 ## Resume and Cache Rules
 

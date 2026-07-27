@@ -6,13 +6,17 @@ candidate pool, it must return exactly `k=10` valid candidate IDs in ranked
 order. The benchmark does not ask the model to invent molecules, syntheses, or
 assays.
 
-No v0.1.0 live LLM result should be claimed until the frozen matrix has complete
-provider traces. The exact requests and pre-run cost estimate are release
-artifacts; they are not model-performance results.
+The frozen v0.1.0 matrix is complete and audited. All 546 exact requests have
+successful content-addressed provider-cache records. The canonical matrix
+contains six raw and six zero-call post-hoc-repaired traces with exact 91-card
+coverage, plus one complete manifest and cross-system comparison. Usage,
+latency, and pricing-derived cost coverage are 100%; the usage-derived
+token-pricing total is USD 58.95671601.
 
-A fixed one-card, six-request pilot has completed. It validates the execution,
-provenance, caching, scoring, and raw-versus-repaired paths only; one card cannot
-support model ranking, representation claims, or a paper-facing benchmark result.
+The fixed one-card, six-request pilot remains preserved as historical execution
+and provenance staging evidence. It is not used by itself for model ranking or
+representation claims; the complete 91-card matrix is the paper-facing
+benchmark evidence.
 
 ## System-visible Input
 
@@ -82,13 +86,13 @@ Review it for hidden-field exclusion and prompt size before any live execution.
 Each request must state that support `activity_value` is pChEMBL and that higher
 values are better; an export lacking those semantics is invalid for v0.1.0.
 
-## Live Matrix
+## Recorded Live Matrix
 
 External calls are disabled unless `--allow-external` is present. They also
 require explicit authorization and the staged pilot/cost gates in
-`docs/COST_CONTROL.md`. The command below is the residual run after all six
-fixed pilot requests are present in the shared cache and a fresh estimate
-reports exactly 540 missing requests.
+`docs/COST_CONTROL.md`. The command below records the authorized residual run
+after all six fixed pilot requests were present in the shared cache and the
+historical fresh estimate reported exactly 540 missing requests.
 
 ```bash
 uv run --extra providers sgchem run-llm-matrix \
@@ -105,6 +109,16 @@ uv run --extra providers sgchem run-llm-matrix \
   --max-live-calls 540 \
   --max-input-tokens-per-call 175000
 ```
+
+The completed shared cache now contains all 546 successful provider responses.
+Each of the six raw traces and six deterministic post-hoc-repaired traces
+contains the exact ordered 91-task set. The canonical
+`release/v0.1.0/experiments/llm/matrix/manifest.json` covers all six raw
+conditions, and
+`release/v0.1.0/experiments/llm/comparison/` contains the combined comparison.
+All operational usage, latency, and cost fields have 100% coverage; summing
+usage under the frozen token-pricing snapshot gives USD 58.95671601. Replaying
+the complete matrix from cache requires no external call.
 
 `--workers N` changes throughput only. It does not alter prompts, cache keys,
 conditions, or scoring. Provider credentials default to `OPENAI_API_KEY`,
@@ -165,3 +179,7 @@ exclusion, and candidate constraints.
 Success on v0.1.0 is evidence about bounded compound selection under a fixed
 action contract. It is not evidence that a model can autonomously design,
 execute, or interpret a wet-lab campaign.
+
+The corrected rerun retains the frozen task set and does not add a diversity
+objective. Task-selection and chemical-diversity redesign are explicitly
+deferred to a future benchmark version.

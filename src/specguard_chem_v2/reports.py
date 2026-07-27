@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import textwrap
 from datetime import datetime, timezone
 from html import escape
 from itertools import combinations
@@ -18,6 +17,29 @@ ABLATION_PAIRS = [
     ("llm_tools", "llm_tools_validator", "tools_validator_delta"),
     ("bare_llm", "llm_tools", "tools_delta"),
 ]
+
+POSTHOC_REPAIR_SUFFIX = "__posthoc_repair"
+
+
+def _save_report_plot(fig: object, output: Path) -> None:
+    import matplotlib.pyplot as plt
+
+    with plt.rc_context({"pdf.fonttype": 42, "ps.fonttype": 42}):
+        fig.savefig(
+            output,
+            dpi=300,
+            bbox_inches="tight",
+            metadata={"Software": "SpecGuard-Chem v2"},
+        )
+        fig.savefig(
+            output.with_suffix(".pdf"),
+            bbox_inches="tight",
+            metadata={
+                "Creator": "SpecGuard-Chem v2",
+                "CreationDate": None,
+                "ModDate": None,
+            },
+        )
 
 
 def compare_run_summaries(summary_paths: list[Path], out_dir: Path) -> pd.DataFrame:
@@ -302,7 +324,7 @@ def _is_primary_raw_llm_system(system_name: object) -> bool:
 
     name = str(system_name)
     return _base_system_name(name) in {"bare_llm", "llm_tools"} and not name.endswith(
-        "__posthoc_repair"
+        POSTHOC_REPAIR_SUFFIX
     )
 
 
@@ -633,23 +655,185 @@ def _write_failure_taxonomy_tables(
 
 def make_frontier_plot(comparison_csv: Path, out_dir: Path) -> Path:
     import matplotlib.pyplot as plt
+    from matplotlib.lines import Line2D
 
     frame = pd.read_csv(comparison_csv)
     out_dir.mkdir(parents=True, exist_ok=True)
-    fig, ax = plt.subplots(figsize=(7, 5))
+    fig, ax = plt.subplots(figsize=(9.2, 6.1))
     validity_metric = "action_validity" if "action_validity" in frame.columns else "compliance_rate"
     if not frame.empty:
         frame = _add_display_columns(frame)
-        label_column = "display_label" if "display_label" in frame.columns else "system_name"
-        ax.scatter(frame[validity_metric], frame["feasible_utility"], s=70)
-        for _, row in frame.iterrows():
-            ax.annotate(
-                str(row.get(label_column, row.get("system_name", ""))),
-                (float(row[validity_metric]), float(row["feasible_utility"])),
-                xytext=(5, 4),
-                textcoords="offset points",
+        llm_mask = (
+            frame["system_group"].eq("LLM")
+            if "system_group" in frame.columns
+            else frame["system_name"].map(_system_group).eq("LLM")
+        )
+        non_llm = frame[~llm_mask]
+        llm = frame[llm_mask]
+
+        if not non_llm.empty:
+            ax.scatter(
+                non_llm[validity_metric],
+                non_llm["feasible_utility"],
+                s=58,
+                color="#566573",
+                alpha=0.85,
+                zorder=3,
+            )
+            baseline_labels = {
+                "oracle_valid_topk": "Oracle",
+                "qsar_svm": "QSAR SVM",
+                "similarity_to_best_active": "Similarity",
+                "random_valid": "Random",
+                "rules_only": "Rules",
+            }
+            for _, row in non_llm[non_llm["system_name"].isin(baseline_labels)].iterrows():
+                ax.annotate(
+                    baseline_labels[str(row["system_name"])],
+                    (float(row[validity_metric]), float(row["feasible_utility"])),
+                    xytext=(7, 0),
+                    textcoords="offset points",
+                    va="center",
+                    fontsize=8,
+                    color="#34495e",
+                )
+
+        provider_colors = {
+            "openai": "#1565c0",
+            "anthropic": "#c2410c",
+            "deepseek": "#15803d",
+        }
+        interface_linestyles = {
+            "bare_llm": "-",
+            "llm_tools": "--",
+        }
+        provider_labels = {
+            "openai": "OpenAI",
+            "anthropic": "Anthropic",
+            "deepseek": "DeepSeek",
+        }
+        interface_labels = {
+            "bare_llm": "bare",
+            "llm_tools": "descriptors",
+        }
+        condition_handles: list[Line2D] = []
+        raw_llm = llm[~llm["system_name"].astype(str).str.endswith(POSTHOC_REPAIR_SUFFIX)]
+        for _, raw_row in raw_llm.sort_values("system_name").iterrows():
+            raw_name = str(raw_row["system_name"])
+            repaired = llm[llm["system_name"].eq(f"{raw_name}{POSTHOC_REPAIR_SUFFIX}")]
+            provider = str(raw_row.get("llm_provider") or raw_row.get("provider") or "").lower()
+            interface = str(raw_row.get("base_system_name") or raw_name.split("__", maxsplit=1)[0])
+            color = provider_colors.get(provider, "#7f8c8d")
+            linestyle = interface_linestyles.get(interface, "-")
+            label = (
+                f"{provider_labels.get(provider, provider.title() or 'LLM')} "
+                f"{interface_labels.get(interface, interface)}"
+            )
+            raw_x = float(raw_row[validity_metric])
+            raw_y = float(raw_row["feasible_utility"])
+            ax.scatter(raw_x, raw_y, s=62, marker="x", linewidth=2, color=color, zorder=5)
+            if not repaired.empty:
+                repaired_row = repaired.iloc[0]
+                repaired_x = float(repaired_row[validity_metric])
+                repaired_y = float(repaired_row["feasible_utility"])
+                ax.plot(
+                    [raw_x, repaired_x],
+                    [raw_y, repaired_y],
+                    color=color,
+                    linewidth=1.4,
+                    linestyle=linestyle,
+                    alpha=0.7,
+                    zorder=2,
+                )
+                ax.scatter(
+                    repaired_x,
+                    repaired_y,
+                    s=62,
+                    marker="^",
+                    facecolors="white",
+                    edgecolors=color,
+                    linewidth=1.8,
+                    zorder=5,
+                )
+                repair_rate = _safe_float(repaired_row.get("repaired_rate"))
+                if repair_rate is not None and repair_rate > 0:
+                    label_offset = 7 if interface == "bare_llm" else -9
+                    ax.annotate(
+                        f"{repair_rate:.1%} repaired",
+                        ((raw_x + repaired_x) / 2, (raw_y + repaired_y) / 2),
+                        xytext=(0, label_offset),
+                        textcoords="offset points",
+                        ha="center",
+                        va="center",
+                        fontsize=7,
+                        color=color,
+                        bbox={
+                            "boxstyle": "round,pad=0.16",
+                            "facecolor": "white",
+                            "edgecolor": "none",
+                            "alpha": 0.82,
+                        },
+                    )
+            condition_handles.append(
+                Line2D([0], [0], color=color, lw=2, linestyle=linestyle, label=label)
+            )
+
+        if condition_handles:
+            state_handles = [
+                Line2D(
+                    [0],
+                    [0],
+                    marker="o",
+                    color="none",
+                    markerfacecolor="#566573",
+                    markeredgecolor="#566573",
+                    label="Non-language system",
+                ),
+                Line2D(
+                    [0],
+                    [0],
+                    marker="x",
+                    color="#222222",
+                    linestyle="none",
+                    markeredgewidth=2,
+                    label="Raw LLM output",
+                ),
+                Line2D(
+                    [0],
+                    [0],
+                    marker="^",
+                    color="#222222",
+                    linestyle="none",
+                    markerfacecolor="white",
+                    label="Post-hoc repaired output",
+                ),
+            ]
+            ax.legend(
+                handles=condition_handles + state_handles,
+                loc="upper left",
+                bbox_to_anchor=(1.01, 1),
+                frameon=False,
                 fontsize=8,
             )
+        elif llm.empty:
+            ax.scatter(
+                frame[validity_metric],
+                frame["feasible_utility"],
+                s=58,
+                color="#566573",
+                alpha=0.85,
+            )
+        else:
+            label_column = "display_label" if "display_label" in frame.columns else "system_name"
+            ax.scatter(frame[validity_metric], frame["feasible_utility"], s=58)
+            for _, row in frame.iterrows():
+                ax.annotate(
+                    str(row.get(label_column, row.get("system_name", ""))),
+                    (float(row[validity_metric]), float(row["feasible_utility"])),
+                    xytext=(5, 4),
+                    textcoords="offset points",
+                    fontsize=8,
+                )
     ax.set_xlabel(
         "Whole-action validity rate"
         if validity_metric == "action_validity"
@@ -661,18 +845,795 @@ def make_frontier_plot(comparison_csv: Path, out_dir: Path) -> Path:
         if validity_metric == "action_validity"
         else "Action Quality: Utility by Valid-Selection Fraction"
     )
-    ax.set_xlim(-0.02, 1.02)
+    ax.set_xlim(-0.03, 1.12)
     ax.grid(True, alpha=0.3)
     fig.tight_layout()
     output = out_dir / "compliance_utility_frontier.png"
-    fig.savefig(output, dpi=200)
+    _save_report_plot(fig, output)
     plt.close(fig)
+    _make_report_summary_plots(frame, comparison_csv.parent, out_dir)
     _make_card_level_plots(comparison_csv.parent, out_dir)
     return output
 
 
-def _wrap_tick(label: object, width: int = 22) -> str:
-    return "\n".join(textwrap.wrap(str(label), width=width, break_long_words=False))
+def _concise_system_label(system_name: object) -> str:
+    name = str(system_name)
+    base_labels = {
+        "qsar_svm": "QSAR SVM",
+        "qsar_rf": "QSAR RF",
+        "qsar_gbt": "QSAR GBT",
+        "similarity_to_best_active": "Similarity",
+        "random_valid": "Random valid",
+        "rules_only": "Rules only",
+    }
+    if name in base_labels:
+        return base_labels[name]
+    base = _base_system_name(name)
+    provider = _title_provider(_system_provider(name)) or "LLM"
+    interface = {
+        "bare_llm": "bare",
+        "llm_tools": "descriptors",
+    }.get(base, base.replace("_", " "))
+    state = "repaired" if name.endswith(POSTHOC_REPAIR_SUFFIX) else "raw"
+    return f"{provider} {interface} — {state}"
+
+
+def _report_plot_style(system_name: object) -> tuple[str, str, str]:
+    name = str(system_name)
+    group = _system_group(name)
+    if group == "QSAR":
+        return "#1f4e79", "o", "QSAR"
+    if group == "Baseline":
+        return "#66717e", "s", "Other baseline"
+    if group == "LLM" and name.endswith(POSTHOC_REPAIR_SUFFIX):
+        return "#007f83", "^", "Repaired LLM"
+    if group == "LLM":
+        return "#b75d0a", "X", "Raw LLM"
+    return "#7a7a7a", "D", group
+
+
+def _make_primary_utility_leaderboard(frame: pd.DataFrame, out_dir: Path) -> Path | None:
+    import matplotlib.pyplot as plt
+    from matplotlib.lines import Line2D
+
+    required = {"system_name", "feasible_utility"}
+    if frame.empty or not required.issubset(frame.columns):
+        return None
+    primary = frame.loc[~frame["system_name"].map(_is_oracle_system)].copy()
+    primary = primary.dropna(subset=["feasible_utility"]).sort_values("feasible_utility")
+    if primary.empty:
+        return None
+
+    height = max(5.4, 0.34 * len(primary) + 1.7)
+    fig, ax = plt.subplots(figsize=(9.4, height), constrained_layout=True)
+    y_positions = np.arange(len(primary))
+    legend_styles: dict[str, tuple[str, str]] = {}
+    for y_position, (_, row) in zip(y_positions, primary.iterrows(), strict=True):
+        value = float(row["feasible_utility"])
+        color, marker, legend_label = _report_plot_style(row["system_name"])
+        legend_styles.setdefault(legend_label, (color, marker))
+        low = _safe_float(row.get("feasible_utility_ci_low"))
+        high = _safe_float(row.get("feasible_utility_ci_high"))
+        if low is not None and high is not None:
+            ax.errorbar(
+                value,
+                y_position,
+                xerr=[[max(0.0, value - low)], [max(0.0, high - value)]],
+                color=color,
+                marker=marker,
+                markersize=6.5,
+                markeredgewidth=1,
+                capsize=2.5,
+                linewidth=1.3,
+                zorder=3,
+            )
+        else:
+            ax.scatter(value, y_position, color=color, marker=marker, s=48, zorder=3)
+        ax.annotate(
+            f"{value:.1f}",
+            (value, y_position),
+            xytext=(0, 8),
+            textcoords="offset points",
+            ha="center",
+            va="bottom",
+            fontsize=8,
+            color="#263238",
+            bbox={
+                "boxstyle": "round,pad=0.08",
+                "facecolor": "white",
+                "edgecolor": "none",
+                "alpha": 0.9,
+            },
+        )
+
+    oracle = frame.loc[frame["system_name"].map(_is_oracle_system), "feasible_utility"].dropna()
+    if not oracle.empty:
+        oracle_value = float(oracle.max())
+        ax.axvline(oracle_value, color="#6f42c1", linestyle="--", linewidth=1.2, alpha=0.85)
+        ax.annotate(
+            f"Oracle {oracle_value:.1f}",
+            (oracle_value, len(primary) - 0.25),
+            xytext=(-5, 0),
+            textcoords="offset points",
+            ha="right",
+            va="top",
+            fontsize=8,
+            color="#5b2c83",
+        )
+
+    values = primary["feasible_utility"].astype(float)
+    ci_low = (
+        primary["feasible_utility_ci_low"].astype(float)
+        if "feasible_utility_ci_low" in primary.columns
+        else values
+    )
+    ci_high = (
+        primary["feasible_utility_ci_high"].astype(float)
+        if "feasible_utility_ci_high" in primary.columns
+        else values
+    )
+    x_min = float(min(values.min(), ci_low.min()))
+    x_max = float(max(values.max(), ci_high.max(), oracle.max() if not oracle.empty else -np.inf))
+    span = max(1.0, x_max - x_min)
+    ax.set_xlim(x_min - span * 0.04, x_max + span * 0.13)
+    ax.set_yticks(y_positions)
+    ax.set_yticklabels([_concise_system_label(name) for name in primary["system_name"]])
+    ax.set_xlabel("Mean feasible utility (95% bootstrap CI)")
+    ax.set_title(
+        "Primary Utility Leaderboard",
+        loc="left",
+        fontweight="bold",
+        pad=36,
+    )
+    ax.text(
+        0,
+        1.012,
+        "All non-oracle evaluated systems; the hidden-outcome oracle is shown only as a reference.",
+        transform=ax.transAxes,
+        fontsize=9,
+        color="#52606d",
+        va="bottom",
+    )
+    ax.grid(axis="x", alpha=0.22)
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    ax.tick_params(axis="y", length=0)
+    handles = [
+        Line2D(
+            [0],
+            [0],
+            color=color,
+            marker=marker,
+            linestyle="none",
+            markersize=6.5,
+            label=label,
+        )
+        for label, (color, marker) in legend_styles.items()
+    ]
+    if not oracle.empty:
+        handles.append(
+            Line2D([0], [0], color="#6f42c1", linestyle="--", linewidth=1.2, label="Oracle")
+        )
+    ax.legend(
+        handles=handles,
+        loc="upper left",
+        ncol=2,
+        frameon=False,
+        fontsize=8,
+    )
+    output = out_dir / "primary_utility_leaderboard.png"
+    _save_report_plot(fig, output)
+    plt.close(fig)
+    return output
+
+
+def _llm_condition_sort_key(system_name: str) -> tuple[int, int]:
+    provider_order = {"openai": 0, "anthropic": 1, "deepseek": 2}
+    interface_order = {"bare_llm": 0, "llm_tools": 1}
+    return (
+        provider_order.get(_system_provider(system_name), 99),
+        interface_order.get(_base_system_name(system_name), 99),
+    )
+
+
+def _make_llm_repair_effect(frame: pd.DataFrame, out_dir: Path) -> Path | None:
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Patch
+
+    required = {"system_name", "feasible_utility"}
+    if frame.empty or not required.issubset(frame.columns):
+        return None
+    by_system = {str(row["system_name"]): row for _, row in frame.iterrows()}
+    raw_names = sorted(
+        (
+            name
+            for name in by_system
+            if _is_primary_raw_llm_system(name) and f"{name}{POSTHOC_REPAIR_SUFFIX}" in by_system
+        ),
+        key=_llm_condition_sort_key,
+    )
+    if not raw_names:
+        return None
+
+    rows: list[dict[str, object]] = []
+    for raw_name in raw_names:
+        raw = by_system[raw_name]
+        repaired = by_system[f"{raw_name}{POSTHOC_REPAIR_SUFFIX}"]
+        as_issued = _safe_float(raw.get("action_validity"))
+        if as_issued is None:
+            as_issued = _safe_float(raw.get("raw_action_validity")) or 0.0
+        repair_triggered = _safe_float(repaired.get("repaired_rate")) or 0.0
+        unresolved = max(0.0, 1.0 - as_issued - repair_triggered)
+        if unresolved < 1e-9:
+            unresolved = 0.0
+        rows.append(
+            {
+                "label": _concise_system_label(raw_name).removesuffix(" — raw"),
+                "raw_utility": float(raw["feasible_utility"]),
+                "repaired_utility": float(repaired["feasible_utility"]),
+                "as_issued": as_issued,
+                "repair_triggered": repair_triggered,
+                "unresolved": unresolved,
+            }
+        )
+
+    plot = pd.DataFrame(rows)
+    y_positions = np.arange(len(plot))
+    fig, (utility_ax, validity_ax) = plt.subplots(
+        1,
+        2,
+        figsize=(11.2, max(4.8, 0.58 * len(plot) + 1.7)),
+        sharey=True,
+        gridspec_kw={"width_ratios": [1.15, 1]},
+        constrained_layout=True,
+    )
+    raw_color = "#b75d0a"
+    repaired_color = "#007f83"
+    for y_position, row in plot.iterrows():
+        raw_value = float(row["raw_utility"])
+        repaired_value = float(row["repaired_utility"])
+        utility_ax.plot(
+            [raw_value, repaired_value],
+            [y_position, y_position],
+            color="#9aa5b1",
+            linewidth=1.7,
+            zorder=1,
+        )
+        utility_ax.scatter(
+            raw_value,
+            y_position,
+            color=raw_color,
+            marker="X",
+            s=62,
+            zorder=3,
+            label="Raw output" if y_position == 0 else None,
+        )
+        utility_ax.scatter(
+            repaired_value,
+            y_position,
+            facecolor="white",
+            edgecolor=repaired_color,
+            marker="^",
+            linewidth=1.8,
+            s=72,
+            zorder=3,
+            label="Post-hoc repaired" if y_position == 0 else None,
+        )
+        utility_ax.annotate(
+            f"{raw_value:.1f}",
+            (raw_value, y_position),
+            xytext=(-7, -12),
+            textcoords="offset points",
+            ha="center",
+            fontsize=8,
+            color=raw_color,
+        )
+        utility_ax.annotate(
+            f"{repaired_value:.1f}",
+            (repaired_value, y_position),
+            xytext=(0, 8),
+            textcoords="offset points",
+            ha="center",
+            fontsize=8,
+            color=repaired_color,
+        )
+
+    as_issued = plot["as_issued"].astype(float).to_numpy()
+    repair_triggered = plot["repair_triggered"].astype(float).to_numpy()
+    unresolved = plot["unresolved"].astype(float).to_numpy()
+    validity_ax.barh(y_positions, as_issued, color="#5b8ff9", height=0.56)
+    validity_ax.barh(
+        y_positions,
+        repair_triggered,
+        left=as_issued,
+        color="#f6bd16",
+        height=0.56,
+    )
+    if np.any(unresolved > 0):
+        validity_ax.barh(
+            y_positions,
+            unresolved,
+            left=as_issued + repair_triggered,
+            color="#d9dde3",
+            height=0.56,
+        )
+    for y_position, issued, repaired in zip(y_positions, as_issued, repair_triggered, strict=True):
+        if issued >= 0.08:
+            validity_ax.text(
+                issued / 2,
+                y_position,
+                f"{issued:.0%}",
+                ha="center",
+                va="center",
+                fontsize=8,
+                color="white",
+                fontweight="bold",
+            )
+        if repaired >= 0.08:
+            validity_ax.text(
+                issued + repaired / 2,
+                y_position,
+                f"{repaired:.0%}",
+                ha="center",
+                va="center",
+                fontsize=8,
+                color="#3c4043",
+                fontweight="bold",
+            )
+
+    utility_ax.set_yticks(y_positions)
+    utility_ax.set_yticklabels(plot["label"])
+    utility_ax.invert_yaxis()
+    utility_ax.set_xlabel("Mean feasible utility")
+    utility_ax.set_title("Utility before and after repair", loc="left", fontweight="bold")
+    utility_ax.grid(axis="x", alpha=0.22)
+    utility_ax.spines[["top", "right", "left"]].set_visible(False)
+    utility_ax.tick_params(axis="y", length=0)
+    utility_ax.legend(
+        loc="lower center",
+        bbox_to_anchor=(0.5, -0.2),
+        ncol=2,
+        frameon=False,
+        fontsize=8,
+    )
+
+    validity_ax.set_xlim(0, 1)
+    validity_ax.set_xlabel("Share of actions")
+    validity_ax.set_title("How final actions became valid", loc="left", fontweight="bold")
+    validity_ax.grid(axis="x", alpha=0.18)
+    validity_ax.spines[["top", "right", "left"]].set_visible(False)
+    validity_ax.tick_params(axis="y", length=0)
+    validity_handles = [
+        Patch(facecolor="#5b8ff9", label="Valid as issued"),
+        Patch(facecolor="#f6bd16", label="Repair triggered"),
+    ]
+    if np.any(unresolved > 0):
+        validity_handles.append(Patch(facecolor="#d9dde3", label="Unresolved"))
+    validity_ax.legend(
+        handles=validity_handles,
+        loc="lower center",
+        bbox_to_anchor=(0.5, -0.2),
+        ncol=len(validity_handles),
+        frameon=False,
+        fontsize=8,
+    )
+
+    fig.suptitle(
+        "Raw and Post-Hoc-Repaired LLM Outcomes",
+        x=0.01,
+        ha="left",
+        fontsize=14,
+        fontweight="bold",
+    )
+    output = out_dir / "llm_repair_effect.png"
+    _save_report_plot(fig, output)
+    plt.close(fig)
+    return output
+
+
+def _paired_delta_for_systems(
+    frame: pd.DataFrame,
+    system_a: str,
+    system_b: str,
+) -> tuple[float, float, float] | None:
+    if frame.empty:
+        return None
+    subset = frame.loc[
+        frame["metric"].eq("feasible_utility")
+        & (
+            (frame["system_a"].eq(system_a) & frame["system_b"].eq(system_b))
+            | (frame["system_a"].eq(system_b) & frame["system_b"].eq(system_a))
+        )
+    ]
+    if subset.empty:
+        return None
+    row = subset.iloc[0]
+    mean = float(row["mean_delta"])
+    low = float(row["ci_low"])
+    high = float(row["ci_high"])
+    if str(row["system_a"]) != system_a:
+        return -mean, -high, -low
+    return mean, low, high
+
+
+def _make_descriptor_ablation(table_dir: Path, out_dir: Path) -> Path | None:
+    import matplotlib.pyplot as plt
+    from matplotlib.lines import Line2D
+
+    paired_path = table_dir / "paired_bootstrap_deltas.csv"
+    if not paired_path.exists():
+        return None
+    paired = pd.read_csv(paired_path)
+    required = {"metric", "system_a", "system_b", "mean_delta", "ci_low", "ci_high"}
+    if paired.empty or not required.issubset(paired.columns):
+        return None
+
+    rows: list[dict[str, object]] = []
+    providers = ["openai", "anthropic", "deepseek"]
+    system_names = set(paired["system_a"].astype(str)) | set(paired["system_b"].astype(str))
+    for provider in providers:
+        bare_candidates = sorted(
+            name
+            for name in system_names
+            if _base_system_name(name) == "bare_llm"
+            and _system_provider(name) == provider
+            and not name.endswith(POSTHOC_REPAIR_SUFFIX)
+        )
+        for bare_raw in bare_candidates[:1]:
+            condition = _condition_name(bare_raw)
+            tools_raw = f"llm_tools__{condition}"
+            for state, suffix in [
+                ("Raw", ""),
+                ("Repaired", POSTHOC_REPAIR_SUFFIX),
+            ]:
+                bare = f"{bare_raw}{suffix}"
+                tools = f"{tools_raw}{suffix}"
+                delta = _paired_delta_for_systems(paired, tools, bare)
+                if delta is None:
+                    continue
+                mean, low, high = delta
+                rows.append(
+                    {
+                        "label": f"{_title_provider(provider)} — {state.lower()}",
+                        "state": state,
+                        "mean": mean,
+                        "low": low,
+                        "high": high,
+                    }
+                )
+    if not rows:
+        return None
+
+    plot = pd.DataFrame(rows)
+    y_positions = np.arange(len(plot))
+    fig, ax = plt.subplots(
+        figsize=(8.8, max(4.8, 0.58 * len(plot) + 1.8)),
+        constrained_layout=True,
+    )
+    state_styles = {
+        "Raw": ("#b75d0a", "X"),
+        "Repaired": ("#007f83", "^"),
+    }
+    for y_position, row in plot.iterrows():
+        color, marker = state_styles[str(row["state"])]
+        mean = float(row["mean"])
+        low = float(row["low"])
+        high = float(row["high"])
+        ax.errorbar(
+            mean,
+            y_position,
+            xerr=[[mean - low], [high - mean]],
+            color=color,
+            marker=marker,
+            markersize=7,
+            markeredgewidth=1,
+            capsize=3,
+            linewidth=1.5,
+            zorder=3,
+        )
+        ax.annotate(
+            f"{mean:+.1f}",
+            (mean, y_position),
+            xytext=(0, 9),
+            textcoords="offset points",
+            ha="center",
+            va="bottom",
+            fontsize=8,
+            color=color,
+            fontweight="bold",
+            bbox={
+                "boxstyle": "round,pad=0.08",
+                "facecolor": "white",
+                "edgecolor": "none",
+                "alpha": 0.9,
+            },
+        )
+
+    bounds = np.concatenate([plot["low"].astype(float), plot["high"].astype(float), [0.0]])
+    span = max(1.0, float(bounds.max() - bounds.min()))
+    ax.set_xlim(float(bounds.min() - span * 0.12), float(bounds.max() + span * 0.16))
+    ax.axvline(0, color="#52606d", linewidth=1.1)
+    ax.set_yticks(y_positions)
+    ax.set_yticklabels(plot["label"])
+    ax.invert_yaxis()
+    ax.set_xlabel("Descriptor-minus-bare feasible utility delta (paired 95% CI)")
+    ax.set_title(
+        "Descriptor Ablation",
+        loc="left",
+        fontweight="bold",
+        pad=36,
+    )
+    ax.text(
+        0,
+        1.012,
+        "Positive values favor candidate descriptor summaries; intervals crossing zero are inconclusive.",
+        transform=ax.transAxes,
+        fontsize=9,
+        color="#52606d",
+        va="bottom",
+    )
+    ax.grid(axis="x", alpha=0.22)
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    ax.tick_params(axis="y", length=0)
+    handles = [
+        Line2D(
+            [0],
+            [0],
+            color=color,
+            marker=marker,
+            linestyle="none",
+            markersize=7,
+            label=state,
+        )
+        for state, (color, marker) in state_styles.items()
+    ]
+    ax.legend(handles=handles, loc="lower right", frameon=False, fontsize=8)
+    output = out_dir / "descriptor_ablation.png"
+    _save_report_plot(fig, output)
+    plt.close(fig)
+    return output
+
+
+def _make_paired_utility_effects(table_dir: Path, out_dir: Path) -> Path | None:
+    import matplotlib.pyplot as plt
+    from matplotlib.lines import Line2D
+
+    key_path = table_dir / "paired_bootstrap_key_deltas.csv"
+    paired_path = table_dir / "paired_bootstrap_deltas.csv"
+    if not key_path.exists() or not paired_path.exists():
+        return None
+    key = pd.read_csv(key_path)
+    paired = pd.read_csv(paired_path)
+    required = {"metric", "mean_delta", "ci_low", "ci_high"}
+    if (
+        key.empty
+        or paired.empty
+        or not required.issubset(key.columns)
+        or not required.issubset(paired.columns)
+    ):
+        return None
+
+    headline_labels = {
+        "best_qsar_minus_best_final_llm": "Best QSAR − best repaired LLM",
+        "best_final_llm_minus_similarity": "Best repaired LLM − similarity",
+        "best_qsar_minus_similarity": "Best QSAR − similarity",
+        "oracle_minus_best_qsar": "Oracle − best QSAR",
+    }
+    headline = key.loc[
+        key["metric"].eq("feasible_utility") & key["comparison"].isin(headline_labels),
+        ["comparison", "mean_delta", "ci_low", "ci_high"],
+    ].copy()
+    if headline.empty:
+        return None
+    headline["label"] = headline["comparison"].map(headline_labels)
+    order = {comparison: index for index, comparison in enumerate(headline_labels)}
+    headline["order"] = headline["comparison"].map(order)
+    headline = headline.sort_values("order")
+
+    descriptor_rows: list[dict[str, object]] = []
+    system_names = set(paired["system_a"].astype(str)) | set(paired["system_b"].astype(str))
+    for provider in ["openai", "anthropic", "deepseek"]:
+        bare_candidates = sorted(
+            name
+            for name in system_names
+            if _base_system_name(name) == "bare_llm"
+            and _system_provider(name) == provider
+            and not name.endswith(POSTHOC_REPAIR_SUFFIX)
+        )
+        for bare_raw in bare_candidates[:1]:
+            condition = _condition_name(bare_raw)
+            tools_raw = f"llm_tools__{condition}"
+            for state, suffix in [
+                ("Raw", ""),
+                ("Repaired", POSTHOC_REPAIR_SUFFIX),
+            ]:
+                delta = _paired_delta_for_systems(
+                    paired,
+                    f"{tools_raw}{suffix}",
+                    f"{bare_raw}{suffix}",
+                )
+                if delta is None:
+                    continue
+                mean, low, high = delta
+                descriptor_rows.append(
+                    {
+                        "label": f"{_title_provider(provider)} — {state.lower()}",
+                        "state": state,
+                        "mean_delta": mean,
+                        "ci_low": low,
+                        "ci_high": high,
+                    }
+                )
+    descriptor = pd.DataFrame(descriptor_rows)
+    if descriptor.empty:
+        return None
+
+    fig, (headline_ax, descriptor_ax) = plt.subplots(
+        1,
+        2,
+        figsize=(12.6, 6.0),
+        gridspec_kw={"width_ratios": [1, 1.1]},
+        constrained_layout=True,
+    )
+
+    headline_positions = np.arange(len(headline))
+    for y_position, (_, row) in zip(headline_positions, headline.iterrows(), strict=True):
+        mean = float(row["mean_delta"])
+        low = float(row["ci_low"])
+        high = float(row["ci_high"])
+        is_oracle = str(row["comparison"]) == "oracle_minus_best_qsar"
+        color = "#6f42c1" if is_oracle else "#1f4e79"
+        headline_ax.errorbar(
+            mean,
+            y_position,
+            xerr=[[mean - low], [high - mean]],
+            color=color,
+            marker="D" if is_oracle else "o",
+            markersize=7,
+            capsize=3,
+            linewidth=1.5,
+            zorder=3,
+        )
+        headline_ax.annotate(
+            f"{mean:+.2f}",
+            (mean, y_position),
+            xytext=(0, 10),
+            textcoords="offset points",
+            ha="center",
+            va="bottom",
+            fontsize=8,
+            color=color,
+            fontweight="bold",
+            bbox={
+                "boxstyle": "round,pad=0.08",
+                "facecolor": "white",
+                "edgecolor": "none",
+                "alpha": 0.9,
+            },
+        )
+    headline_bounds = np.concatenate(
+        [
+            headline["ci_low"].astype(float),
+            headline["ci_high"].astype(float),
+            [0.0],
+        ]
+    )
+    headline_span = max(1.0, float(headline_bounds.max() - headline_bounds.min()))
+    headline_ax.set_xlim(
+        float(headline_bounds.min() - headline_span * 0.12),
+        float(headline_bounds.max() + headline_span * 0.2),
+    )
+    headline_ax.axvline(0, color="#52606d", linewidth=1.1)
+    headline_ax.set_yticks(headline_positions)
+    headline_ax.set_yticklabels(headline["label"])
+    headline_ax.invert_yaxis()
+    headline_ax.set_xlabel("First system − second system")
+    headline_ax.set_title("A. Headline paired effects", loc="left", fontweight="bold")
+    headline_ax.grid(axis="x", alpha=0.22)
+    headline_ax.spines[["top", "right", "left"]].set_visible(False)
+    headline_ax.tick_params(axis="y", length=0)
+
+    descriptor_positions = np.arange(len(descriptor))
+    state_styles = {
+        "Raw": ("#b75d0a", "X"),
+        "Repaired": ("#007f83", "^"),
+    }
+    for y_position, row in descriptor.iterrows():
+        color, marker = state_styles[str(row["state"])]
+        mean = float(row["mean_delta"])
+        low = float(row["ci_low"])
+        high = float(row["ci_high"])
+        descriptor_ax.errorbar(
+            mean,
+            y_position,
+            xerr=[[mean - low], [high - mean]],
+            color=color,
+            marker=marker,
+            markersize=7,
+            capsize=3,
+            linewidth=1.5,
+            zorder=3,
+        )
+        descriptor_ax.annotate(
+            f"{mean:+.2f}",
+            (mean, y_position),
+            xytext=(0, 10),
+            textcoords="offset points",
+            ha="center",
+            va="bottom",
+            fontsize=8,
+            color=color,
+            fontweight="bold",
+            bbox={
+                "boxstyle": "round,pad=0.08",
+                "facecolor": "white",
+                "edgecolor": "none",
+                "alpha": 0.9,
+            },
+        )
+    descriptor_bounds = np.concatenate(
+        [
+            descriptor["ci_low"].astype(float),
+            descriptor["ci_high"].astype(float),
+            [0.0],
+        ]
+    )
+    descriptor_span = max(1.0, float(descriptor_bounds.max() - descriptor_bounds.min()))
+    descriptor_ax.set_xlim(
+        float(descriptor_bounds.min() - descriptor_span * 0.12),
+        float(descriptor_bounds.max() + descriptor_span * 0.17),
+    )
+    descriptor_ax.axvline(0, color="#52606d", linewidth=1.1)
+    descriptor_ax.set_yticks(descriptor_positions)
+    descriptor_ax.set_yticklabels(descriptor["label"])
+    descriptor_ax.invert_yaxis()
+    descriptor_ax.set_xlabel("Descriptors − bare")
+    descriptor_ax.set_title("B. Descriptor ablation", loc="left", fontweight="bold")
+    descriptor_ax.grid(axis="x", alpha=0.22)
+    descriptor_ax.spines[["top", "right", "left"]].set_visible(False)
+    descriptor_ax.tick_params(axis="y", length=0)
+    descriptor_ax.legend(
+        handles=[
+            Line2D(
+                [0],
+                [0],
+                color=color,
+                marker=marker,
+                linestyle="none",
+                markersize=7,
+                label=state,
+            )
+            for state, (color, marker) in state_styles.items()
+        ],
+        loc="lower right",
+        frameon=False,
+        fontsize=8,
+    )
+
+    fig.suptitle(
+        "Paired Feasible-Utility Effects (95% Bootstrap CI)",
+        x=0.01,
+        ha="left",
+        fontsize=14,
+        fontweight="bold",
+    )
+    output = out_dir / "paired_utility_effects.png"
+    _save_report_plot(fig, output)
+    plt.close(fig)
+    return output
+
+
+def _make_report_summary_plots(
+    frame: pd.DataFrame,
+    table_dir: Path,
+    out_dir: Path,
+) -> list[Path]:
+    outputs = [
+        _make_primary_utility_leaderboard(frame, out_dir),
+        _make_llm_repair_effect(frame, out_dir),
+        _make_descriptor_ablation(table_dir, out_dir),
+        _make_paired_utility_effects(table_dir, out_dir),
+    ]
+    return [output for output in outputs if output is not None]
 
 
 def _make_card_level_plots(table_dir: Path, out_dir: Path) -> list[Path]:
@@ -696,42 +1657,128 @@ def _make_card_level_plots(table_dir: Path, out_dir: Path) -> list[Path]:
         "Similarity baseline",
         "Rules-only baseline",
     ]
+    series_labels = {
+        "Oracle upper-bound": "Oracle upper bound",
+        "Best QSAR": "Best observed QSAR",
+        "Best final LLM": "Best repaired LLM",
+        "Best raw LLM": "Best raw LLM",
+        "Similarity baseline": "Similarity baseline",
+        "Rules-only baseline": "Rules-only baseline",
+    }
+    series_colors = {
+        "Oracle upper-bound": "#6f42c1",
+        "Best QSAR": "#1f4e79",
+        "Best final LLM": "#007f83",
+        "Best raw LLM": "#b75d0a",
+        "Similarity baseline": "#66717e",
+        "Rules-only baseline": "#8a949e",
+    }
     available_series = [series for series in series_order if series in set(key["series"])]
     if available_series:
         plot_data = [
-            (
-                key.loc[key["series"] == series, "feasible_utility"].astype(float)
-                / key.loc[key["series"] == series, "oracle_utility"].astype(float)
-                * 100
-            )
-            .replace([np.inf, -np.inf], np.nan)
-            .dropna()
-            .to_numpy()
+            key.loc[key["series"] == series, "feasible_utility"].astype(float).dropna().to_numpy()
             for series in available_series
         ]
-        fig, ax = plt.subplots(figsize=(8.5, 5.5))
-        ax.boxplot(
+        positions = np.arange(len(available_series))
+        fig, ax = plt.subplots(figsize=(9.2, 5.8), constrained_layout=True)
+        boxplot = ax.boxplot(
             plot_data,
-            tick_labels=[_wrap_tick(series) for series in available_series],
+            positions=positions,
+            orientation="horizontal",
+            widths=0.55,
             showfliers=False,
+            patch_artist=True,
+            boxprops={"linewidth": 1.3},
+            whiskerprops={"linewidth": 1.2},
+            capprops={"linewidth": 1.2},
+            medianprops={"linewidth": 1.6},
         )
-        ax.axhline(100, color="#64717f", linewidth=1, linestyle="--", alpha=0.75)
-        ax.set_ylabel("Utility (% of oracle valid top-k)")
-        ax.set_title("Card-Level Utility Distribution (Oracle-Normalized)")
-        ax.grid(axis="y", alpha=0.25)
-        fig.tight_layout()
+        means = np.asarray([float(np.mean(values)) for values in plot_data])
+        rng = np.random.default_rng(7)
+        for index, (series, color) in enumerate(
+            (series, series_colors[series]) for series in available_series
+        ):
+            boxplot["boxes"][index].set_facecolor(color)
+            boxplot["boxes"][index].set_edgecolor(color)
+            boxplot["boxes"][index].set_alpha(0.16)
+            boxplot["medians"][index].set_color(color)
+            for artist in (
+                boxplot["whiskers"][2 * index : 2 * index + 2]
+                + boxplot["caps"][2 * index : 2 * index + 2]
+            ):
+                artist.set_color(color)
+            jitter = rng.uniform(-0.16, 0.16, size=len(plot_data[index]))
+            ax.scatter(
+                plot_data[index],
+                positions[index] + jitter,
+                color=color,
+                marker="o",
+                s=13,
+                alpha=0.28,
+                edgecolor="none",
+                zorder=2,
+            )
+            ax.scatter(
+                means[index],
+                positions[index],
+                color=color,
+                marker="D",
+                s=38,
+                edgecolor="white",
+                linewidth=0.7,
+                zorder=3,
+            )
+
+        all_values = np.concatenate(plot_data)
+        x_min = float(np.min(all_values))
+        x_max = float(np.max(all_values))
+        span = max(1.0, x_max - x_min)
+        value_column_x = x_max + span * 0.055
+        for y_position, mean in zip(positions, means, strict=True):
+            ax.text(
+                value_column_x,
+                y_position,
+                f"mean {mean:.1f}",
+                va="center",
+                fontsize=8,
+                color="#263238",
+            )
+        ax.set_xlim(x_min - span * 0.04, x_max + span * 0.18)
+        ax.set_yticks(positions)
+        ax.set_yticklabels([series_labels[series] for series in available_series])
+        ax.invert_yaxis()
+        ax.set_xlabel("Per-card feasible utility")
+        ax.set_title(
+            "Across-Card Feasible-Utility Distributions",
+            loc="left",
+            fontweight="bold",
+            pad=36,
+        )
+        ax.text(
+            0,
+            1.012,
+            "Dots show all cards; boxes show IQR with 1.5×IQR whiskers; diamonds mark means.",
+            transform=ax.transAxes,
+            fontsize=9,
+            color="#52606d",
+            va="bottom",
+        )
+        ax.grid(axis="x", alpha=0.22)
+        ax.spines[["top", "right", "left"]].set_visible(False)
+        ax.tick_params(axis="y", length=0)
         output = out_dir / "card_level_utility_distribution.png"
-        fig.savefig(output, dpi=200)
+        _save_report_plot(fig, output)
         plt.close(fig)
         outputs.append(output)
 
-    delta_columns = [
-        "oracle_minus_best_qsar",
-        "best_qsar_minus_best_final_llm",
-        "best_qsar_minus_best_raw_llm",
-        "best_final_llm_minus_similarity",
-        "best_qsar_minus_similarity",
-    ]
+    delta_labels = {
+        "oracle_minus_best_qsar": "Oracle − best observed QSAR",
+        "best_qsar_minus_best_final_llm": "Best QSAR − best repaired LLM",
+        "best_qsar_minus_best_raw_llm": "Best QSAR − best raw LLM",
+        "best_final_llm_minus_similarity": "Best repaired LLM − similarity",
+        "best_qsar_minus_similarity": "Best QSAR − similarity",
+    }
+    delta_columns = list(delta_labels)
     available_deltas = [
         column
         for column in delta_columns
@@ -741,19 +1788,98 @@ def _make_card_level_plots(table_dir: Path, out_dir: Path) -> list[Path]:
         plot_data = [
             diagnostics[column].dropna().astype(float).to_numpy() for column in available_deltas
         ]
-        fig, ax = plt.subplots(figsize=(8.5, 5.5))
-        ax.boxplot(
+        positions = np.arange(len(available_deltas))
+        fig, ax = plt.subplots(figsize=(9.2, 5.5), constrained_layout=True)
+        boxplot = ax.boxplot(
             plot_data,
-            tick_labels=[_wrap_tick(column.replace("_", " ")) for column in available_deltas],
+            positions=positions,
+            orientation="horizontal",
+            widths=0.55,
             showfliers=False,
+            patch_artist=True,
+            boxprops={"linewidth": 1.3},
+            whiskerprops={"linewidth": 1.2},
+            capprops={"linewidth": 1.2},
+            medianprops={"linewidth": 1.6},
         )
-        ax.axhline(0, color="#64717f", linewidth=1)
-        ax.set_ylabel("Per-card utility delta")
-        ax.set_title("Card-Level Utility Deltas")
-        ax.grid(axis="y", alpha=0.25)
-        fig.tight_layout()
+        means = np.asarray([float(np.mean(values)) for values in plot_data])
+        colors = [
+            "#6f42c1" if column == "oracle_minus_best_qsar" else "#1f4e79"
+            for column in available_deltas
+        ]
+        rng = np.random.default_rng(11)
+        for index, color in enumerate(colors):
+            boxplot["boxes"][index].set_facecolor(color)
+            boxplot["boxes"][index].set_edgecolor(color)
+            boxplot["boxes"][index].set_alpha(0.16)
+            boxplot["medians"][index].set_color(color)
+            for artist in (
+                boxplot["whiskers"][2 * index : 2 * index + 2]
+                + boxplot["caps"][2 * index : 2 * index + 2]
+            ):
+                artist.set_color(color)
+            jitter = rng.uniform(-0.16, 0.16, size=len(plot_data[index]))
+            ax.scatter(
+                plot_data[index],
+                positions[index] + jitter,
+                color=color,
+                marker="o",
+                s=13,
+                alpha=0.28,
+                edgecolor="none",
+                zorder=2,
+            )
+            ax.scatter(
+                means[index],
+                positions[index],
+                color=color,
+                marker="D",
+                s=38,
+                edgecolor="white",
+                linewidth=0.7,
+                zorder=3,
+            )
+
+        all_values = np.concatenate(plot_data)
+        x_min = float(np.min(all_values))
+        x_max = float(np.max(all_values))
+        span = max(1.0, x_max - x_min)
+        value_column_x = x_max + span * 0.055
+        for y_position, mean in zip(positions, means, strict=True):
+            ax.text(
+                value_column_x,
+                y_position,
+                f"mean {mean:+.2f}",
+                va="center",
+                fontsize=8,
+                color="#263238",
+            )
+        ax.set_xlim(x_min - span * 0.04, x_max + span * 0.2)
+        ax.axvline(0, color="#52606d", linewidth=1.1)
+        ax.set_yticks(positions)
+        ax.set_yticklabels([delta_labels[column] for column in available_deltas])
+        ax.invert_yaxis()
+        ax.set_xlabel("Per-card feasible-utility difference")
+        ax.set_title(
+            "Across-Card Utility-Difference Distributions",
+            loc="left",
+            fontweight="bold",
+            pad=36,
+        )
+        ax.text(
+            0,
+            1.012,
+            "Positive favors the first system; dots show all cards; diamonds mark means.",
+            transform=ax.transAxes,
+            fontsize=9,
+            color="#52606d",
+            va="bottom",
+        )
+        ax.grid(axis="x", alpha=0.22)
+        ax.spines[["top", "right", "left"]].set_visible(False)
+        ax.tick_params(axis="y", length=0)
         output = out_dir / "card_level_delta_distribution.png"
-        fig.savefig(output, dpi=200)
+        _save_report_plot(fig, output)
         plt.close(fig)
         outputs.append(output)
 
@@ -763,24 +1889,76 @@ def _make_card_level_plots(table_dir: Path, out_dir: Path) -> list[Path]:
     }.issubset(diagnostics.columns):
         scatter = diagnostics[["best_qsar_utility", "best_final_llm_utility"]].dropna()
         if not scatter.empty:
-            fig, ax = plt.subplots(figsize=(6, 6))
-            ax.scatter(scatter["best_qsar_utility"], scatter["best_final_llm_utility"], alpha=0.75)
-            axis_min = float(min(scatter.min()))
-            axis_max = float(max(scatter.max()))
+            qsar_values = scatter["best_qsar_utility"].astype(float)
+            llm_values = scatter["best_final_llm_utility"].astype(float)
+            differences = qsar_values - llm_values
+            tie_mask = np.isclose(differences, 0.0, atol=1e-9)
+            qsar_mask = differences > 1e-9
+            llm_mask = differences < -1e-9
+            winner_styles = [
+                ("QSAR higher", qsar_mask, "#1f4e79", "o"),
+                ("Repaired LLM higher", llm_mask, "#007f83", "^"),
+                ("Tie", tie_mask, "#66717e", "s"),
+            ]
+
+            fig, ax = plt.subplots(figsize=(8.6, 6.8), constrained_layout=True)
+            for label, mask, color, marker in winner_styles:
+                if not bool(mask.any()):
+                    continue
+                ax.scatter(
+                    qsar_values[mask],
+                    llm_values[mask],
+                    alpha=0.78,
+                    color=color,
+                    marker=marker,
+                    s=48,
+                    edgecolor="white",
+                    linewidth=0.6,
+                    label=f"{label} ({int(mask.sum())})",
+                    zorder=3,
+                )
+            axis_min = float(min(qsar_values.min(), llm_values.min()))
+            axis_max = float(max(qsar_values.max(), llm_values.max()))
+            padding = max(1.0, (axis_max - axis_min) * 0.035)
+            axis_min -= padding
+            axis_max += padding
             ax.plot(
                 [axis_min, axis_max],
                 [axis_min, axis_max],
                 color="#64717f",
                 linestyle="--",
-                linewidth=1,
+                linewidth=1.1,
+                zorder=1,
             )
-            ax.set_xlabel("Best QSAR feasible utility")
-            ax.set_ylabel("Best final LLM feasible utility")
-            ax.set_title("Per-Card QSAR Versus LLM Utility")
-            ax.grid(alpha=0.25)
-            fig.tight_layout()
+            ax.set_xlim(axis_min, axis_max)
+            ax.set_ylim(axis_min, axis_max)
+            ax.set_aspect("equal", adjustable="box")
+            ax.set_xlabel("Best observed QSAR feasible utility")
+            ax.set_ylabel("Best repaired LLM feasible utility")
+            ax.set_title(
+                "Per-Card Utility: QSAR vs Repaired LLM",
+                loc="left",
+                fontweight="bold",
+                pad=36,
+            )
+            ax.text(
+                0,
+                1.012,
+                f"Mean paired difference (QSAR − repaired LLM): {differences.mean():+.2f}.",
+                transform=ax.transAxes,
+                fontsize=9,
+                color="#52606d",
+                va="bottom",
+            )
+            ax.grid(alpha=0.22)
+            ax.spines[["top", "right"]].set_visible(False)
+            ax.legend(
+                loc="upper left",
+                frameon=False,
+                fontsize=8,
+            )
             output = out_dir / "card_level_qsar_vs_llm_scatter.png"
-            fig.savefig(output, dpi=200)
+            _save_report_plot(fig, output)
             plt.close(fig)
             outputs.append(output)
     return outputs
@@ -999,7 +2177,8 @@ def _base_system_name(system_name: str) -> str:
 def _condition_name(system_name: str) -> str:
     if "__" not in system_name:
         return ""
-    return system_name.split("__", 1)[1]
+    condition = system_name.split("__", 1)[1]
+    return condition.removesuffix(POSTHOC_REPAIR_SUFFIX)
 
 
 def _system_group(system_name: str) -> str:
@@ -1066,6 +2245,8 @@ def _system_display_label_from_row(row: pd.Series | dict[str, object]) -> str:
     system_name = str(row.get("system_name", ""))
     base = _base_system_name(system_name)
     base_label = SYSTEM_LABELS.get(base, system_name)
+    if system_name.endswith(POSTHOC_REPAIR_SUFFIX):
+        base_label = f"{base_label} + post-hoc repair"
     condition_label = _condition_label_from_row(row)
     if condition_label:
         return f"{base_label} - {condition_label}"
@@ -1076,6 +2257,11 @@ def _system_description_from_row(row: pd.Series | dict[str, object]) -> str:
     system_name = str(row.get("system_name", ""))
     base = _base_system_name(system_name)
     description = SYSTEM_DESCRIPTIONS.get(base, "System row from the comparison table.")
+    if system_name.endswith(POSTHOC_REPAIR_SUFFIX):
+        description += (
+            " This row applies the deterministic post-hoc repair policy to the "
+            "recorded raw response without another provider call."
+        )
     condition = _condition_description(_condition_name(system_name))
     if condition:
         return f"{description} Model condition: {_condition_label_from_row(row)}. {condition} Raw run ID: {system_name}."
@@ -2612,6 +3798,105 @@ def _optional_failure_taxonomy_section(table_dir: Path) -> list[str]:
     ]
 
 
+def _optional_report_figure_section(source_path: Path, out_dir: Path) -> list[str]:
+    parts = source_path.parts
+    version = ""
+    for index, part in enumerate(parts[:-1]):
+        candidate = parts[index + 1]
+        if part == "release" and candidate.startswith("v") and candidate.count(".") == 2:
+            version = candidate
+            break
+    if not version:
+        return []
+
+    relative_dir = Path("figures") / version
+    figure_dir = out_dir / relative_dir
+    review_figures = [
+        ("Decision-card anatomy and leakage boundary", "figure_1_decision_card_anatomy.png"),
+        ("Corrected benchmark pipeline", "figure_2_benchmark_pipeline.png"),
+        ("Main feasible-utility comparison", "figure_3_main_system_comparison.png"),
+        ("System NDCG@10 comparison", "figure_4_ndcg_system_comparison.png"),
+        ("Raw versus post-hoc-repaired LLM utility", "figure_5_raw_vs_final_llm.png"),
+        (
+            "Raw versus post-hoc-repaired whole-action validity",
+            "figure_6_raw_vs_final_action_validity.png",
+        ),
+        ("Corrected leaderboard summary", "figure_7_leaderboard_summary.png"),
+        ("Raw LLM failure taxonomy", "figure_8_failure_taxonomy.png"),
+    ]
+    core_figures = [
+        (
+            "Utility–validity repair frontier",
+            "compliance_utility_frontier.png",
+        ),
+        (
+            "Paired feasible-utility effects",
+            "paired_utility_effects.png",
+        ),
+    ]
+    review_available = all((figure_dir / filename).exists() for _, filename in review_figures)
+    core_available = all((figure_dir / filename).exists() for _, filename in core_figures)
+    if not review_available and not core_available:
+        return []
+
+    lines = [
+        "## Report Figures",
+        "",
+    ]
+    if review_available:
+        lines.extend(
+            [
+                "### Corrected Figure 1–8 series",
+                "",
+                "This complete replacement for the retired paper-50 figure package uses the corrected 91-card benchmark, all 546 recorded raw LLM requests, and six zero-call post-hoc-repaired views.",
+                "",
+            ]
+        )
+        for number, (label, filename) in enumerate(review_figures, start=1):
+            path = relative_dir / filename
+            lines.extend(
+                [
+                    f"**Figure {number}. {label}.**",
+                    "",
+                    f"![Figure {number}: {label}]({path.as_posix()})",
+                    "",
+                ]
+            )
+    if core_available:
+        lines.extend(
+            [
+                "### Additional inferential views",
+                "",
+                "These views are generated from the same comparison and paired card-level tables. Repaired rows are deterministic views of recorded raw responses, not additional provider calls.",
+                "",
+            ]
+        )
+        for label, filename in core_figures:
+            path = relative_dir / filename
+            lines.extend([f"![{label}]({path.as_posix()})", ""])
+    supporting = [
+        ("complete primary leaderboard", "primary_utility_leaderboard.png"),
+        ("repair decomposition", "llm_repair_effect.png"),
+        ("standalone descriptor ablation", "descriptor_ablation.png"),
+        ("across-card utility distributions", "card_level_utility_distribution.png"),
+        ("across-card utility-difference distributions", "card_level_delta_distribution.png"),
+        ("per-card QSAR-versus-LLM scatter", "card_level_qsar_vs_llm_scatter.png"),
+    ]
+    links = [
+        f"[{label}]({(relative_dir / filename).as_posix()})"
+        for label, filename in supporting
+        if (figure_dir / filename).exists()
+    ]
+    if links:
+        lines.extend(
+            [
+                "Additional diagnostic figures: " + ", ".join(links) + ".",
+                "",
+            ]
+        )
+    return lines
+
+
 def write_results_summary(
     comparison_csv: Path,
     out_dir: Path,
@@ -2703,9 +3988,10 @@ def write_results_summary(
         "",
         *_optional_paired_bootstrap_section(comparison_csv.parent),
         *_optional_failure_taxonomy_section(comparison_csv.parent),
+        *_optional_report_figure_section(source_display_path, out_dir),
         "## Card-Level Diagnostics",
         "",
-        f"Per-card diagnostic tables are written next to the comparison CSV in `{display_table_dir}`. The matching figure directory contains card-level utility distributions, utility-delta distributions, and a QSAR-versus-LLM per-card scatter plot when `make-figures` is run.",
+        f"Per-card diagnostic tables are written next to the comparison CSV in `{display_table_dir}`. `make-figures` also writes the report-level leaderboard, repair analysis, paired-effect forest plots, card-level utility distributions, utility-delta distributions, and a QSAR-versus-LLM per-card scatter plot.",
         "",
         "## Primary Systems",
         "",
