@@ -1,2 +1,4 @@
 paper/*.html linguist-generated=true
 paper/**/*.html linguist-generated=true
+paper/RESULTS_DASHBOARD.html -whitespace
+paper/figures/v0.1.0/*.svg -whitespace

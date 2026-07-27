@@ -51,6 +51,8 @@ candidate IDs should a system select for the next assay batch?
   from the invalid CARA import.
 - No live provider call without explicit external-call authorization and cost
   gates.
+- No task-selection or chemical-diversity redesign in v0.1.0; those extensions
+  require a future benchmark version.
 
 ## Stop-Ship Conditions
 
@@ -98,9 +100,14 @@ candidate IDs should a system select for the next assay batch?
 - [x] Correct best-raw-system selection and raw-versus-baseline paired metrics.
 - [x] Run the explicitly approved fixed six-request pilot and persist audited
   replay caches, raw traces, operational evidence, and zero-call repaired views.
-- [ ] Run the residual 540-call matrix only after separate explicit approval.
-- [ ] Recompute paired uncertainty, raw/final attribution, robustness, and cost.
-- [ ] Build one canonical complete run manifest rather than relying on resumed
+- [x] Reproduce the corrected raw import, frozen split artifacts, deterministic
+  suite, and cache-only pilot analysis from a fresh worktree.
+- [x] Run the residual 540-call matrix only after separate explicit approval.
+  Approval was received on 2026-07-25. A provider-credit interruption stopped
+  Anthropic safely, then the same content-addressed cache resumed to 546/546
+  completed responses after credits were restored.
+- [x] Recompute paired uncertainty, raw/final attribution, robustness, and cost.
+- [x] Build one canonical complete run manifest rather than relying on resumed
   per-command manifests.
 - [x] Append every meaningful run to `docs/RUN_LEDGER.md`.
 
@@ -108,8 +115,9 @@ candidate IDs should a system select for the next assay batch?
 
 - [x] Write the bounded automated-lab action framing into the project brief,
   benchmark card, README, and paper/writeup.
-- [ ] Replace every preliminary number and figure with corrected evidence.
-- [x] Bring a pre-run manuscript source and compiled PDF onto this branch.
+- [x] Replace every preliminary number and figure with corrected evidence.
+- [x] Bring the corrected full-matrix manuscript, supplement, and compiled PDFs
+  onto this branch.
 - [x] Add a central invalid-results notice that supersedes the six historical
   `results/cara-lo-paper-50-*` tags without deleting or moving them.
 - [ ] Add `DATA_LICENSE.md` and `THIRD_PARTY_NOTICES.md` distinguishing MIT code

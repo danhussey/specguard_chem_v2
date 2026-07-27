@@ -4,10 +4,15 @@
 
 **SpecGuard-Chem 0.1.0** is the frozen action-level benchmark artifact for the
 first archival release.
-The corrected 91-card data artifact and deterministic baselines are frozen. A
-fixed one-card, six-request provider pilot is complete and preserved as
-operational evidence. The remaining 540 calls and the full 91-card LLM
-comparison are pending, so the pilot is not a benchmark leaderboard result.
+The corrected 91-card data artifact, deterministic baselines, and full LLM
+matrix are complete. All 546 exact requests have successful cached provider
+responses. The release preserves six raw and six zero-call post-hoc-repaired
+91-card traces, a canonical matrix manifest, and the cross-system comparison.
+Usage, latency, and pricing-derived cost coverage are 100%, with a
+usage-derived token-pricing total of USD 58.95671601. The earlier one-card pilot
+remains operational staging evidence rather than a leaderboard result.
+Task-selection and chemical-diversity redesign are deferred to a future
+benchmark version.
 
 Historical paper-50 results are invalid and are not comparable benchmark
 versions; see `INVALID_RESULTS_NOTICE.md`.
@@ -97,6 +102,11 @@ the best observed support compound, three per-card QSAR models, and a
 non-deployable hidden-outcome oracle. These are necessary controls: if an LLM
 does not improve on a small transparent ranker, the benchmark should reveal
 that rather than treating language use as a contribution by itself.
+
+The v0.1.0 comparison uses the frozen task set and evaluates shortlist quality
+without a separate diversity objective. Broader task-selection and
+chemical-diversity analyses are planned for a later version and must not be
+retrofit into this release.
 
 ## Out of scope
 

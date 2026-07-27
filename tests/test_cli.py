@@ -418,3 +418,20 @@ def test_release_pilot_no_call_commands_match_canonical_rows(tmp_path: Path) -> 
     assert residual["cached_or_completed_calls"] == 6
     assert residual["missing_live_calls"] == 540
     assert abs(residual["estimated_incremental_cost_usd"] - 105.122676615) < 1e-9
+
+
+def test_make_figures_review_series_requires_split_artifacts(tmp_path: Path) -> None:
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "make-figures",
+            str(tmp_path / "system_comparison.csv"),
+            "--review-series",
+            "--out",
+            str(tmp_path / "figures"),
+        ],
+    )
+
+    assert result.exit_code == 2
+    assert "--review-series requires both --cards and --scorer-outcomes" in result.output

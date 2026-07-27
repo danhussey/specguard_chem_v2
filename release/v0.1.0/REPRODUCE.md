@@ -1,8 +1,9 @@
 # Reproducing the v0.1.0 release candidate
 
 > **Pre-release guide.** These commands reproduce the current corrected offline
-> path. No `v0.1.0` tag exists yet, and the paper-facing live LLM run is pending.
-> The final tagged guide will pin the release commit and verify the completed
+> path. No `v0.1.0` tag exists yet. The paper-facing LLM matrix is complete and
+> replayable from committed response records without provider access. The final
+> tagged guide will pin the release commit and verify the completed release
 > manifest and checksums.
 
 Run commands from the repository root. The project requires Python 3.11 or
@@ -73,8 +74,42 @@ checkout.
 
 ## 5. Regenerate and compile the manuscript
 
-Generate the tracked paper values and deterministic baseline table directly
-from the canonical release comparison and per-system summary artifacts:
+Rebuild the corrected report figures before regenerating the report. The
+`--review-series` gate requires the split, hash-bound release artifacts and
+emits the full numbered Figure 1–8 package as 300-dpi PNG, PDF, and searchable
+SVG, in addition to the paired and card-level diagnostic figures:
+
+```bash
+uv run sgchem make-figures \
+  release/v0.1.0/experiments/llm/comparison/system_comparison.csv \
+  --out paper/figures/v0.1.0 \
+  --review-series \
+  --cards data/releases/v0.1.0/system_input_cards.jsonl \
+  --scorer-outcomes data/releases/v0.1.0/scorer_outcomes.jsonl
+
+uv run sgchem make-report \
+  release/v0.1.0/experiments/llm/comparison/system_comparison.csv \
+  --out paper
+
+uv run sgchem make-dashboard \
+  release/v0.1.0/experiments/llm/comparison/system_comparison.csv \
+  --out paper
+```
+
+The numbered stems are
+`figure_1_decision_card_anatomy`,
+`figure_2_benchmark_pipeline`,
+`figure_3_main_system_comparison`,
+`figure_4_ndcg_system_comparison`,
+`figure_5_raw_vs_final_llm`,
+`figure_6_raw_vs_final_action_validity`,
+`figure_7_leaderboard_summary`, and
+`figure_8_failure_taxonomy`. Figure 6 intentionally reports strict
+whole-action validity rather than the legacy valid-selection fraction.
+
+Generate the tracked manuscript values and deterministic baseline table
+directly from the canonical release comparison and per-system summary
+artifacts:
 
 ```bash
 python3 paper/manuscript/generate_results.py
@@ -94,9 +129,9 @@ tectonic -X compile --outdir build supplement.tex
 A TeX Live installation may instead use `latexmk -pdf -outdir=build main.tex`
 and the corresponding command for `supplement.tex`.
 
-## 6. Reproduce the no-call LLM request export
+## 6. Reproduce and verify the no-call LLM request export
 
-The following command serializes the proposed requests but does not contact a
+The following command serializes the frozen requests but does not contact a
 provider:
 
 ```bash
@@ -108,7 +143,16 @@ uv run sgchem export-llm-requests \
   --out runs/reproduce-v0.1.0-exact-requests.jsonl
 ```
 
-Recompute the conservative pre-run estimate without making a live call:
+The output must match the committed request stream exactly:
+
+```bash
+cmp \
+  release/v0.1.0/experiments/llm/exact_requests.jsonl \
+  runs/reproduce-v0.1.0-exact-requests.jsonl
+```
+
+Estimate the current state against the completed shared cache without making a
+live call:
 
 ```bash
 uv run sgchem estimate-llm-cost \
@@ -117,12 +161,18 @@ uv run sgchem estimate-llm-cost \
   --model-matrix configs/model_matrix.toml \
   --model-conditions openai_gpt_5_5_2026_04_23_selector,anthropic_opus_4_8_selector,deepseek_v4_pro_2026_07_16_selector \
   --cache-dir release/v0.1.0/experiments/llm/matrix/cache \
-  --out-run-dir release/v0.1.0/experiments/llm/matrix \
+  --out-run-dir runs/reproduce-v0.1.0-llm-matrix \
   --out runs/reproduce-v0.1.0-cost-estimate.json
 ```
 
-Provider pricing is a dated snapshot in `configs/provider_pricing.toml` and must
-be rechecked before external execution.
+The current estimate must report 546 cached or completed requests, zero missing
+live calls, and zero incremental cost. The committed
+`experiments/llm/pre_run_cost_estimate.json` is deliberately historical: before
+any live call it reported 546 missing requests, a USD 106.059394070
+conservative upper bound, and a maximum estimated request size of 158,274 input
+tokens. Provider pricing is the dated snapshot in
+`configs/provider_pricing.toml`; no pricing refresh is needed for cache-only
+replay.
 
 ## 7. Verify and replay the fixed one-card pilot
 
@@ -182,8 +232,8 @@ uv run --extra providers sgchem run-llm-matrix \
   --max-input-tokens-per-call 30000
 ```
 
-It completed six of six requests with one provider attempt per request and an
-actual recorded cost of USD 0.449700535. Raw responses, structured provider
+It completed six of six requests with one provider attempt per request and a
+usage-derived cost of USD 0.449700535. Raw responses, structured provider
 content, response/model identifiers, usage, latency, and scores are under
 `experiments/llm/pilot/`; the six content-addressed response records are under
 `experiments/llm/matrix/cache/`.
@@ -211,40 +261,77 @@ The replay must require zero live calls and reproduce all six score directories.
 The committed pilot passed this check; trace differences are limited to the
 expected replay `cache_path` field, while score artifacts are byte-identical.
 
-The pilot and full run deliberately share the matrix cache. Recompute the
-residual estimate against that cache:
+The pilot and full run deliberately share the matrix cache. The committed
+`experiments/llm/post_pilot_cost_estimate.json` captures the historical state at
+the pilot checkpoint: six cached requests, exactly 540 missing requests, a USD
+105.122676615 conservative incremental upper bound, and USD 0.449700535 of
+usage-derived cached pilot cost. The shared cache is now complete, so a current
+estimate correctly reports 546 cached requests and zero missing rather than
+reproducing that earlier state.
+
+## 8. Replay and verify the completed full LLM matrix
+
+The live matrix is complete. Reproduction must use the committed cache without
+`--allow-external` and with zero-cost and zero-call gates:
 
 ```bash
-uv run sgchem estimate-llm-cost \
+uv run --extra providers sgchem run-llm-matrix \
   data/releases/v0.1.0/system_input_cards.jsonl \
+  --scorer-outcomes data/releases/v0.1.0/scorer_outcomes.jsonl \
   --systems bare_llm,llm_tools \
   --model-matrix configs/model_matrix.toml \
   --model-conditions openai_gpt_5_5_2026_04_23_selector,anthropic_opus_4_8_selector,deepseek_v4_pro_2026_07_16_selector \
-  --pricing configs/provider_pricing.toml \
   --cache-dir release/v0.1.0/experiments/llm/matrix/cache \
-  --out-run-dir release/v0.1.0/experiments/llm/matrix \
-  --out runs/reproduce-v0.1.0-post-pilot-cost-estimate.json
+  --out runs/reproduce-v0.1.0-llm-matrix \
+  --require-cost-estimate \
+  --max-estimated-cost-usd 0 \
+  --max-live-calls 0 \
+  --max-input-tokens-per-call 175000
 ```
 
-The committed `experiments/llm/post_pilot_cost_estimate.json` reports six cached
-requests, exactly 540 missing requests, a USD 105.122676615 conservative
-incremental upper bound, and USD 0.449700535 of actual cached pilot cost. A
-fresh estimate must agree before any residual execution. Do not add the six
-cached calls to the residual call budget again.
+The preflight must find 546 cached requests, zero missing requests, and zero
+incremental cost. It then writes six raw traces and six separately attributed
+post-hoc repair traces, each containing 91 rows. The following checks should
+print `546`, followed by six raw counts of `91` and six repaired counts of
+`91`:
 
-## 8. Live-run boundary
+```bash
+find release/v0.1.0/experiments/llm/matrix/cache \
+  -type f -name '*.json' | wc -l
+wc -l runs/reproduce-v0.1.0-llm-matrix/*/*/trace.jsonl
+wc -l runs/reproduce-v0.1.0-llm-matrix/*/*/posthoc_repair.trace.jsonl
+```
 
-Do not infer authorization from this guide. Live calls require all of the
-following:
+Regenerate the 19-system comparison from the seven deterministic/oracle
+summaries, six raw LLM summaries, and six repaired summaries:
 
-- explicit user approval and `--allow-external`;
-- a saved estimate based on current provider pricing;
-- `--require-cost-estimate` plus hard maximum cost, call-count, and per-call
-  token gates; and
-- cacheable responses and complete model/provider metadata.
+```bash
+uv run sgchem compare-runs \
+  release/v0.1.0/experiments/baselines/*/scores/summary.json \
+  runs/reproduce-v0.1.0-llm-matrix/*/*/scores/summary.json \
+  runs/reproduce-v0.1.0-llm-matrix/*/*/posthoc_scores/summary.json \
+  --out runs/reproduce-v0.1.0-llm-comparison
 
-The post-pilot check above has passed, but it does not authorize external calls.
-Only after separate explicit approval is the residual full-matrix command valid:
+diff -ru \
+  release/v0.1.0/experiments/llm/comparison \
+  runs/reproduce-v0.1.0-llm-comparison
+```
+
+The canonical comparison includes the primary leaderboard, oracle controls,
+metric winners, raw/final ablations, paired task-level bootstrap deltas,
+card-level diagnostics, and failure taxonomy. The canonical
+`experiments/llm/matrix/manifest.json` enumerates the six raw runs; repaired
+artifacts are stored beside each source trace and explicitly identify their
+source trace hash and repair policy.
+
+Across the six unique live conditions, provider-reported token usage multiplied
+by the frozen token prices gives USD 58.95671601. Cost coverage is 100%. Do not
+sum the raw and repaired rows as separate purchases: post-hoc repair made zero
+provider calls and carries the source condition's cost for attribution.
+
+For historical provenance, the residual execution was authorized with the
+following hard outer gates. It is recorded here as an execution record, not as
+an instruction to repurchase responses:
 
 ```bash
 uv run --extra providers sgchem run-llm-matrix \
@@ -262,13 +349,12 @@ uv run --extra providers sgchem run-llm-matrix \
   --max-input-tokens-per-call 175000
 ```
 
-The pilot's USD 1 gate plus the residual USD 119 gate preserve the USD 120
-aggregate ceiling. If any pilot cache entry is absent, the 540-call gate must
-abort before a provider call; investigate rather than raising the gate.
-
-At present, six pilot calls are preserved and 540 residual calls are pending.
-The one-card traces are operational evidence only; no complete 91-card
-paper-facing provider trace or cross-model result exists.
+The pilot's USD 1 gate plus the residual USD 119 gate preserved the USD 120
+aggregate ceiling. Execution resumed from the same content-addressed cache after
+an external billing interruption, so no successful response was purchased
+twice. The final usage-derived total remained below the outer gate. Any missing
+or mismatched cache record is now a reproduction failure: investigate it rather
+than adding `--allow-external` or raising a gate.
 
 ## 9. Rebuild and smoke-test package distributions
 

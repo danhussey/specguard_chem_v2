@@ -42,12 +42,15 @@ The corrected import has now passed an exhaustive local integrity audit:
 
 The corrected `0.1.0` data artifact is now frozen as separate system-input
 and scorer-only files, with deterministic build/audit manifests and checksums.
-Corrected deterministic baselines have also been rerun on all 91 cards. A fixed
-one-card, six-request LLM pilot has now been executed and audited across the two
-interfaces and three provider conditions. It is an execution and provenance
-check, not a cross-model result: the remaining 540 calls and full 91-card
-paper-facing comparison have not been authorized or run. No historical response
-cache is reused.
+Corrected deterministic baselines and the full paper-facing LLM matrix have now
+been run on all 91 cards. All 546 exact provider requests have successful
+content-addressed cache records. The canonical matrix contains six raw and six
+zero-call post-hoc-repaired traces with exact 91-card coverage, one complete
+manifest, and the cross-system comparison. Usage, latency, and pricing-derived
+cost coverage are 100%; the usage-derived token-pricing total is USD
+58.95671601. No historical response cache is reused. Task-selection and
+chemical-diversity redesign are explicitly deferred to a future benchmark
+version rather than introduced into this corrected rerun.
 
 ## The evaluated action
 

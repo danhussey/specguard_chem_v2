@@ -1,0 +1,79 @@
+{
+  "allow_external": true,
+  "cache_dir": "release/v0.1.0/experiments/llm/matrix/cache",
+  "cards": "data/releases/v0.1.0/system_input_cards.jsonl",
+  "model_conditions": [
+    "openai_gpt_5_5_2026_04_23_selector",
+    "anthropic_opus_4_8_selector",
+    "deepseek_v4_pro_2026_07_16_selector"
+  ],
+  "model_matrix": "configs/model_matrix.toml",
+  "runs": [
+    {
+      "model": "gpt-5.5-2026-04-23",
+      "model_config_id": "openai_gpt_5_5_2026_04_23_selector",
+      "provider": "openai",
+      "run_label": "bare_llm__openai_gpt_5_5_2026_04_23_selector",
+      "scores": "release/v0.1.0/experiments/llm/matrix/openai_gpt_5_5_2026_04_23_selector/bare_llm/scores",
+      "skipped_existing": true,
+      "system_name": "bare_llm",
+      "trace": "release/v0.1.0/experiments/llm/matrix/openai_gpt_5_5_2026_04_23_selector/bare_llm/trace.jsonl"
+    },
+    {
+      "model": "gpt-5.5-2026-04-23",
+      "model_config_id": "openai_gpt_5_5_2026_04_23_selector",
+      "provider": "openai",
+      "run_label": "llm_tools__openai_gpt_5_5_2026_04_23_selector",
+      "scores": "release/v0.1.0/experiments/llm/matrix/openai_gpt_5_5_2026_04_23_selector/llm_tools/scores",
+      "skipped_existing": true,
+      "system_name": "llm_tools",
+      "trace": "release/v0.1.0/experiments/llm/matrix/openai_gpt_5_5_2026_04_23_selector/llm_tools/trace.jsonl"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "model_config_id": "anthropic_opus_4_8_selector",
+      "provider": "anthropic",
+      "run_label": "bare_llm__anthropic_opus_4_8_selector",
+      "scores": "release/v0.1.0/experiments/llm/matrix/anthropic_opus_4_8_selector/bare_llm/scores",
+      "skipped_existing": true,
+      "system_name": "bare_llm",
+      "trace": "release/v0.1.0/experiments/llm/matrix/anthropic_opus_4_8_selector/bare_llm/trace.jsonl"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "model_config_id": "anthropic_opus_4_8_selector",
+      "provider": "anthropic",
+      "run_label": "llm_tools__anthropic_opus_4_8_selector",
+      "scores": "release/v0.1.0/experiments/llm/matrix/anthropic_opus_4_8_selector/llm_tools/scores",
+      "skipped_existing": true,
+      "system_name": "llm_tools",
+      "trace": "release/v0.1.0/experiments/llm/matrix/anthropic_opus_4_8_selector/llm_tools/trace.jsonl"
+    },
+    {
+      "model": "deepseek-v4-pro",
+      "model_config_id": "deepseek_v4_pro_2026_07_16_selector",
+      "provider": "deepseek",
+      "run_label": "bare_llm__deepseek_v4_pro_2026_07_16_selector",
+      "scores": "release/v0.1.0/experiments/llm/matrix/deepseek_v4_pro_2026_07_16_selector/bare_llm/scores",
+      "skipped_existing": true,
+      "system_name": "bare_llm",
+      "trace": "release/v0.1.0/experiments/llm/matrix/deepseek_v4_pro_2026_07_16_selector/bare_llm/trace.jsonl"
+    },
+    {
+      "model": "deepseek-v4-pro",
+      "model_config_id": "deepseek_v4_pro_2026_07_16_selector",
+      "provider": "deepseek",
+      "run_label": "llm_tools__deepseek_v4_pro_2026_07_16_selector",
+      "scores": "release/v0.1.0/experiments/llm/matrix/deepseek_v4_pro_2026_07_16_selector/llm_tools/scores",
+      "skipped_existing": true,
+      "system_name": "llm_tools",
+      "trace": "release/v0.1.0/experiments/llm/matrix/deepseek_v4_pro_2026_07_16_selector/llm_tools/trace.jsonl"
+    }
+  ],
+  "seed": 7,
+  "started_at": "2026-07-25T00:19:55.582709+00:00",
+  "systems": [
+    "bare_llm",
+    "llm_tools"
+  ]
+}

@@ -116,4 +116,9 @@ The complete baseline run is under
 | rules_only | 66.9215 | 0.8276 | 12.6411 | 1.000 | 1.000 |
 
 These corrected baselines demonstrate ranking headroom after filtering. They do
-not yet constitute a completed cross-model LLM comparison.
+not by themselves constitute the cross-model LLM comparison. That comparison is
+now complete under `release/v0.1.0/experiments/llm/comparison/`, backed by
+546/546 successful cached responses, six raw and six zero-call repaired
+91-card traces, and the canonical matrix manifest. Task-selection and
+chemical-diversity redesign remain outside this data-integrity audit and are
+deferred to a future benchmark version.

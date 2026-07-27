@@ -1,0 +1,2094 @@
+{
+  "request": {
+    "activity_semantics": {
+      "higher_is_better": true,
+      "objective": "rank candidates to maximize predicted pChEMBL",
+      "scale": "pChEMBL",
+      "support_activity_field": "activity_value"
+    },
+    "artifact_provenance": {
+      "benchmark_version": "0.1.0",
+      "config_sha256": "425a40d3b64ac8398c49dfc04508e1c66522754c4e07e75e69810bc2517d9a6a",
+      "data_version": "cara-lo-all/0.1.0",
+      "source_sha256": "cec651b6e97f044bf82820c465b441763cafa18a34b12361a33e79ab30faf438"
+    },
+    "assay_context": {
+      "activity_direction": "higher_is_better",
+      "activity_scale": "pChEMBL",
+      "assay_id": "CHEMBL3705917_IC50",
+      "assay_type": "IC50",
+      "source": "CARA",
+      "target": "CHEMBL4198"
+    },
+    "budget_k": 10,
+    "candidate_pool": [
+      {
+        "clogp": 2.6053000000000024,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3600717",
+        "mw": 422.57300000000015,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(Cc3ccccc3)cc21",
+        "tpsa": 57.7
+      },
+      {
+        "clogp": 1.1778199999999996,
+        "hba": 3,
+        "hbd": 1,
+        "id": "CHEMBL3600725",
+        "mw": 273.38000000000005,
+        "rotatable_bonds": 2,
+        "smiles": "Cc1ccc2c(c1)N(C(=O)CN1CCN[C@H](C)C1)CC2",
+        "tpsa": 35.580000000000005
+      },
+      {
+        "clogp": 1.0084999999999995,
+        "hba": 3,
+        "hbd": 1,
+        "id": "CHEMBL3600727",
+        "mw": 277.34299999999996,
+        "rotatable_bonds": 2,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CCc3ccc(F)cc32)CCN1",
+        "tpsa": 35.580000000000005
+      },
+      {
+        "clogp": 1.5227999999999997,
+        "hba": 3,
+        "hbd": 1,
+        "id": "CHEMBL3600728",
+        "mw": 293.79800000000006,
+        "rotatable_bonds": 2,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CCc3ccc(Cl)cc32)CCN1",
+        "tpsa": 35.580000000000005
+      },
+      {
+        "clogp": 1.6318999999999995,
+        "hba": 3,
+        "hbd": 1,
+        "id": "CHEMBL3600729",
+        "mw": 338.2490000000001,
+        "rotatable_bonds": 2,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CCc3ccc(Br)cc32)CCN1",
+        "tpsa": 35.580000000000005
+      },
+      {
+        "clogp": 1.8881999999999997,
+        "hba": 3,
+        "hbd": 1,
+        "id": "CHEMBL3600730",
+        "mw": 327.3500000000001,
+        "rotatable_bonds": 2,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CCc3ccc(C(F)(F)F)cc32)CCN1",
+        "tpsa": 35.580000000000005
+      },
+      {
+        "clogp": 0.27290000000000064,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3600731",
+        "mw": 337.4450000000001,
+        "rotatable_bonds": 3,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CCc3ccc(S(C)(=O)=O)cc32)CCN1",
+        "tpsa": 69.72
+      },
+      {
+        "clogp": 0.9177999999999993,
+        "hba": 4,
+        "hbd": 1,
+        "id": "CHEMBL3600732",
+        "mw": 294.78600000000006,
+        "rotatable_bonds": 2,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CCc3cnc(Cl)cc32)CCN1",
+        "tpsa": 48.470000000000006
+      },
+      {
+        "clogp": 2.2578999999999994,
+        "hba": 3,
+        "hbd": 1,
+        "id": "CHEMBL3600733",
+        "mw": 321.8520000000001,
+        "rotatable_bonds": 2,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ccc(Cl)cc32)CCN1",
+        "tpsa": 35.580000000000005
+      },
+      {
+        "clogp": 1.6679000000000008,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3600735",
+        "mw": 366.8930000000001,
+        "rotatable_bonds": 4,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(Cl)cc21",
+        "tpsa": 57.7
+      },
+      {
+        "clogp": 3.207200000000003,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3639989",
+        "mw": 523.6970000000002,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@H]1CN(C[C@H]2CN[C@H](C)CN2CC(=O)N2CC(C)(C)c3ncc(Cc4ccc(F)cc4)cc32)C[C@@H](C)O1",
+        "tpsa": 60.94
+      },
+      {
+        "clogp": 2.6372999999999998,
+        "hba": 4,
+        "hbd": 1,
+        "id": "CHEMBL3696486",
+        "mw": 364.4930000000001,
+        "rotatable_bonds": 4,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CCc3ccc(N(C)c4ccccc4)cc32)CCN1",
+        "tpsa": 38.82000000000001
+      },
+      {
+        "clogp": 2.6129999999999995,
+        "hba": 4,
+        "hbd": 2,
+        "id": "CHEMBL3696487",
+        "mw": 350.4660000000001,
+        "rotatable_bonds": 4,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CCc3ccc(Nc4ccccc4)cc32)CCN1",
+        "tpsa": 47.61000000000001
+      },
+      {
+        "clogp": 2.656500000000002,
+        "hba": 3,
+        "hbd": 1,
+        "id": "CHEMBL3696489",
+        "mw": 380.33,
+        "rotatable_bonds": 3,
+        "smiles": "CC(C)[C@H]1CN[C@H](C)CN1CC(=O)N1CCc2ccc(Br)cc21",
+        "tpsa": 35.580000000000005
+      },
+      {
+        "clogp": 0.6559999999999997,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3696490",
+        "mw": 317.3890000000001,
+        "rotatable_bonds": 3,
+        "smiles": "COC(=O)c1ccc2c(c1)N(C(=O)CN1CCN[C@H](C)C1)CC2",
+        "tpsa": 61.88
+      },
+      {
+        "clogp": 3.6507000000000014,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3696494",
+        "mw": 497.03900000000016,
+        "rotatable_bonds": 4,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC3(CCN(C(=O)OCc4ccccc4)CC3)c3ccc(Cl)cc32)CCN1",
+        "tpsa": 65.12
+      },
+      {
+        "clogp": 0.8821999999999997,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3696497",
+        "mw": 445.3830000000002,
+        "rotatable_bonds": 4,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CCc3cc(Br)c(S(=O)(=O)N(C)C)cc32)CCN1",
+        "tpsa": 72.96000000000001
+      },
+      {
+        "clogp": 1.7679999999999998,
+        "hba": 4,
+        "hbd": 1,
+        "id": "CHEMBL3696499",
+        "mw": 343.34900000000005,
+        "rotatable_bonds": 3,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CCc3ccc(OC(F)(F)F)cc32)CCN1",
+        "tpsa": 44.81
+      },
+      {
+        "clogp": 0.11970000000000175,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3696501",
+        "mw": 366.48700000000014,
+        "rotatable_bonds": 4,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CCc3ccc(S(=O)(=O)N(C)C)cc32)CCN1",
+        "tpsa": 72.96000000000001
+      },
+      {
+        "clogp": 1.7021999999999995,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3696502",
+        "mw": 399.51600000000013,
+        "rotatable_bonds": 4,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CCc3ccc(S(=O)(=O)c4ccccc4)cc32)CCN1",
+        "tpsa": 69.72
+      },
+      {
+        "clogp": 1.855199999999999,
+        "hba": 4,
+        "hbd": 1,
+        "id": "CHEMBL3696503",
+        "mw": 350.46600000000007,
+        "rotatable_bonds": 4,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CCc3cnc(Cc4ccccc4)cc32)CCN1",
+        "tpsa": 48.470000000000006
+      },
+      {
+        "clogp": 0.653900000000001,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3696505",
+        "mw": 392.52500000000026,
+        "rotatable_bonds": 4,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CCc3ccc(S(=O)(=O)N4CCCC4)cc32)CCN1",
+        "tpsa": 72.96000000000001
+      },
+      {
+        "clogp": 2.7239000000000004,
+        "hba": 4,
+        "hbd": 1,
+        "id": "CHEMBL3696506",
+        "mw": 388.8740000000001,
+        "rotatable_bonds": 3,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CCc3cnc(-c4cc(Cl)ccc4F)cc32)CCN1",
+        "tpsa": 48.470000000000006
+      },
+      {
+        "clogp": 1.6187999999999996,
+        "hba": 4,
+        "hbd": 2,
+        "id": "CHEMBL3696507",
+        "mw": 351.8780000000001,
+        "rotatable_bonds": 3,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ccc(Cl)cc32)[C@@H](CO)CN1",
+        "tpsa": 55.81
+      },
+      {
+        "clogp": 1.8412999999999997,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3696508",
+        "mw": 417.50600000000014,
+        "rotatable_bonds": 4,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CCc3cc(F)c(S(=O)(=O)c4ccccc4)cc32)CCN1",
+        "tpsa": 69.72
+      },
+      {
+        "clogp": 2.4372999999999996,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3696510",
+        "mw": 427.57000000000016,
+        "rotatable_bonds": 4,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ccc(S(=O)(=O)c4ccccc4)cc32)CCN1",
+        "tpsa": 69.72
+      },
+      {
+        "clogp": 1.7626000000000002,
+        "hba": 4,
+        "hbd": 2,
+        "id": "CHEMBL3696511",
+        "mw": 392.9310000000001,
+        "rotatable_bonds": 4,
+        "smiles": "CC(=O)NC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2ccc(Cl)cc21",
+        "tpsa": 64.68
+      },
+      {
+        "clogp": 2.5764000000000005,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3696513",
+        "mw": 445.5600000000002,
+        "rotatable_bonds": 4,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cc(F)c(S(=O)(=O)c4ccccc4)cc32)CCN1",
+        "tpsa": 69.72
+      },
+      {
+        "clogp": 1.5281000000000005,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3696515",
+        "mw": 438.5690000000003,
+        "rotatable_bonds": 4,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cc(F)c(S(=O)(=O)N4CCCC4)cc32)CCN1",
+        "tpsa": 72.96000000000001
+      },
+      {
+        "clogp": 2.7921000000000005,
+        "hba": 3,
+        "hbd": 1,
+        "id": "CHEMBL3696516",
+        "mw": 347.89000000000004,
+        "rotatable_bonds": 2,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC3(CCCC3)c3ccc(Cl)cc32)CCN1",
+        "tpsa": 35.580000000000005
+      },
+      {
+        "clogp": 1.5372000000000001,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3696517",
+        "mw": 397.5160000000002,
+        "rotatable_bonds": 4,
+        "smiles": "CCS(=O)(=O)c1cc2c(cc1F)C(C)(C)CN2C(=O)CN1CCN[C@H](C)C1",
+        "tpsa": 69.72
+      },
+      {
+        "clogp": 1.9257000000000002,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3696518",
+        "mw": 411.54300000000023,
+        "rotatable_bonds": 4,
+        "smiles": "CC(C)S(=O)(=O)c1cc2c(cc1F)C(C)(C)CN2C(=O)CN1CCN[C@H](C)C1",
+        "tpsa": 69.72
+      },
+      {
+        "clogp": 2.0119,
+        "hba": 3,
+        "hbd": 1,
+        "id": "CHEMBL3696519",
+        "mw": 319.83600000000007,
+        "rotatable_bonds": 2,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC3(CC3)c3ccc(Cl)cc32)CCN1",
+        "tpsa": 35.580000000000005
+      },
+      {
+        "clogp": 1.3725000000000005,
+        "hba": 4,
+        "hbd": 2,
+        "id": "CHEMBL3696520",
+        "mw": 378.90400000000005,
+        "rotatable_bonds": 3,
+        "smiles": "CNC(=O)[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2ccc(Cl)cc21",
+        "tpsa": 64.68
+      },
+      {
+        "clogp": 2.4019999999999992,
+        "hba": 3,
+        "hbd": 1,
+        "id": "CHEMBL3696521",
+        "mw": 333.86300000000006,
+        "rotatable_bonds": 2,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC3(CCC3)c3ccc(Cl)cc32)CCN1",
+        "tpsa": 35.580000000000005
+      },
+      {
+        "clogp": 1.691000000000001,
+        "hba": 6,
+        "hbd": 2,
+        "id": "CHEMBL3696522",
+        "mw": 502.61200000000014,
+        "rotatable_bonds": 5,
+        "smiles": "CNC(=O)[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cc(F)c(S(=O)(=O)c3ccccc3)cc21",
+        "tpsa": 98.82
+      },
+      {
+        "clogp": 1.6796999999999995,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3699944",
+        "mw": 409.5270000000002,
+        "rotatable_bonds": 4,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cc(F)c(S(=O)(=O)C4CC4)cc32)CCN1",
+        "tpsa": 69.72
+      },
+      {
+        "clogp": 2.591400000000001,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3699945",
+        "mw": 489.61300000000017,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cc(F)c(S(=O)(=O)c3ccccc3)cc21",
+        "tpsa": 78.95
+      },
+      {
+        "clogp": 1.4131000000000011,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3699946",
+        "mw": 423.57900000000024,
+        "rotatable_bonds": 6,
+        "smiles": "CCS(=O)(=O)c1ccc2c(c1)N(C(=O)CN1C[C@@H](C)NC[C@@H]1COC)CC2(C)C",
+        "tpsa": 78.95
+      },
+      {
+        "clogp": 2.6000000000000014,
+        "hba": 7,
+        "hbd": 1,
+        "id": "CHEMBL3699947",
+        "mw": 519.6390000000002,
+        "rotatable_bonds": 7,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cc(F)c(S(=O)(=O)c3ccc(OC)cc3)cc21",
+        "tpsa": 88.18
+      },
+      {
+        "clogp": 0.5276000000000016,
+        "hba": 6,
+        "hbd": 2,
+        "id": "CHEMBL3699948",
+        "mw": 424.56700000000023,
+        "rotatable_bonds": 6,
+        "smiles": "CNS(=O)(=O)c1ccc2c(c1)N(C(=O)CN1C[C@@H](C)NC[C@@H]1COC)CC2(C)C",
+        "tpsa": 90.98
+      },
+      {
+        "clogp": 1.8295000000000017,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3699951",
+        "mw": 438.5720000000002,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cc(=O)n(Cc3ccccc3)cc21",
+        "tpsa": 66.81
+      },
+      {
+        "clogp": 1.3062000000000027,
+        "hba": 6,
+        "hbd": 2,
+        "id": "CHEMBL3699953",
+        "mw": 452.62100000000015,
+        "rotatable_bonds": 7,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2ccc(S(=O)(=O)NC(C)C)cc21",
+        "tpsa": 90.98
+      },
+      {
+        "clogp": 2.5934000000000017,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3699954",
+        "mw": 485.6500000000002,
+        "rotatable_bonds": 7,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2ccc(S(=O)(=O)Cc3ccccc3)cc21",
+        "tpsa": 78.95
+      },
+      {
+        "clogp": 2.213000000000001,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3699956",
+        "mw": 388.55600000000015,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(CC(C)C)cc21",
+        "tpsa": 57.7
+      },
+      {
+        "clogp": 2.806800000000001,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3699957",
+        "mw": 424.54500000000013,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(Oc3ccccc3)cc21",
+        "tpsa": 66.93
+      },
+      {
+        "clogp": 2.6031000000000013,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3699958",
+        "mw": 402.5830000000002,
+        "rotatable_bonds": 7,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(CCC(C)C)cc21",
+        "tpsa": 57.7
+      },
+      {
+        "clogp": 2.032600000000003,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3699959",
+        "mw": 476.62100000000027,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC2(CN(C(C)=O)C2)c2ccc(Cc3ccccc3)cc21",
+        "tpsa": 65.12
+      },
+      {
+        "clogp": 2.7444000000000024,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3699960",
+        "mw": 440.56300000000016,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(Cc3ccccc3F)cc21",
+        "tpsa": 57.7
+      },
+      {
+        "clogp": 3.258700000000003,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3699961",
+        "mw": 457.0180000000002,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(Cc3ccccc3Cl)cc21",
+        "tpsa": 57.7
+      },
+      {
+        "clogp": 3.1373000000000015,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3699962",
+        "mw": 428.6210000000003,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(CC3CCCCC3)cc21",
+        "tpsa": 57.7
+      },
+      {
+        "clogp": 2.7824000000000026,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3699966",
+        "mw": 437.58800000000014,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(N(C)c3ccccc3)cc21",
+        "tpsa": 60.940000000000005
+      },
+      {
+        "clogp": 3.1663000000000023,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3699968",
+        "mw": 436.60000000000014,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(C(C)c3ccccc3)cc21",
+        "tpsa": 57.7
+      },
+      {
+        "clogp": 2.613900000000002,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3699970",
+        "mw": 452.5990000000002,
+        "rotatable_bonds": 7,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(Cc3cccc(OC)c3)cc21",
+        "tpsa": 66.93
+      },
+      {
+        "clogp": 2.581800000000001,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3699971",
+        "mw": 398.5510000000002,
+        "rotatable_bonds": 5,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(C3=CCCC3)cc21",
+        "tpsa": 57.7
+      },
+      {
+        "clogp": 2.6721000000000013,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3699973",
+        "mw": 400.56700000000023,
+        "rotatable_bonds": 5,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(C3CCCC3)cc21",
+        "tpsa": 57.7
+      },
+      {
+        "clogp": 3.210300000000003,
+        "hba": 4,
+        "hbd": 1,
+        "id": "CHEMBL3699975",
+        "mw": 421.58500000000015,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2ccc(Cc3ccccc3)cc21",
+        "tpsa": 44.81
+      },
+      {
+        "clogp": 2.022900000000001,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3699976",
+        "mw": 396.53900000000004,
+        "rotatable_bonds": 5,
+        "smiles": "CC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(Cn3cccn3)cc21",
+        "tpsa": 66.29
+      },
+      {
+        "clogp": 2.7444000000000024,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3699978",
+        "mw": 440.56300000000016,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(Cc3cccc(F)c3)cc21",
+        "tpsa": 57.7
+      },
+      {
+        "clogp": 2.613900000000002,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3699979",
+        "mw": 452.5990000000002,
+        "rotatable_bonds": 7,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(Cc3ccc(OC)cc3)cc21",
+        "tpsa": 66.93
+      },
+      {
+        "clogp": 2.0470999999999995,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3699980",
+        "mw": 449.59900000000016,
+        "rotatable_bonds": 5,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccccc4)cc32)[C@@H](C(=O)N(C)C)CN1",
+        "tpsa": 68.78
+      },
+      {
+        "clogp": 2.1911999999999994,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3699981",
+        "mw": 461.61000000000024,
+        "rotatable_bonds": 5,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccccc4)cc32)[C@@H](C(=O)N2CCC2)CN1",
+        "tpsa": 68.78
+      },
+      {
+        "clogp": 1.8177000000000008,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3699982",
+        "mw": 491.6360000000003,
+        "rotatable_bonds": 5,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccccc4)cc32)[C@@H](C(=O)N2CCOCC2)CN1",
+        "tpsa": 78.01
+      },
+      {
+        "clogp": 1.141300000000002,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3699983",
+        "mw": 415.53800000000024,
+        "rotatable_bonds": 5,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(N3CCCC3=O)cc21",
+        "tpsa": 78.01
+      },
+      {
+        "clogp": 0.8861800000000017,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3699984",
+        "mw": 357.4580000000001,
+        "rotatable_bonds": 4,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(C#N)cc21",
+        "tpsa": 81.49000000000001
+      },
+      {
+        "clogp": 3.2440000000000007,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3699985",
+        "mw": 555.7230000000002,
+        "rotatable_bonds": 9,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(COCc3ccccc3)c3cnc(Cc4ccccc4)cc32)[C@@H](C(=O)N(C)C)CN1",
+        "tpsa": 78.01
+      },
+      {
+        "clogp": 2.9719000000000015,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3699987",
+        "mw": 412.57800000000026,
+        "rotatable_bonds": 5,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(C3=CCCCC3)cc21",
+        "tpsa": 57.7
+      },
+      {
+        "clogp": 3.495700000000004,
+        "hba": 4,
+        "hbd": 1,
+        "id": "CHEMBL3699988",
+        "mw": 442.0030000000001,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(Cc2ccccc2)c2ccc(Cl)cc21",
+        "tpsa": 44.81
+      },
+      {
+        "clogp": 1.4852999999999998,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3699989",
+        "mw": 434.9680000000003,
+        "rotatable_bonds": 3,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ccc(Cl)cc32)[C@@H](C(=O)N2CCOCC2)CN1",
+        "tpsa": 65.12
+      },
+      {
+        "clogp": 1.462580000000001,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3699990",
+        "mw": 499.61500000000035,
+        "rotatable_bonds": 3,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC3(Cc4ccccc4C3)c3ccc(C#N)cc32)[C@@H](C(=O)N2CCOCC2)CN1",
+        "tpsa": 88.91
+      },
+      {
+        "clogp": 3.460200000000002,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3699991",
+        "mw": 458.9900000000002,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(Oc3ccccc3Cl)cc21",
+        "tpsa": 66.93
+      },
+      {
+        "clogp": 2.4227,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3699992",
+        "mw": 490.6480000000003,
+        "rotatable_bonds": 5,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ccc(Cc4ccccc4)cc32)[C@@H](C(=O)N2CCOCC2)CN1",
+        "tpsa": 65.12
+      },
+      {
+        "clogp": 2.8556,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3699993",
+        "mw": 458.6100000000001,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccccc4)cc32)[C@@H](Cn2cccn2)CN1",
+        "tpsa": 66.29
+      },
+      {
+        "clogp": 2.5399000000000003,
+        "hba": 4,
+        "hbd": 1,
+        "id": "CHEMBL3699995",
+        "mw": 396.5100000000001,
+        "rotatable_bonds": 5,
+        "smiles": "CC1(C)CN(C(=O)CN2CCN[C@H](CF)C2)c2cc(Cc3ccccc3)ncc21",
+        "tpsa": 48.470000000000006
+      },
+      {
+        "clogp": 2.5399000000000003,
+        "hba": 4,
+        "hbd": 1,
+        "id": "CHEMBL3699996",
+        "mw": 396.5100000000001,
+        "rotatable_bonds": 5,
+        "smiles": "CC1(C)CN(C(=O)CN2CCN[C@@H](CF)C2)c2cc(Cc3ccccc3)ncc21",
+        "tpsa": 48.470000000000006
+      },
+      {
+        "clogp": 3.0622000000000016,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3699998",
+        "mw": 414.5940000000003,
+        "rotatable_bonds": 5,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(C3CCCCC3)cc21",
+        "tpsa": 57.7
+      },
+      {
+        "clogp": 3.4236400000000025,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3699999",
+        "mw": 452.5990000000002,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(Oc3c(C)cccc3C)cc21",
+        "tpsa": 66.93
+      },
+      {
+        "clogp": 3.031900000000003,
+        "hba": 4,
+        "hbd": 1,
+        "id": "CHEMBL3700000",
+        "mw": 439.98700000000014,
+        "rotatable_bonds": 4,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC2(Cc3ccccc3C2)c2ccc(Cl)cc21",
+        "tpsa": 44.81
+      },
+      {
+        "clogp": 3.224000000000001,
+        "hba": 4,
+        "hbd": 1,
+        "id": "CHEMBL3700001",
+        "mw": 428.52700000000004,
+        "rotatable_bonds": 5,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccccc4)cc32)[C@@H](C(F)F)CN1",
+        "tpsa": 48.470000000000006
+      },
+      {
+        "clogp": 2.663000000000001,
+        "hba": 4,
+        "hbd": 1,
+        "id": "CHEMBL3700002",
+        "mw": 379.9320000000001,
+        "rotatable_bonds": 5,
+        "smiles": "CCC1(C)CN(C(=O)CN2C[C@@H](C)NC[C@@H]2COC)c2cc(Cl)ccc21",
+        "tpsa": 44.81
+      },
+      {
+        "clogp": 1.7419000000000018,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700004",
+        "mw": 428.5770000000003,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2ccc(CN3CCCC3=O)cc21",
+        "tpsa": 65.12
+      },
+      {
+        "clogp": 2.743000000000002,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700005",
+        "mw": 414.5750000000001,
+        "rotatable_bonds": 5,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(-c3ccsc3)cc21",
+        "tpsa": 57.7
+      },
+      {
+        "clogp": 2.0085000000000006,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700006",
+        "mw": 440.38200000000006,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(COC)c2ccc(Br)cc21",
+        "tpsa": 54.040000000000006
+      },
+      {
+        "clogp": 3.085000000000001,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700007",
+        "mw": 460.52500000000015,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(Oc3c(F)cccc3F)cc21",
+        "tpsa": 66.93
+      },
+      {
+        "clogp": 1.5351000000000006,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700008",
+        "mw": 454.3650000000001,
+        "rotatable_bonds": 5,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C(=O)OC)c2ccc(Br)cc21",
+        "tpsa": 71.11
+      },
+      {
+        "clogp": 3.768620000000003,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700009",
+        "mw": 473.0170000000002,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(Oc3c(C)cccc3Cl)cc21",
+        "tpsa": 66.93
+      },
+      {
+        "clogp": 2.5812999999999997,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700010",
+        "mw": 475.6370000000003,
+        "rotatable_bonds": 5,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccccc4)cc32)[C@@H](C(=O)N2CCCC2)CN1",
+        "tpsa": 68.78
+      },
+      {
+        "clogp": 2.750300000000003,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700011",
+        "mw": 452.59900000000016,
+        "rotatable_bonds": 7,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(C(OC)c3ccccc3)cc21",
+        "tpsa": 66.93
+      },
+      {
+        "clogp": 1.799600000000001,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700013",
+        "mw": 370.4970000000001,
+        "rotatable_bonds": 4,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cc(C)c(C#N)cc21",
+        "tpsa": 68.6
+      },
+      {
+        "clogp": 2.265500000000001,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700014",
+        "mw": 463.02200000000033,
+        "rotatable_bonds": 5,
+        "smiles": "CCC1(CC)CN(C(=O)CN2C[C@@H](C)NC[C@@H]2C(=O)N2CCOCC2)c2cc(Cl)ccc21",
+        "tpsa": 65.12
+      },
+      {
+        "clogp": 2.519580000000002,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700015",
+        "mw": 418.5410000000001,
+        "rotatable_bonds": 5,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(c2ccccc2)c2ccc(C#N)cc21",
+        "tpsa": 68.6
+      },
+      {
+        "clogp": 2.6053000000000024,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700016",
+        "mw": 422.57300000000015,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2ncc(Cc3ccccc3)cc21",
+        "tpsa": 57.7
+      },
+      {
+        "clogp": 2.519580000000002,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700018",
+        "mw": 418.5410000000001,
+        "rotatable_bonds": 5,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1C[C@@](C)(c2ccccc2)c2ccc(C#N)cc21",
+        "tpsa": 68.6
+      },
+      {
+        "clogp": 2.6313200000000014,
+        "hba": 7,
+        "hbd": 1,
+        "id": "CHEMBL3700020",
+        "mw": 447.96700000000016,
+        "rotatable_bonds": 5,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cc(-c3nc(C)no3)c(Cl)cc21",
+        "tpsa": 83.73
+      },
+      {
+        "clogp": 3.2822000000000013,
+        "hba": 4,
+        "hbd": 1,
+        "id": "CHEMBL3700021",
+        "mw": 476.02400000000017,
+        "rotatable_bonds": 4,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC3(Cc4ccccc4C3)c3ccc(Cl)cc32)[C@@H](Cn2cccn2)CN1",
+        "tpsa": 53.400000000000006
+      },
+      {
+        "clogp": 2.7698800000000006,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700022",
+        "mw": 454.5780000000002,
+        "rotatable_bonds": 5,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(c3ccccc3)c3ccc(C#N)cc32)[C@@H](Cn2cccn2)CN1",
+        "tpsa": 77.19
+      },
+      {
+        "clogp": 3.6337000000000037,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700023",
+        "mw": 484.6440000000002,
+        "rotatable_bonds": 7,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(c2ccccn2)c2ccc(Cc3ccccc3)cc21",
+        "tpsa": 57.7
+      },
+      {
+        "clogp": 3.154600000000002,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700025",
+        "mw": 458.5530000000001,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(C(F)(F)c3ccccc3)cc21",
+        "tpsa": 57.7
+      },
+      {
+        "clogp": 3.051420000000002,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700026",
+        "mw": 428.60200000000015,
+        "rotatable_bonds": 5,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(-c3ccc(C)s3)cc21",
+        "tpsa": 57.7
+      },
+      {
+        "clogp": 1.7319799999999999,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700027",
+        "mw": 487.6040000000004,
+        "rotatable_bonds": 4,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(c3ccccc3)c3ccc(C#N)cc32)[C@@H](C(=O)N2CCOCC2)CN1",
+        "tpsa": 88.91
+      },
+      {
+        "clogp": 3.4277000000000024,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700028",
+        "mw": 448.5670000000002,
+        "rotatable_bonds": 5,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(-c3cc4ccccc4o3)cc21",
+        "tpsa": 70.84
+      },
+      {
+        "clogp": 1.7319799999999999,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700030",
+        "mw": 487.6040000000004,
+        "rotatable_bonds": 4,
+        "smiles": "C[C@@H]1CN(CC(=O)N2C[C@@](C)(c3ccccc3)c3ccc(C#N)cc32)[C@@H](C(=O)N2CCOCC2)CN1",
+        "tpsa": 88.91
+      },
+      {
+        "clogp": 2.7698800000000006,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700032",
+        "mw": 454.5780000000002,
+        "rotatable_bonds": 5,
+        "smiles": "C[C@@H]1CN(CC(=O)N2C[C@@](C)(c3ccccc3)c3ccc(C#N)cc32)[C@@H](Cn2cccn2)CN1",
+        "tpsa": 77.19
+      },
+      {
+        "clogp": 2.7698800000000006,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700033",
+        "mw": 454.5780000000002,
+        "rotatable_bonds": 5,
+        "smiles": "C[C@@H]1CN(CC(=O)N2C[C@](C)(c3ccccc3)c3ccc(C#N)cc32)[C@@H](Cn2cccn2)CN1",
+        "tpsa": 77.19
+      },
+      {
+        "clogp": 2.994700000000001,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700035",
+        "mw": 476.60000000000014,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccccc4)cc32)[C@@H](Cn2cc(F)cn2)CN1",
+        "tpsa": 66.29
+      },
+      {
+        "clogp": 2.5964,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700036",
+        "mw": 485.5790000000002,
+        "rotatable_bonds": 5,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(C(F)(F)c4ccccc4)cc32)[C@@H](C(=O)N(C)C)CN1",
+        "tpsa": 68.78
+      },
+      {
+        "clogp": 1.8177000000000008,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700037",
+        "mw": 491.6360000000003,
+        "rotatable_bonds": 5,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ncc(Cc4ccccc4)cc32)[C@@H](C(=O)N2CCOCC2)CN1",
+        "tpsa": 78.01
+      },
+      {
+        "clogp": 1.4761799999999996,
+        "hba": 4,
+        "hbd": 1,
+        "id": "CHEMBL3700039",
+        "mw": 312.4170000000001,
+        "rotatable_bonds": 2,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ccc(C#N)cc32)CCN1",
+        "tpsa": 59.370000000000005
+      },
+      {
+        "clogp": 3.6337000000000037,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700040",
+        "mw": 484.6440000000002,
+        "rotatable_bonds": 7,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(c2cccnc2)c2ccc(Cc3ccccc3)cc21",
+        "tpsa": 57.7
+      },
+      {
+        "clogp": 2.3252999999999995,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700041",
+        "mw": 485.5790000000002,
+        "rotatable_bonds": 5,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccc(F)cc4F)cc32)[C@@H](C(=O)N(C)C)CN1",
+        "tpsa": 68.78
+      },
+      {
+        "clogp": 2.121900000000001,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700043",
+        "mw": 474.5520000000002,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2c[n+]([O-])c(Cc3ccc(F)cc3F)cc21",
+        "tpsa": 71.75
+      },
+      {
+        "clogp": 1.5637000000000008,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700044",
+        "mw": 501.5780000000002,
+        "rotatable_bonds": 5,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3c[n+]([O-])c(Cc4ccc(F)cc4F)cc32)[C@@H](C(=O)N(C)C)CN1",
+        "tpsa": 82.83
+      },
+      {
+        "clogp": 2.0085000000000006,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700045",
+        "mw": 440.38200000000006,
+        "rotatable_bonds": 6,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1C[C@](C)(COC)c2ccc(Br)cc21",
+        "tpsa": 54.040000000000006
+      },
+      {
+        "clogp": 2.0470999999999995,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700047",
+        "mw": 449.59900000000016,
+        "rotatable_bonds": 5,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ncc(Cc4ccccc4)cc32)[C@@H](C(=O)N(C)C)CN1",
+        "tpsa": 68.78
+      },
+      {
+        "clogp": 2.994700000000001,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700048",
+        "mw": 476.60000000000014,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ncc(Cc4ccccc4)cc32)[C@@H](Cn2cc(F)cn2)CN1",
+        "tpsa": 66.29
+      },
+      {
+        "clogp": 3.5351200000000036,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700049",
+        "mw": 488.63200000000023,
+        "rotatable_bonds": 7,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1C[C@](C)(c2cc(C)no2)c2ccc(Cc3ccccc3)cc21",
+        "tpsa": 70.84
+      },
+      {
+        "clogp": 3.5351200000000036,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700050",
+        "mw": 488.63200000000023,
+        "rotatable_bonds": 7,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1C[C@@](C)(c2cc(C)no2)c2ccc(Cc3ccccc3)cc21",
+        "tpsa": 70.84
+      },
+      {
+        "clogp": 2.1262000000000008,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700053",
+        "mw": 396.4820000000001,
+        "rotatable_bonds": 5,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(C(C)(F)F)cc21",
+        "tpsa": 57.7
+      },
+      {
+        "clogp": 1.0629000000000008,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700054",
+        "mw": 367.88100000000003,
+        "rotatable_bonds": 4,
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2nnc(Cl)cc21",
+        "tpsa": 70.59
+      },
+      {
+        "clogp": 2.1022,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700055",
+        "mw": 449.5460000000003,
+        "rotatable_bonds": 5,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(C(C)(F)F)cc32)[C@@H](CN2CCCC2=O)CN1",
+        "tpsa": 68.78
+      },
+      {
+        "clogp": 2.4939999999999998,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700056",
+        "mw": 522.6000000000003,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccc(F)cc4F)cc32)[C@@H](Cn2cccnc2=O)CN1",
+        "tpsa": 83.36000000000001
+      },
+      {
+        "clogp": 2.0958999999999994,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700062",
+        "mw": 527.6160000000003,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccc(F)cc4F)cc32)[C@@H](CN2CCOCC2=O)CN1",
+        "tpsa": 78.01000000000002
+      },
+      {
+        "clogp": 3.249600000000001,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700063",
+        "mw": 525.6440000000003,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccc(F)cc4F)cc32)[C@@H](CN2CCCCC2=O)CN1",
+        "tpsa": 68.78
+      },
+      {
+        "clogp": 2.4939999999999998,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700064",
+        "mw": 522.6000000000003,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccc(F)cc4F)cc32)[C@@H](Cn2ncccc2=O)CN1",
+        "tpsa": 83.36000000000001
+      },
+      {
+        "clogp": 2.4939999999999998,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700065",
+        "mw": 522.6000000000003,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccc(F)cc4F)cc32)[C@@H](Cn2ccncc2=O)CN1",
+        "tpsa": 83.36000000000001
+      },
+      {
+        "clogp": 2.6893000000000002,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700069",
+        "mw": 513.5890000000003,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ncc(Cc4ccc(F)cc4F)cc32)[C@@H](CN2CCOC2=O)CN1",
+        "tpsa": 78.01000000000002
+      },
+      {
+        "clogp": 3.280900000000001,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700071",
+        "mw": 515.6240000000003,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccc(F)cc4F)cc32)[C@@H](CN2CC[C@H](F)C2)CN1",
+        "tpsa": 51.71000000000001
+      },
+      {
+        "clogp": 3.280900000000001,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700072",
+        "mw": 515.6240000000003,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccc(F)cc4F)cc32)[C@@H](CN2CC[C@@H](F)C2)CN1",
+        "tpsa": 51.71000000000001
+      },
+      {
+        "clogp": 3.280900000000001,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700073",
+        "mw": 515.6240000000003,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ncc(Cc4ccc(F)cc4F)cc32)[C@@H](CN2CC[C@H](F)C2)CN1",
+        "tpsa": 51.71000000000001
+      },
+      {
+        "clogp": 3.280900000000001,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700074",
+        "mw": 515.6240000000003,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ncc(Cc4ccc(F)cc4F)cc32)[C@@H](CN2CC[C@@H](F)C2)CN1",
+        "tpsa": 51.71000000000001
+      },
+      {
+        "clogp": 3.145640000000002,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700075",
+        "mw": 523.6320000000003,
+        "rotatable_bonds": 6,
+        "smiles": "Cc1nc(C)n(C[C@H]2CN[C@H](C)CN2CC(=O)N2CC(C)(C)c3cnc(Cc4ccc(F)cc4F)cc32)n1",
+        "tpsa": 79.18
+      },
+      {
+        "clogp": 2.5119,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700076",
+        "mw": 511.6170000000003,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccc(F)cc4F)cc32)[C@@H](CN2CCC(=O)C2)CN1",
+        "tpsa": 68.78
+      },
+      {
+        "clogp": 3.578100000000002,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700077",
+        "mw": 533.6140000000001,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccc(F)cc4F)cc32)[C@@H](CN2CCC(F)(F)C2)CN1",
+        "tpsa": 51.71000000000001
+      },
+      {
+        "clogp": 2.6893000000000002,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700078",
+        "mw": 513.5890000000003,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccc(F)cc4F)cc32)[C@@H](CN2CCOC2=O)CN1",
+        "tpsa": 78.01000000000002
+      },
+      {
+        "clogp": 2.4923,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700080",
+        "mw": 475.58400000000034,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(C(F)(F)C4CC4)cc32)[C@@H](CN2CCCC2=O)CN1",
+        "tpsa": 68.78
+      },
+      {
+        "clogp": 2.9137000000000013,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700081",
+        "mw": 467.58000000000027,
+        "rotatable_bonds": 6,
+        "smiles": "CCC(F)(F)c1cc2c(cn1)C(C)(C)CN2C(=O)CN1C[C@@H](C)NC[C@@H]1CN1CC[C@@H](F)C1",
+        "tpsa": 51.71000000000001
+      },
+      {
+        "clogp": 3.128400000000001,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700082",
+        "mw": 491.62700000000046,
+        "rotatable_bonds": 7,
+        "smiles": "CC(C)CC(F)(F)c1cnc2c(c1)N(C(=O)CN1C[C@@H](C)NC[C@@H]1CN1CCCC1=O)CC2(C)C",
+        "tpsa": 68.78
+      },
+      {
+        "clogp": 2.5692999999999993,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700084",
+        "mw": 513.6330000000004,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccc(F)cc4F)cc32)[C@@H](CN2CCOCC2)CN1",
+        "tpsa": 60.94000000000001
+      },
+      {
+        "clogp": 3.3329000000000013,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700085",
+        "mw": 497.6340000000003,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccc(F)cc4F)cc32)[C@@H](CN2CCCC2)CN1",
+        "tpsa": 51.71000000000001
+      },
+      {
+        "clogp": 3.5520000000000023,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700086",
+        "mw": 515.6240000000003,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ncc(C(F)(F)c4ccccc4)cc32)[C@@H](CN2CC[C@@H](F)C2)CN1",
+        "tpsa": 51.71000000000001
+      },
+      {
+        "clogp": 3.3038000000000016,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700088",
+        "mw": 481.6070000000003,
+        "rotatable_bonds": 7,
+        "smiles": "CCCC(F)(F)c1cnc2c(c1)N(C(=O)CN1C[C@@H](C)NC[C@@H]1CN1CC[C@@H](F)C1)CC2(C)C",
+        "tpsa": 51.71000000000001
+      },
+      {
+        "clogp": 2.8824000000000005,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700089",
+        "mw": 489.6110000000004,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ncc(C(F)(F)C4CCC4)cc32)[C@@H](CN2CCCC2=O)CN1",
+        "tpsa": 68.78
+      },
+      {
+        "clogp": 1.2538000000000016,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700090",
+        "mw": 478.5880000000003,
+        "rotatable_bonds": 5,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ncc(C(C)(F)F)cc32)[C@@H](CN2CCN(C)C(=O)C2)CN1",
+        "tpsa": 72.02000000000001
+      },
+      {
+        "clogp": 2.592200000000001,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700091",
+        "mw": 491.6270000000004,
+        "rotatable_bonds": 7,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ncc(C(F)(F)CC4CC4)cc32)[C@@H](CN2CCOCC2)CN1",
+        "tpsa": 60.94000000000001
+      },
+      {
+        "clogp": 3.9592000000000027,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700092",
+        "mw": 477.6250000000002,
+        "rotatable_bonds": 7,
+        "smiles": "CCCC(F)(F)c1cc2c(cn1)C(C)(C)CN2C(=O)CN1C[C@@H](C)NC[C@@H]1Cc1nccs1",
+        "tpsa": 61.36000000000001
+      },
+      {
+        "clogp": 2.8382000000000014,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700094",
+        "mw": 493.6430000000005,
+        "rotatable_bonds": 7,
+        "smiles": "CC(C)CC(F)(F)c1cnc2c(c1)N(C(=O)CN1C[C@@H](C)NC[C@@H]1CN1CCOCC1)CC2(C)C",
+        "tpsa": 60.94000000000001
+      },
+      {
+        "clogp": 2.5692999999999993,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700095",
+        "mw": 513.6330000000004,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ncc(Cc4ccc(F)cc4F)cc32)[C@@H](CN2CCOCC2)CN1",
+        "tpsa": 60.94000000000001
+      },
+      {
+        "clogp": 2.4301999999999992,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700096",
+        "mw": 495.6430000000003,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccc(F)cc4)cc32)[C@@H](CN2CCOCC2)CN1",
+        "tpsa": 60.94000000000001
+      },
+      {
+        "clogp": 2.592200000000001,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700097",
+        "mw": 479.6160000000004,
+        "rotatable_bonds": 7,
+        "smiles": "CCCC(F)(F)c1cnc2c(c1)N(C(=O)CN1C[C@@H](C)NC[C@@H]1CN1CCOCC1)CC2(C)C",
+        "tpsa": 60.94000000000001
+      },
+      {
+        "clogp": 3.141800000000001,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700099",
+        "mw": 497.63400000000024,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ncc(Cc4ccc(F)cc4)cc32)[C@@H](CN2CC[C@@H](F)C2)CN1",
+        "tpsa": 51.71000000000001
+      },
+      {
+        "clogp": 3.369200000000002,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700101",
+        "mw": 507.67000000000036,
+        "rotatable_bonds": 7,
+        "smiles": "CCCC(F)(F)c1cnc2c(c1)N(C(=O)CN1C[C@@H](C)NC[C@@H]1CN1C[C@H](C)O[C@H](C)C1)CC2(C)C",
+        "tpsa": 60.94000000000001
+      },
+      {
+        "clogp": 2.4301999999999992,
+        "hba": 6,
+        "hbd": 1,
+        "id": "CHEMBL3700102",
+        "mw": 495.6430000000003,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ncc(Cc4ccccc4F)cc32)[C@@H](CN2CCOCC2)CN1",
+        "tpsa": 60.94000000000001
+      },
+      {
+        "clogp": 3.141800000000001,
+        "hba": 5,
+        "hbd": 1,
+        "id": "CHEMBL3700103",
+        "mw": 497.63400000000024,
+        "rotatable_bonds": 6,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ncc(Cc4ccccc4F)cc32)[C@@H](CN2CC[C@@H](F)C2)CN1",
+        "tpsa": 51.71000000000001
+      },
+      {
+        "clogp": 2.7294,
+        "hba": 4,
+        "hbd": 1,
+        "id": "CHEMBL3700108",
+        "mw": 396.5100000000001,
+        "rotatable_bonds": 4,
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ncc(Cc4ccc(F)cc4)cc32)CCN1",
+        "tpsa": 48.470000000000006
+      }
+    ],
+    "condition": {
+      "live_provider_optional": true,
+      "uses_tools": true,
+      "uses_validator": false
+    },
+    "generation": {
+      "max_tokens": 4096,
+      "prompt_profile": "json_first",
+      "reasoning_effort": "low",
+      "request_timeout_seconds": null,
+      "temperature": null,
+      "thinking": null,
+      "thinking_budget_tokens": null
+    },
+    "hard_constraints": [
+      {
+        "check": "exactly_k",
+        "id": "exact_budget",
+        "params": {},
+        "type": "output"
+      },
+      {
+        "check": "in_candidate_pool",
+        "id": "candidate_pool_only",
+        "params": {},
+        "type": "output"
+      },
+      {
+        "check": "no_duplicates",
+        "id": "no_duplicates",
+        "params": {},
+        "type": "output"
+      },
+      {
+        "check": "exclude_support",
+        "id": "exclude_support",
+        "params": {},
+        "type": "output"
+      },
+      {
+        "check": "descriptor_max",
+        "id": "mw_max_500",
+        "params": {
+          "descriptor": "mw",
+          "max": 500
+        },
+        "type": "candidate"
+      },
+      {
+        "check": "descriptor_max",
+        "id": "clogp_max_4_5",
+        "params": {
+          "descriptor": "clogp",
+          "max": 4.5
+        },
+        "type": "candidate"
+      },
+      {
+        "check": "forbidden_smarts",
+        "id": "forbidden_substructures",
+        "params": {
+          "smarts": []
+        },
+        "type": "candidate"
+      }
+    ],
+    "model": "gpt-5.5-2026-04-23",
+    "model_config_id": "openai_gpt_5_5_2026_04_23_selector",
+    "prompt_profile": "json_first",
+    "provider": "openai",
+    "reasoning_effort": "low",
+    "response_contract": {
+      "selections": [
+        {
+          "candidate_id": "candidate ID from candidate_pool",
+          "confidence": 0.0,
+          "rank": 1
+        }
+      ],
+      "system_name": "llm_tools",
+      "task_id": "CARA_LO_CHEMBL3705917_IC50_0030"
+    },
+    "support_set": [
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 4.23,
+        "id": "CHEMBL3600726",
+        "smiles": "CC(C)c1ccc2c(c1)N(C(=O)CN1CCN[C@H](C)C1)CC2"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 5.82,
+        "id": "CHEMBL3600734",
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2ccc(Cl)cc21"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 6.72,
+        "id": "CHEMBL3639988",
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccccc4)cc32)[C@@H](CF)CN1"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 5.13,
+        "id": "CHEMBL3696495",
+        "smiles": "C[C@@H]1CN(CC(=O)N2CCc3cc(F)c(-c4ccccc4)cc32)CCN1"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 5.8,
+        "id": "CHEMBL3696496",
+        "smiles": "CNS(=O)(=O)c1cc2c(cc1Br)CCN2C(=O)CN1CCN[C@H](C)C1"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 5.6,
+        "id": "CHEMBL3696498",
+        "smiles": "CNS(=O)(=O)c1ccc2c(c1)N(C(=O)CN1CCN[C@H](C)C1)CC2"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 6.04,
+        "id": "CHEMBL3696500",
+        "smiles": "C[C@@H]1CN(CC(=O)N2CCc3ccc(Cc4ccccc4)cc32)CCN1"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 6.11,
+        "id": "CHEMBL3696509",
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ccc(Cc4ccccc4)cc32)[C@@H](CO)CN1"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 5.05,
+        "id": "CHEMBL3696512",
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3c(Cl)cc(Cl)cc32)CCN1"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 7.01,
+        "id": "CHEMBL3696514",
+        "smiles": "CC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cc(F)c(S(=O)(=O)c3ccccc3)cc21"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 6.57,
+        "id": "CHEMBL3699949",
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2ccc(S(=O)(=O)CC(C)C)cc21"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 5.22,
+        "id": "CHEMBL3699950",
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cc(OC)ncc21"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 6.64,
+        "id": "CHEMBL3699952",
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2ccc(S(=O)(=O)N(C)C)cc21"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 6.31,
+        "id": "CHEMBL3699955",
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC2(CN(C(C)=O)C2)c2ccc(Cl)cc21"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 5.82,
+        "id": "CHEMBL3699963",
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(Cc3cccc(C#N)c3)cc21"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 6.66,
+        "id": "CHEMBL3699964",
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(Cc3ccc(Cl)cc3)cc21"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 6.46,
+        "id": "CHEMBL3699965",
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(Oc3ccccc3C)cc21"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 6.54,
+        "id": "CHEMBL3699967",
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(Cc3cccc(Cl)c3)cc21"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 6.77,
+        "id": "CHEMBL3699969",
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(Cc3ccc(F)cc3)cc21"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 6.54,
+        "id": "CHEMBL3699972",
+        "smiles": "CC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(Cc3ccccc3)cc21"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 6.31,
+        "id": "CHEMBL3699974",
+        "smiles": "C=C(c1ccccc1)c1cc2c(cn1)C(C)(C)CN2C(=O)CN1C[C@@H](C)NC[C@@H]1COC"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 6.47,
+        "id": "CHEMBL3699977",
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(C(=O)c3ccccc3)cc21"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 6.72,
+        "id": "CHEMBL3699986",
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(Cc3ccc(F)cc3F)cc21"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 5.0,
+        "id": "CHEMBL3699994",
+        "smiles": "CC1(C)CN(C(=O)CN2CCNC(CF)C2)c2cc(Cc3ccccc3)ncc21"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 6.1,
+        "id": "CHEMBL3699997",
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2ccc(C#N)cc21"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 5.4,
+        "id": "CHEMBL3700003",
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(-c3cnn(C)c3)cc21"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 7.04,
+        "id": "CHEMBL3700012",
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccccc4)cc32)[C@@H](C(=O)N2CCCCC2)CN1"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 6.19,
+        "id": "CHEMBL3700017",
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ccc(Cl)cc32)[C@@H](Cn2cccn2)CN1"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 7.03,
+        "id": "CHEMBL3700019",
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1C[C@](C)(c2ccccc2)c2ccc(C#N)cc21"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 6.0,
+        "id": "CHEMBL3700024",
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2cnc(-c3ccoc3)cc21"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 5.82,
+        "id": "CHEMBL3700034",
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(c2ccccn2)c2ccc(C#N)cc21"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 7.22,
+        "id": "CHEMBL3700038",
+        "smiles": "Cc1cnn(C[C@H]2CN[C@H](C)CN2CC(=O)N2CC3(Cc4ccccc4C3)c3ccc(C#N)cc32)c1"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 6.04,
+        "id": "CHEMBL3700046",
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1C[C@@](C)(COC)c2ccc(Br)cc21"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 7.31,
+        "id": "CHEMBL3700051",
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Oc4ccccc4Cl)cc32)[C@@H](Cn2cc(F)cn2)CN1"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 7.36,
+        "id": "CHEMBL3700052",
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ncc(Cc4ccccc4)cc32)[C@@H](CN2CCCC2=O)CN1"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 6.96,
+        "id": "CHEMBL3700058",
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ncc(C(=O)c4ccccc4)cc32)[C@@H](CN2CCCC2=O)CN1"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 6.24,
+        "id": "CHEMBL3700059",
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ncc(C(C)(F)F)cc32)[C@@H](CN2CCCC2=O)CN1"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 7.34,
+        "id": "CHEMBL3700061",
+        "smiles": "CCC(F)(F)c1cnc2c(c1)N(C(=O)CN1C[C@@H](C)NC[C@@H]1CN1CCCC1=O)CC2(C)C"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 5.25,
+        "id": "CHEMBL3700066",
+        "smiles": "C[C@@H](C(=O)N1CC(C)(C)c2ccc(C#N)cc21)N1CCN[C@H](C)C1"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 7.2,
+        "id": "CHEMBL3700068",
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ncc(Cc4ccc(F)cc4F)cc32)[C@@H](CN2CCCC2=O)CN1"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 7.09,
+        "id": "CHEMBL3700070",
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3nnc(Cc4ccc(F)cc4F)cc32)[C@@H](CN2CCCC2=O)CN1"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 7.34,
+        "id": "CHEMBL3700079",
+        "smiles": "CC(C)C(F)(F)c1cc2c(cn1)C(C)(C)CN2C(=O)CN1C[C@@H](C)NC[C@@H]1CN1CCCC1=O"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 7.21,
+        "id": "CHEMBL3700083",
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(C(F)(F)c4ccccc4)cc32)[C@@H](CN2C(=O)CCC2=O)CN1"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 6.66,
+        "id": "CHEMBL3700087",
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ncc(C(C)(F)F)cc32)[C@@H](CN2CCc3cccnc32)CN1"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 7.13,
+        "id": "CHEMBL3700093",
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3ncc(Cc4ccc(F)cc4)cc32)[C@@H](CN2CCOCC2)CN1"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 7.06,
+        "id": "CHEMBL3700098",
+        "smiles": "C[C@H]1COCCN1C[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2ncc(Cc3ccc(F)cc3)cc21"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 7.33,
+        "id": "CHEMBL3700100",
+        "smiles": "C[C@@H]1CN(CC(=O)N2CC(C)(C)c3cnc(Cc4ccccc4F)cc32)[C@@H](CN2CCOCC2)CN1"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 7.3,
+        "id": "CHEMBL3700104",
+        "smiles": "CC[C@@H]1COCCN1C[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2ncc(C(C)(F)F)cc21"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 7.28,
+        "id": "CHEMBL3700106",
+        "smiles": "CCC(F)(F)c1cnc2c(c1)N(C(=O)CN1C[C@@H](C)NC[C@@H]1CN1CCOC[C@H]1COC)CC2(C)C"
+      },
+      {
+        "activity_type": "pChEMBL",
+        "activity_value": 5.14,
+        "id": "CHEMBL3700107",
+        "smiles": "COC[C@H]1CN[C@H](C)CN1CC(=O)N1CC(C)(C)c2ccc(Cc3ccccc3)nc21"
+      }
+    ],
+    "system_input_sha256": "e1b7420cf7cba18b4bf7365b425c114d794d1d0652ae09cc211f1b63556f8484",
+    "system_name": "llm_tools",
+    "task_id": "CARA_LO_CHEMBL3705917_IC50_0030",
+    "thinking": null
+  },
+  "response": {
+    "metadata": {
+      "base_system_name": "llm_tools",
+      "configured_model": "gpt-5.5-2026-04-23",
+      "latency_ms": 15535,
+      "llm_model": "gpt-5.5-2026-04-23",
+      "llm_model_config_id": "openai_gpt_5_5_2026_04_23_selector",
+      "llm_provider": "openai",
+      "max_tokens": 4096,
+      "model": "gpt-5.5-2026-04-23",
+      "model_config_id": "openai_gpt_5_5_2026_04_23_selector",
+      "prompt_profile": "json_first",
+      "provider": "openai",
+      "provider_attempt_count": 1,
+      "provider_finish_reason": "stop",
+      "provider_returned_model": "gpt-5.5-2026-04-23",
+      "raw_response_content": {
+        "annotations": [],
+        "audio": null,
+        "content": "{\"selections\":[{\"candidate_id\":\"CHEMBL3700102\",\"confidence\":0.82,\"rank\":1},{\"candidate_id\":\"CHEMBL3700096\",\"confidence\":0.8,\"rank\":2},{\"candidate_id\":\"CHEMBL3700082\",\"confidence\":0.78,\"rank\":3},{\"candidate_id\":\"CHEMBL3700089\",\"confidence\":0.75,\"rank\":4},{\"candidate_id\":\"CHEMBL3700010\",\"confidence\":0.74,\"rank\":5},{\"candidate_id\":\"CHEMBL3700032\",\"confidence\":0.72,\"rank\":6},{\"candidate_id\":\"CHEMBL3700022\",\"confidence\":0.72,\"rank\":7},{\"candidate_id\":\"CHEMBL3700035\",\"confidence\":0.71,\"rank\":8},{\"candidate_id\":\"CHEMBL3700027\",\"confidence\":0.7,\"rank\":9},{\"candidate_id\":\"CHEMBL3700080\",\"confidence\":0.69,\"rank\":10}]}",
+        "function_call": null,
+        "refusal": null,
+        "role": "assistant",
+        "tool_calls": null
+      },
+      "raw_response_selection_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "raw_response_sha256": "fbddbdcae997bb545b4d649d9ebdb1d1fdc74255d5ed8a27342ac672bf7d1d2b",
+      "raw_response_system_name": null,
+      "raw_response_task_id": null,
+      "raw_response_text": "{\"selections\":[{\"candidate_id\":\"CHEMBL3700102\",\"confidence\":0.82,\"rank\":1},{\"candidate_id\":\"CHEMBL3700096\",\"confidence\":0.8,\"rank\":2},{\"candidate_id\":\"CHEMBL3700082\",\"confidence\":0.78,\"rank\":3},{\"candidate_id\":\"CHEMBL3700089\",\"confidence\":0.75,\"rank\":4},{\"candidate_id\":\"CHEMBL3700010\",\"confidence\":0.74,\"rank\":5},{\"candidate_id\":\"CHEMBL3700032\",\"confidence\":0.72,\"rank\":6},{\"candidate_id\":\"CHEMBL3700022\",\"confidence\":0.72,\"rank\":7},{\"candidate_id\":\"CHEMBL3700035\",\"confidence\":0.71,\"rank\":8},{\"candidate_id\":\"CHEMBL3700027\",\"confidence\":0.7,\"rank\":9},{\"candidate_id\":\"CHEMBL3700080\",\"confidence\":0.69,\"rank\":10}]}",
+      "reasoning_effort": "low",
+      "request_sha256": "1a91c5d20a5c110146aae5f72634a4a19f315af2c43361fc54c27c3614faf303",
+      "request_timeout_seconds": null,
+      "response_contract_issues": [
+        {
+          "code": "schema_missing_task_id",
+          "message": "Response omitted task_id"
+        },
+        {
+          "code": "schema_missing_system_name",
+          "message": "Response omitted system_name"
+        }
+      ],
+      "response_id": "chatcmpl-E5CGfGLPJLAx5rkPR7fRPsljIkWh0",
+      "temperature": null,
+      "thinking": null,
+      "thinking_budget_tokens": null,
+      "usage": {
+        "completion_tokens": 730,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": 0,
+          "audio_tokens": 0,
+          "reasoning_tokens": 512,
+          "rejected_prediction_tokens": 0
+        },
+        "prompt_tokens": 23451,
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cached_tokens": 0
+        },
+        "total_tokens": 24181
+      }
+    },
+    "selections": [
+      {
+        "candidate_id": "CHEMBL3700102",
+        "confidence": 0.82,
+        "rank": 1,
+        "rationale": null
+      },
+      {
+        "candidate_id": "CHEMBL3700096",
+        "confidence": 0.8,
+        "rank": 2,
+        "rationale": null
+      },
+      {
+        "candidate_id": "CHEMBL3700082",
+        "confidence": 0.78,
+        "rank": 3,
+        "rationale": null
+      },
+      {
+        "candidate_id": "CHEMBL3700089",
+        "confidence": 0.75,
+        "rank": 4,
+        "rationale": null
+      },
+      {
+        "candidate_id": "CHEMBL3700010",
+        "confidence": 0.74,
+        "rank": 5,
+        "rationale": null
+      },
+      {
+        "candidate_id": "CHEMBL3700032",
+        "confidence": 0.72,
+        "rank": 6,
+        "rationale": null
+      },
+      {
+        "candidate_id": "CHEMBL3700022",
+        "confidence": 0.72,
+        "rank": 7,
+        "rationale": null
+      },
+      {
+        "candidate_id": "CHEMBL3700035",
+        "confidence": 0.71,
+        "rank": 8,
+        "rationale": null
+      },
+      {
+        "candidate_id": "CHEMBL3700027",
+        "confidence": 0.7,
+        "rank": 9,
+        "rationale": null
+      },
+      {
+        "candidate_id": "CHEMBL3700080",
+        "confidence": 0.69,
+        "rank": 10,
+        "rationale": null
+      }
+    ],
+    "system_name": "llm_tools__openai_gpt_5_5_2026_04_23_selector",
+    "task_id": "CARA_LO_CHEMBL3705917_IC50_0030"
+  }
+}

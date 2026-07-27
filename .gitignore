@@ -37,7 +37,8 @@ paper/figures/*
 paper/tables/*
 !paper/tables/v0.1.0/
 !paper/tables/v0.1.0/**
-paper/RESULTS_SUMMARY.md
+# The corrected v0.1.0 summary is generated with a fixed canonical timestamp
+# and is intentionally retained as a release-facing analysis artifact.
 paper/manuscript/build/
 
 .DS_Store

@@ -1,10 +1,12 @@
 # SpecGuard-Chem paper workspace
 
-> **Status: in preparation.** The corrected data artifact, deterministic
-> baselines, and a one-card provider pilot exist. The pilot verifies execution,
-> provenance, and raw-versus-repaired attribution but is not used as a model
-> comparison. The full paper-facing LLM matrix has not occurred, so no final
-> LLM headline result is available yet.
+> **Status: results populated; manuscript in preparation.** The corrected data
+> artifact, deterministic baselines, and full 546-request provider matrix are
+> complete and audited across 91 cards, two interfaces, and three frozen model
+> conditions. Six raw traces and six zero-call post-hoc-repaired views feed the
+> canonical comparison, report, dashboard, figures, and manuscript result gate.
+> The best repaired LLM reaches 73.964 utility; the QSAR SVM remains higher at
+> 74.966.
 
 ## Working paper identity
 
@@ -42,15 +44,50 @@ The authoritative status of those historical outputs is documented in
 
 ```text
 paper/
-  manuscript/   LaTeX source and bibliography under active development
-  tables/       generated deterministic tables now; LLM tables after the complete run
-  figures/      generated figures after the complete corrected provider run
+  manuscript/   LaTeX source, generated result macros, compiled drafts, and bibliography
+  tables/       generated deterministic and comparison-supporting tables
+  figures/      corrected v0.1.0 aggregate and card-level analysis figures
+  FIGURE_PACKAGE.md     numbered Figure 1–8 package with report captions
+  RESULTS_SUMMARY.md     canonical human-readable results report
+  RESULTS_DASHBOARD.html self-contained interactive results dashboard
   README.md     this paper-specific status and evidence policy
 ```
 
 Do not hand-edit generated numerical tables or figures. Their final build path
 must be recorded in the release reproduction guide and verified from a clean
 checkout.
+
+## Report-ready figures
+
+The corrected full-matrix build replaces the complete retired paper-50 figure
+package, not only the two newer core views. Every numbered figure is written as
+a 300-dpi PNG for the report and as PDF and searchable SVG vector exports:
+
+1. [Decision-card anatomy and leakage boundary](figures/v0.1.0/figure_1_decision_card_anatomy.png)
+2. [Corrected 91-card benchmark pipeline](figures/v0.1.0/figure_2_benchmark_pipeline.png)
+3. [Main feasible-utility comparison](figures/v0.1.0/figure_3_main_system_comparison.png)
+4. [System NDCG@10 comparison](figures/v0.1.0/figure_4_ndcg_system_comparison.png)
+5. [Raw versus post-hoc-repaired LLM utility](figures/v0.1.0/figure_5_raw_vs_final_llm.png)
+6. [Raw versus post-hoc-repaired whole-action validity](figures/v0.1.0/figure_6_raw_vs_final_action_validity.png)
+7. [Corrected leaderboard summary](figures/v0.1.0/figure_7_leaderboard_summary.png)
+8. [Raw LLM failure taxonomy](figures/v0.1.0/figure_8_failure_taxonomy.png)
+
+Two additional inferential views carry the main paired claims:
+[utility–validity repair frontier](figures/v0.1.0/compliance_utility_frontier.png)
+and [paired feasible-utility effects](figures/v0.1.0/paired_utility_effects.png).
+The latter places each numerical effect label above its interval so the label
+does not sit on the error-bar line.
+
+Additional diagnostics include the
+[complete primary leaderboard](figures/v0.1.0/primary_utility_leaderboard.png),
+[repair decomposition](figures/v0.1.0/llm_repair_effect.png),
+[standalone descriptor ablation](figures/v0.1.0/descriptor_ablation.png),
+[across-card utility distributions](figures/v0.1.0/card_level_utility_distribution.png),
+[across-card utility-difference distributions](figures/v0.1.0/card_level_delta_distribution.png),
+and [per-card QSAR-versus-LLM scatter](figures/v0.1.0/card_level_qsar_vs_llm_scatter.png).
+The numbered package uses the corrected 19-row comparison: seven
+deterministic/oracle systems, six recorded raw LLM conditions, and six
+zero-call repaired views.
 
 ## Release relationship
 

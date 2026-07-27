@@ -65,6 +65,7 @@ LLM_RESULT_FIELDS = (
     "raw_feasible_utility",
     "raw_ndcg_at_k",
     "raw_action_validity",
+    "repaired_rate",
 )
 PAIRED_METRICS = ("feasible_utility", "ndcg_at_k", "action_validity")
 
@@ -557,10 +558,47 @@ def _load_llm_result(repo_root: Path, *, expected_cards: int) -> dict[str, Any] 
         raw_names=raw_names,
         repaired_names=repaired_names,
     )
-    return max(
+    best_result = max(
         rows_by_name.values(),
         key=lambda row: _as_finite_float(row, "feasible_utility", source=comparison_path),
     )
+    best_name = str(best_result["system_name"])
+    key_pairs_path = comparison_root / "paired_bootstrap_key_deltas.csv"
+    key_pairs = _read_csv(key_pairs_path)
+    utility_matches = [
+        row
+        for row in key_pairs
+        if row.get("comparison") == "best_qsar_minus_best_final_llm"
+        and row.get("metric") == "feasible_utility"
+        and row.get("system_b") == best_name
+    ]
+    if len(utility_matches) != 1:
+        raise ValueError(
+            f"{key_pairs_path}: expected one utility contrast for the best final LLM {best_name!r}"
+        )
+    utility_delta = utility_matches[0]
+
+    total_cost_usd = 0.0
+    for name in sorted(raw_names):
+        row = rows_by_name[name]
+        coverage = _as_finite_float(row, "cost_coverage", source=comparison_path)
+        if not math.isclose(coverage, 1.0, rel_tol=0.0, abs_tol=1e-12):
+            raise ValueError(f"{comparison_path}: incomplete cost coverage for {name}: {coverage}")
+        total_cost_usd += _as_finite_float(row, "actual_cost_usd", source=comparison_path)
+
+    return {
+        **best_result,
+        "_best_qsar_utility_delta": _as_finite_float(
+            utility_delta, "mean_delta", source=key_pairs_path
+        ),
+        "_best_qsar_utility_ci_low": _as_finite_float(
+            utility_delta, "ci_low", source=key_pairs_path
+        ),
+        "_best_qsar_utility_ci_high": _as_finite_float(
+            utility_delta, "ci_high", source=key_pairs_path
+        ),
+        "_total_llm_cost_usd": total_cost_usd,
+    }
 
 
 def render_results(repo_root: Path) -> str:
@@ -612,6 +650,12 @@ def render_results(repo_root: Path) -> str:
                 r"\newcommand{\BestLLMNDCG}{PENDING}",
                 r"\newcommand{\BestLLMActionValidity}{PENDING}",
                 r"\newcommand{\BestLLMCost}{PENDING}",
+                r"\newcommand{\BestLLMRawUtility}{PENDING}",
+                r"\newcommand{\BestLLMRepairRate}{PENDING}",
+                r"\newcommand{\BestQSARMinusLLMUtility}{PENDING}",
+                r"\newcommand{\BestQSARMinusLLMUtilityCILow}{PENDING}",
+                r"\newcommand{\BestQSARMinusLLMUtilityCIHigh}{PENDING}",
+                r"\newcommand{\TotalLLMCost}{PENDING}",
             ]
         )
     else:
@@ -633,6 +677,12 @@ def render_results(repo_root: Path) -> str:
                 rf"\newcommand{{\BestLLMNDCG}}{{{_format_number(llm_result['ndcg_at_k'])}}}",
                 rf"\newcommand{{\BestLLMActionValidity}}{{{_format_number(llm_result['raw_action_validity'])}}}",
                 rf"\newcommand{{\BestLLMCost}}{{{_tex_escape(cost_text)}}}",
+                rf"\newcommand{{\BestLLMRawUtility}}{{{_format_number(llm_result['raw_feasible_utility'])}}}",
+                rf"\newcommand{{\BestLLMRepairRate}}{{{_format_number(llm_result['repaired_rate'])}}}",
+                rf"\newcommand{{\BestQSARMinusLLMUtility}}{{{_format_number(llm_result['_best_qsar_utility_delta'])}}}",
+                rf"\newcommand{{\BestQSARMinusLLMUtilityCILow}}{{{_format_number(llm_result['_best_qsar_utility_ci_low'])}}}",
+                rf"\newcommand{{\BestQSARMinusLLMUtilityCIHigh}}{{{_format_number(llm_result['_best_qsar_utility_ci_high'])}}}",
+                rf"\newcommand{{\TotalLLMCost}}{{{_format_number(llm_result['_total_llm_cost_usd'])}}}",
             ]
         )
     return "\n".join(output) + "\n"

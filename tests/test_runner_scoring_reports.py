@@ -1,9 +1,12 @@
 import json
 from pathlib import Path
 
+import pandas as pd
+
 from specguard_chem_v2.io import load_models
 from specguard_chem_v2.reports import (
     CONDITION_METADATA,
+    _system_display_label_from_row,
     compare_run_summaries,
     make_frontier_plot,
     write_results_dashboard,
@@ -303,6 +306,8 @@ def test_compare_and_frontier_plot(tmp_path: Path) -> None:
     assert (tmp_path / "compare" / "failure_taxonomy_by_group.csv").exists()
     plot = make_frontier_plot(tmp_path / "compare" / "system_comparison.csv", tmp_path / "figures")
     assert plot.exists()
+    assert plot.with_suffix(".pdf").exists()
+    assert (tmp_path / "figures" / "primary_utility_leaderboard.png").exists()
     assert (tmp_path / "figures" / "card_level_utility_distribution.png").exists()
     summary = write_results_summary(
         tmp_path / "compare" / "system_comparison.csv",
@@ -369,6 +374,155 @@ def test_compare_and_frontier_plot(tmp_path: Path) -> None:
     assert "paper-50" not in dashboard_text
 
 
+def test_report_summary_figures_cover_repair_and_paired_effects(tmp_path: Path) -> None:
+    comparison_dir = tmp_path / "compare"
+    comparison_dir.mkdir()
+    condition = "openai_gpt_5_5_2026_04_23_selector"
+    bare = f"bare_llm__{condition}"
+    tools = f"llm_tools__{condition}"
+    repair_suffix = "__posthoc_repair"
+    pd.DataFrame(
+        [
+            {
+                "system_name": bare,
+                "feasible_utility": 60.0,
+                "feasible_utility_ci_low": 58.0,
+                "feasible_utility_ci_high": 62.0,
+                "action_validity": 0.5,
+                "raw_action_validity": 0.5,
+                "repaired_rate": 0.0,
+            },
+            {
+                "system_name": tools,
+                "feasible_utility": 62.0,
+                "feasible_utility_ci_low": 60.0,
+                "feasible_utility_ci_high": 64.0,
+                "action_validity": 0.6,
+                "raw_action_validity": 0.6,
+                "repaired_rate": 0.0,
+            },
+            {
+                "system_name": f"{bare}{repair_suffix}",
+                "feasible_utility": 70.0,
+                "feasible_utility_ci_low": 68.0,
+                "feasible_utility_ci_high": 72.0,
+                "action_validity": 1.0,
+                "raw_action_validity": 0.5,
+                "repaired_rate": 0.5,
+            },
+            {
+                "system_name": f"{tools}{repair_suffix}",
+                "feasible_utility": 72.0,
+                "feasible_utility_ci_low": 70.0,
+                "feasible_utility_ci_high": 74.0,
+                "action_validity": 1.0,
+                "raw_action_validity": 0.6,
+                "repaired_rate": 0.4,
+            },
+        ]
+    ).to_csv(comparison_dir / "system_comparison.csv", index=False)
+
+    paired_columns = [
+        "comparison",
+        "metric",
+        "system_a",
+        "system_b",
+        "mean_delta",
+        "ci_low",
+        "ci_high",
+    ]
+    pd.DataFrame(
+        [
+            ["all_primary_pairs", "feasible_utility", tools, bare, 2.0, 0.5, 3.5],
+            [
+                "all_primary_pairs",
+                "feasible_utility",
+                f"{tools}{repair_suffix}",
+                f"{bare}{repair_suffix}",
+                2.0,
+                0.4,
+                3.6,
+            ],
+        ],
+        columns=paired_columns,
+    ).to_csv(comparison_dir / "paired_bootstrap_deltas.csv", index=False)
+    headline_systems = {
+        "best_qsar_minus_best_final_llm": ("qsar_svm", f"{tools}{repair_suffix}"),
+        "best_final_llm_minus_similarity": (
+            f"{tools}{repair_suffix}",
+            "similarity_to_best_active",
+        ),
+        "best_qsar_minus_similarity": ("qsar_svm", "similarity_to_best_active"),
+        "oracle_minus_best_qsar": ("oracle_valid_topk", "qsar_svm"),
+    }
+    pd.DataFrame(
+        [
+            [comparison, "feasible_utility", systems[0], systems[1], 1.0, 0.2, 1.8]
+            for comparison, systems in headline_systems.items()
+        ],
+        columns=paired_columns,
+    ).to_csv(comparison_dir / "paired_bootstrap_key_deltas.csv", index=False)
+
+    card_rows = []
+    diagnostic_rows = []
+    card_values = [
+        (80.0, 75.0, 74.0, 73.0, 72.0, 68.0),
+        (78.0, 74.0, 75.0, 72.0, 71.0, 67.0),
+        (82.0, 77.0, 76.0, 74.0, 73.0, 69.0),
+    ]
+    series = [
+        "Oracle upper-bound",
+        "Best QSAR",
+        "Best final LLM",
+        "Best raw LLM",
+        "Similarity baseline",
+        "Rules-only baseline",
+    ]
+    for index, values in enumerate(card_values, start=1):
+        task_id = f"T{index}"
+        oracle, qsar, final_llm, raw_llm, similarity, rules = values
+        for series_name, utility in zip(series, values, strict=True):
+            card_rows.append(
+                {
+                    "task_id": task_id,
+                    "series": series_name,
+                    "feasible_utility": utility,
+                    "oracle_utility": oracle,
+                }
+            )
+        diagnostic_rows.append(
+            {
+                "task_id": task_id,
+                "best_qsar_utility": qsar,
+                "best_final_llm_utility": final_llm,
+                "oracle_minus_best_qsar": oracle - qsar,
+                "best_qsar_minus_best_final_llm": qsar - final_llm,
+                "best_qsar_minus_best_raw_llm": qsar - raw_llm,
+                "best_final_llm_minus_similarity": final_llm - similarity,
+                "best_qsar_minus_similarity": qsar - similarity,
+                "rules_utility": rules,
+            }
+        )
+    pd.DataFrame(card_rows).to_csv(comparison_dir / "card_level_key_systems.csv", index=False)
+    pd.DataFrame(diagnostic_rows).to_csv(
+        comparison_dir / "card_level_diagnostics.csv",
+        index=False,
+    )
+
+    make_frontier_plot(comparison_dir / "system_comparison.csv", tmp_path / "figures")
+    for filename in [
+        "primary_utility_leaderboard",
+        "llm_repair_effect",
+        "descriptor_ablation",
+        "paired_utility_effects",
+        "card_level_utility_distribution",
+        "card_level_delta_distribution",
+        "card_level_qsar_vs_llm_scatter",
+    ]:
+        assert (tmp_path / "figures" / f"{filename}.png").exists()
+        assert (tmp_path / "figures" / f"{filename}.pdf").exists()
+
+
 def test_report_condition_metadata_uses_release_ids_and_keeps_historical_labels() -> None:
     expected_models = {
         "openai_gpt_5_5_2026_04_23_selector": "gpt-5.5-2026-04-23",
@@ -380,6 +534,17 @@ def test_report_condition_metadata_uses_release_ids_and_keeps_historical_labels(
         assert "Release-candidate" in CONDITION_METADATA[condition_id]["description"]
 
     assert "Historical condition" in CONDITION_METADATA["openai_frontier_selector"]["description"]
+
+    repaired_label = _system_display_label_from_row(
+        {
+            "system_name": ("bare_llm__openai_gpt_5_5_2026_04_23_selector__posthoc_repair"),
+            "llm_provider": "openai",
+            "llm_model": "gpt-5.5-2026-04-23",
+        }
+    )
+    assert repaired_label == (
+        "Bare LLM + post-hoc repair - OpenAI gpt-5.5-2026-04-23, low reasoning, direct JSON"
+    )
 
 
 def test_compare_variant_ablation_rows(tmp_path: Path) -> None:

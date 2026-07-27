@@ -20,7 +20,7 @@ outcomes stored separately.
 | `data/releases/v0.1.0/system_input_cards.meta.json` | Build config, provenance, hashes, and ordered task IDs. |
 | `data/releases/v0.1.0/system_input_cards.audit.json` | All 100 source-task inclusion/exclusion decisions. |
 | `release/v0.1.0/experiments/baselines/` | Corrected deterministic traces, scores, and comparisons. |
-| `release/v0.1.0/experiments/llm/` | Exact requests, pre/post-pilot estimates, six pilot traces/caches/scores, and eventual full matrix. |
+| `release/v0.1.0/experiments/llm/` | Exact requests, historical pre/post-pilot estimates, pilot evidence, complete six-condition raw/repaired matrix, canonical manifest, and comparison. |
 | `paper/manuscript/` | Manuscript sources and derived paper assets. |
 
 ## Setup and Tests
@@ -163,19 +163,22 @@ uv run sgchem estimate-llm-cost \
   --out release/v0.1.0/experiments/llm/pre_run_cost_estimate.json
 ```
 
-The frozen estimate is 546 missing calls, a 158,274-token maximum conservative
-input estimate, and USD 106.0594 upper-bound incremental cost. Re-check pricing,
-model availability, and limits immediately before any authorized call. See
+The historical frozen pre-run estimate was 546 missing calls, a 158,274-token
+maximum conservative input estimate, and USD 106.0594 upper-bound incremental
+cost. It is retained as spend-gate provenance rather than the final invoice.
+The completed matrix has 546/546 successful cached responses and a
+usage-derived token-pricing total of USD 58.95671601. Re-check pricing, model
+availability, and limits before any newly authorized call. See
 `docs/COST_CONTROL.md`.
 
 ## Fixed One-Card Pilot
 
-Before a full run, use `--task-id CARA_LO_CHEMBL1006579_IC50_0001` to select
-the first frozen task explicitly. Across two interfaces and three model
-conditions this produces exactly six requests. The current no-call estimate is
-USD 0.936717455, with a maximum 25,817 conservatively estimated input tokens
-for one request. The offline export and estimate commands are recorded in
-`release/v0.1.0/REPRODUCE.md`.
+The staged execution used `--task-id CARA_LO_CHEMBL1006579_IC50_0001` to select
+the first frozen task explicitly before the full run. Across two interfaces and
+three model conditions this produced exactly six requests. Its historical
+no-call estimate was USD 0.936717455, with a maximum 25,817 conservatively
+estimated input tokens for one request. The offline export and estimate
+commands are recorded in `release/v0.1.0/REPRODUCE.md`.
 
 The following command was explicitly authorized and executed once. It is the
 fixed pilot record, not standing authorization to execute it again:
@@ -207,14 +210,16 @@ offline cache replay reproduced all six score artifacts. Rerun
 `--cache-dir release/v0.1.0/experiments/llm/matrix/cache` and
 `--out-run-dir release/v0.1.0/experiments/llm/matrix`. The recorded post-pilot
 estimate reports six cached requests, 540 missing requests, USD 0.449700535
-actual cached cost, and a USD 105.122676615 residual upper bound. A fresh
-estimate must agree before execution; abort if any pilot request is not cached.
+actual cached cost, and a USD 105.122676615 residual upper bound. The fresh
+pre-execution estimate agreed, and all six pilot cache records were confirmed
+before the separately authorized residual execution.
 
-## Live LLM Execution
+## Recorded Live LLM Execution
 
-No external call is authorized merely by this runbook. The fixed pilot is
-complete. After separate explicit approval, and only if a fresh residual
-estimate still passes, use the full-run command shape:
+No external call is authorized merely by this runbook. The command below is the
+record of the separately approved residual execution. Immediately before that
+execution, the fixed pilot was complete and a fresh residual estimate passed
+the historical cost, call-count, and per-call token gates:
 
 ```bash
 uv run --extra providers sgchem run-llm-matrix \
@@ -232,11 +237,15 @@ uv run --extra providers sgchem run-llm-matrix \
   --max-input-tokens-per-call 175000
 ```
 
-Complete runs have six raw traces, each with exactly 91 records. Cache and
-resume are enabled by default. The pilot's USD 1 gate and this residual USD 119
-gate preserve the USD 120 aggregate ceiling. Do not use `--force` without
-recording why. Provider errors remain execution failures; they are not model
-scores.
+The completed run has 546/546 successful cached responses, six raw traces, and
+six zero-call post-hoc-repaired traces, each with exactly 91 records. Its
+canonical matrix manifest covers all six raw conditions, and
+`release/v0.1.0/experiments/llm/comparison/` contains the cross-system analysis.
+Usage, latency, and pricing-derived cost coverage are 100%; the usage-derived
+token-pricing total is USD 58.95671601. The pilot's USD 1 gate and residual USD
+119 gate preserved the USD 120 aggregate ceiling. Cache and resume remain
+enabled by default. Do not use `--force` without recording why. Provider errors
+remain execution failures; they are not model scores.
 
 ## Post-hoc Repair
 
@@ -273,6 +282,8 @@ See `docs/POSTHOC_REPAIR.md` for the transform contract.
 - Report missing/failed provider calls and the denominator for every metric.
 - Limit claims to bounded compound selection; this is not autonomous-lab
   validation.
+- Keep the v0.1.0 task set and objective frozen. Task-selection and
+  chemical-diversity redesign are deferred to a future benchmark version.
 
 ## Recovery Checks
 

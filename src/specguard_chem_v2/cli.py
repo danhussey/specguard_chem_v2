@@ -567,9 +567,41 @@ def compare_runs(
 def make_figures(
     comparison_csv: Path = typer.Argument(..., help="system_comparison.csv path."),
     out: Path = typer.Option(Path("paper/figures"), "--out", "-o"),
+    review_series: bool = typer.Option(
+        False,
+        "--review-series",
+        help="Also rebuild the corrected numbered Figure 1–8 review package.",
+    ),
+    cards: Optional[Path] = typer.Option(
+        None,
+        "--cards",
+        help="Corrected system_input_cards.jsonl; required with --review-series.",
+    ),
+    scorer_outcomes: Optional[Path] = typer.Option(
+        None,
+        "--scorer-outcomes",
+        help="Corrected scorer_outcomes.jsonl; required with --review-series.",
+    ),
 ) -> None:
+    if review_series and (cards is None or scorer_outcomes is None):
+        raise typer.BadParameter("--review-series requires both --cards and --scorer-outcomes")
     output = make_frontier_plot(comparison_csv, out)
-    console.print(f"Wrote frontier plot to [green]{output}[/green]")
+    if not review_series:
+        console.print(f"Wrote frontier plot to [green]{output}[/green]")
+        return
+    from .figure_review_series import build_figure_review_series
+    from .figure_schematics import (
+        make_benchmark_pipeline_figure,
+        make_decision_card_anatomy_figure,
+    )
+
+    make_decision_card_anatomy_figure(cards, scorer_outcomes, out)
+    make_benchmark_pipeline_figure(cards, scorer_outcomes, out)
+    review_outputs = build_figure_review_series(comparison_csv.parent, out)
+    console.print(
+        "Wrote report figures and corrected numbered Figure 1–8 package "
+        f"({len(review_outputs) + 6} exports) to [green]{out}[/green]"
+    )
 
 
 @app.command("make-report")

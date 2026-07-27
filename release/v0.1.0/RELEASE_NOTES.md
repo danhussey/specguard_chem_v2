@@ -61,21 +61,36 @@ Full details are in
 
 ## Current experimental status
 
-Corrected deterministic baselines have been generated. Exact requests and a
-pre-run cost estimate have been generated for the proposed LLM matrix. A fixed
-one-card pilot has also completed across three providers and two interfaces,
-with all six raw responses, replay caches, scores, deterministic repaired views,
-and operational provenance retained. This pilot is an execution and attribution
-check only. The residual 540-call, 91-card matrix has not been authorized, so
-there is no final LLM comparison or conference-paper headline result yet.
-Historical model responses and caches are not reused.
+Corrected deterministic baselines and the complete paper-facing LLM matrix have
+been generated. The matrix crosses three frozen provider/model conditions with
+the basic and descriptor-enriched interfaces over all 91 corrected cards. All
+546 exact requests have matching content-addressed responses. The candidate
+bundle retains six raw 91-card traces and six deterministic, zero-call post-hoc
+repair traces, together with raw and repaired scores, a canonical matrix
+manifest, and the cross-system comparison. Historical model responses and
+caches from the invalid paper-50 import were not reused.
+
+Every successful response has one recorded provider attempt, and usage,
+latency, and usage-derived cost coverage are 100%. Provider-reported token
+usage multiplied by the frozen pricing snapshot gives USD 58.95671601 for the
+six unique live conditions. Repaired rows repeat the source condition's cost
+and must not be summed as additional calls.
+
+On feasible utility, the three QSAR systems occupy the first three non-oracle
+positions. Linear SVR records 74.9664, while the strongest final LLM view,
+OpenAI basic plus deterministic post-hoc repair, records 73.9637. The paired
+QSAR-minus-LLM difference is 1.0027 with a task-level 95% percentile-bootstrap
+interval of [0.4049, 1.6475]. The strongest raw LLM action has 79.12% whole-action
+validity; repair raises final validity to 100% but is a harness intervention,
+not recovered unaided model ability. Descriptor enrichment is
+provider-dependent rather than a general improvement.
+
+The original fixed one-card pilot, pre-run estimate, and post-pilot estimate
+remain in the bundle as historical execution and cost-control provenance. They
+must not be mistaken for the final 91-card evidence.
 
 ## Still required before release
 
-- Separate explicit approval and cost-gated execution of the residual 540-call
-  paper-facing LLM matrix.
-- Corrected uncertainty, attribution, robustness, latency, token, and monetary
-  analyses from those runs.
 - Final manuscript, supplement, tables, figures, and paper licensing decision.
 - Clean-checkout reproduction and final bundle verification. The candidate
   wheel and source distribution already build and pass an isolated CLI smoke

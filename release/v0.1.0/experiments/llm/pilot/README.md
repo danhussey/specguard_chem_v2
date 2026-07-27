@@ -1,5 +1,10 @@
 # Fixed one-card LLM pilot
 
+> **Historical checkpoint.** This pilot preceded the now-complete 91-card
+> matrix. It remains in the candidate bundle as execution, provenance, and
+> cost-control evidence; full comparative results are under
+> [`../comparison/`](../comparison/).
+
 ## Scope and claim boundary
 
 This pilot exercises the frozen v0.1.0 provider path on exactly one task:
@@ -27,8 +32,8 @@ conference-paper headline result.
 - Usage, latency, and pricing-derived cost coverage are 100%.
 - Total recorded usage is 106,128 input tokens and 3,024 output tokens
   (109,152 total), including 1,024 OpenAI reasoning tokens.
-- Actual aggregate cost is USD 0.449700535, below the USD 0.936717455 pilot
-  upper-bound gate.
+- Usage-derived aggregate cost is USD 0.449700535, below the USD 0.936717455
+  pilot upper-bound gate.
 - A cache-only replay required zero provider calls and reproduced every score
   artifact byte-for-byte. Replay traces add only the expected `cache_path`
   provenance field.
@@ -72,18 +77,27 @@ observations, not general comparative claims.
 There is no consistent one-card descriptor effect: utility changes by -0.520
 for OpenAI, +0.375 for Anthropic, and becomes less compliant for DeepSeek. The
 `llm_tools` label denotes a descriptor-enriched prompt, not interactive tool
-use, and it also increases prompt length. The full paired 91-card experiment is
-required to estimate any representation effect.
+use, and it also increases prompt length. The subsequent paired 91-card
+experiment was therefore required. It is now complete and shows that descriptor
+effects are provider-dependent rather than a general improvement.
 
-## Residual run boundary
+## Historical residual boundary and completion
 
 The pilot and full matrix share
 `release/v0.1.0/experiments/llm/matrix/cache/`. The saved post-pilot estimate
 reports six cached requests, 540 missing requests, USD 0.449700535 of actual
 cached pilot cost, and a USD 105.122676615 conservative residual upper bound.
-The residual run requires separate explicit authorization; this pilot does not
-authorize it.
+Those values describe the historical pilot checkpoint. The separately
+authorized residual run has since completed into the same content-addressed
+cache. The final audit found 546/546 matching response records, six raw 91-card
+traces, and six zero-call repaired 91-card traces. Usage-derived cost coverage
+is 100%, and the six unique live conditions total USD 58.95671601 under the
+frozen token-pricing snapshot.
 
 The raw traces and `scores/` directories remain primary evidence. Each
 condition/interface directory also contains `posthoc_repair.trace.jsonl` and
 `posthoc_scores/` for the separately attributed deterministic guarded view.
+Repaired results characterize a model-plus-harness system, not unaided model
+ability. See [`../matrix/manifest.json`](../matrix/manifest.json) for the
+canonical run map and [`../comparison/`](../comparison/) for the full
+cross-system analysis.

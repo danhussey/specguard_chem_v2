@@ -63,6 +63,9 @@ def _metric_summary(
         "raw_feasible_utility": utility - (0.5 if repaired else 0.0),
         "raw_ndcg_at_k": 0.79,
         "raw_action_validity": 0.9,
+        "repaired_rate": 0.1 if repaired else 0.0,
+        "actual_cost_usd": 1.0,
+        "cost_coverage": 1.0,
     }
     if repaired:
         summary.update(
@@ -203,6 +206,9 @@ def _write_complete_llm_evidence(repo_root: Path, generator: ModuleType) -> dict
                         "system_a": raw_name,
                         "system_b": repaired_name,
                         "n_cards": 91,
+                        "mean_delta": -0.5,
+                        "ci_low": -0.75,
+                        "ci_high": -0.25,
                     }
                 )
             utility += 1.0
@@ -216,7 +222,16 @@ def _write_complete_llm_evidence(repo_root: Path, generator: ModuleType) -> dict
         },
     )
     _write_json(comparison_root / "system_comparison.json", comparison_rows)
-    pair_fields = ["comparison", "metric", "system_a", "system_b", "n_cards"]
+    pair_fields = [
+        "comparison",
+        "metric",
+        "system_a",
+        "system_b",
+        "n_cards",
+        "mean_delta",
+        "ci_low",
+        "ci_high",
+    ]
     _write_csv(comparison_root / "paired_bootstrap_deltas.csv", all_pair_rows, pair_fields)
 
     best_llm = comparison_rows[-1]["system_name"]
@@ -227,6 +242,9 @@ def _write_complete_llm_evidence(repo_root: Path, generator: ModuleType) -> dict
             "system_a": "qsar_svm",
             "system_b": best_llm,
             "n_cards": 91,
+            "mean_delta": 1.25,
+            "ci_low": 0.5,
+            "ci_high": 2.0,
         }
         for metric in generator.PAIRED_METRICS
     ]
@@ -250,7 +268,8 @@ def test_tracked_manuscript_numbers_are_current_and_byte_stable() -> None:
     assert table_first == (ROOT / "paper/tables/v0.1.0/deterministic_baseline_rows.tex").read_text(
         encoding="utf-8"
     )
-    assert r"\llmresultsavailablefalse" in results_first
+    assert r"\llmresultsavailabletrue" in results_first
+    assert r"Bare LLM + post-hoc repair - OpenAI" in results_first
 
 
 def test_llm_result_gate_rejects_partial_comparison(tmp_path: Path) -> None:
@@ -290,3 +309,5 @@ def test_llm_result_gate_accepts_only_complete_frozen_shape(tmp_path: Path) -> N
     assert r"\llmresultsavailabletrue" in rendered
     assert r"\llmresultsavailablefalse" not in rendered
     assert r"\newcommand{\BestLLMUtility}{75.500}" in rendered
+    assert r"\newcommand{\BestQSARMinusLLMUtility}{1.250}" in rendered
+    assert r"\newcommand{\TotalLLMCost}{6.000}" in rendered
