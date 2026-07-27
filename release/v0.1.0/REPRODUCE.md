@@ -80,6 +80,8 @@ emits the full numbered Figure 1–8 package as 300-dpi PNG, PDF, and searchable
 SVG, in addition to the paired and card-level diagnostic figures:
 
 ```bash
+export SOURCE_DATE_EPOCH=1784937600
+
 uv run sgchem make-figures \
   release/v0.1.0/experiments/llm/comparison/system_comparison.csv \
   --out paper/figures/v0.1.0 \
@@ -95,6 +97,10 @@ uv run sgchem make-dashboard \
   release/v0.1.0/experiments/llm/comparison/system_comparison.csv \
   --out paper
 ```
+
+The frozen epoch is also used for the generated-at line in the summary and
+dashboard, so these artifacts do not change merely because they were rebuilt
+later.
 
 The numbered stems are
 `figure_1_decision_card_anatomy`,
@@ -523,10 +529,10 @@ uv build --out-dir runs/reproduce-v0.1.0-dist
 The candidate bundle contains:
 
 - `specguard_chem_v2-0.1.0-py3-none-any.whl`, SHA256
-  `34bae13a70c56a3047f0ccc6435dec076bdd89392d5c649d43f712811deca8f1`;
+  `363d0272c13ad90c8a594888c9a70f51dfa4f5eb95863a77583520c3bf4365e7`;
   and
 - `specguard_chem_v2-0.1.0.tar.gz`, SHA256
-  `92ea68da9522f4a3494e27f8db3ca89679769837b7c7a0b173bdd3eb3a2f1a55`.
+  `eec74005e9221148571f2fb75a128202706bc55e1256a491902a89206e645189`.
 
 Install the wheel in a fresh environment, then run at least `sgchem --help`,
 `sgchem list-systems`, and fixture-card validation. The bundled wheel was

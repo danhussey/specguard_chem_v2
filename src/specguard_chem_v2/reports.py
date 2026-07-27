@@ -4,6 +4,7 @@ import json
 from datetime import datetime, timezone
 from html import escape
 from itertools import combinations
+from os import environ
 from pathlib import Path
 
 import numpy as np
@@ -2149,6 +2150,13 @@ METRIC_EXAMPLES = {
 
 def _report_generated_at(value: datetime | str | None) -> str:
     if value is None:
+        source_date_epoch = environ.get("SOURCE_DATE_EPOCH")
+        if source_date_epoch is not None:
+            try:
+                epoch_seconds = int(source_date_epoch)
+            except ValueError as exc:
+                raise ValueError("SOURCE_DATE_EPOCH must be an integer number of seconds") from exc
+            return datetime.fromtimestamp(epoch_seconds, tz=timezone.utc).isoformat()
         return datetime.now(timezone.utc).isoformat()
     if isinstance(value, datetime):
         if value.tzinfo is None:

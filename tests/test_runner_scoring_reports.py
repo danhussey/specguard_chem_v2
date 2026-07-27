@@ -6,6 +6,7 @@ import pandas as pd
 from specguard_chem_v2.io import load_models
 from specguard_chem_v2.reports import (
     CONDITION_METADATA,
+    _report_generated_at,
     _system_display_label_from_row,
     compare_run_summaries,
     make_frontier_plot,
@@ -30,6 +31,12 @@ from specguard_chem_v2.systems.providers import (
 )
 
 FIXTURES = Path(__file__).parent / "fixtures"
+
+
+def test_report_generation_honors_source_date_epoch(monkeypatch) -> None:
+    monkeypatch.setenv("SOURCE_DATE_EPOCH", "1784937600")
+    assert _report_generated_at(None) == "2026-07-25T00:00:00+00:00"
+    assert _report_generated_at("explicit-build-time") == "explicit-build-time"
 
 
 def test_baseline_runner_and_scoring(tmp_path: Path) -> None:
