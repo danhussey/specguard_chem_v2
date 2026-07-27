@@ -115,6 +115,70 @@ def test_cli_fixture_smoke(tmp_path: Path) -> None:
     assert "Cost gate failed" in result.output
     assert (tmp_path / "gated_matrix" / "cost_estimate.json").exists()
 
+    offline_gated_dir = tmp_path / "offline_gated_matrix"
+    result = runner.invoke(
+        app,
+        [
+            "run-llm-matrix",
+            str(cards),
+            "--systems",
+            "bare_llm",
+            "--model-conditions",
+            "openai_fast",
+            "--out",
+            str(offline_gated_dir),
+            "--require-cost-estimate",
+            "--max-live-calls",
+            "0",
+        ],
+    )
+    assert result.exit_code == 2, result.output
+    assert "Cost gate failed" in result.output
+    offline_estimate = json.loads((offline_gated_dir / "cost_estimate.json").read_text())
+    assert offline_estimate["missing_live_calls"] == 2
+    assert not (offline_gated_dir / "openai_fast" / "bare_llm" / "trace.jsonl").exists()
+
+    cached_cache_dir = tmp_path / "cached_replay_cache"
+    fixture_a1_row = next(row for row in offline_estimate["rows"] if row["task_id"] == "fixture_A1")
+    cached_response = (
+        cached_cache_dir
+        / "openai_fast"
+        / "bare_llm"
+        / f"bare_llm__{fixture_a1_row['request_sha256']}.json"
+    )
+    cached_response.parent.mkdir(parents=True)
+    cached_response.write_bytes((FIXTURES / "llm_cache" / "bare_llm__fixture_A1.json").read_bytes())
+
+    cached_replay_dir = tmp_path / "cached_replay_matrix"
+    result = runner.invoke(
+        app,
+        [
+            "run-llm-matrix",
+            str(cards),
+            "--systems",
+            "bare_llm",
+            "--model-conditions",
+            "openai_fast",
+            "--task-id",
+            "fixture_A1",
+            "--cache-dir",
+            str(cached_cache_dir),
+            "--out",
+            str(cached_replay_dir),
+            "--require-cost-estimate",
+            "--max-estimated-cost-usd",
+            "0",
+            "--max-live-calls",
+            "0",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    cached_estimate = json.loads((cached_replay_dir / "cost_estimate.json").read_text())
+    assert cached_estimate["cached_or_completed_calls"] == 1
+    assert cached_estimate["missing_live_calls"] == 0
+    cached_manifest = json.loads((cached_replay_dir / "manifest.json").read_text())
+    assert cached_manifest["allow_external"] is False
+
     matrix_dir = tmp_path / "llm_matrix"
     result = runner.invoke(
         app,

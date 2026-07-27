@@ -898,7 +898,6 @@ def run_llm_system(
             metadata = {
                 **_metadata_for_request(request, model_config),
                 **output.metadata,
-                "cache_path": str(candidate_path),
             }
             if run_label is not None:
                 metadata["base_system_name"] = system_name

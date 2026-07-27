@@ -17,6 +17,7 @@
 
 \input{generated_results.tex}
 \input{../tables/v0.1.0/deterministic_baseline_rows.tex}
+\input{../tables/v0.1.0/repair_attribution_rows.tex}
 
 \hypersetup{
   colorlinks=true,
@@ -32,7 +33,7 @@
 
 \title{\textbf{Before the Lab Acts: Benchmarking Language Models for Constrained Compound Selection}}
 \author{Daniel Hussey\\The University of Sydney}
-\date{SpecGuard-Chem 0.1.0 corrected full-matrix manuscript, 25 July 2026}
+\date{SpecGuard-Chem 0.1.0 final revision, 28 July 2026}
 
 \begin{document}
 \maketitle
@@ -41,26 +42,30 @@
 Language models are increasingly connected to scientific tools and automated
 laboratories, but many evaluations stop at predictions, prose, or unconstrained
 plans. We introduce SpecGuard-Chem, an action-level benchmark for the point at
-which assay evidence becomes an experimental commitment. On \NumCards{}
-CARA-derived lead-optimization tasks, a system receives 50 measured support
+which assay evidence becomes an experimental commitment. A \emph{decision
+card} is one self-contained assay-level task containing 50 measured support
 compounds, a fixed candidate pool, explicit eligibility rules, and a budget of
-\BudgetK{} assays, then must issue an ordered, executable batch of candidate
-identifiers. Candidate outcomes are physically separated into a hash-bound
-scorer artifact. The benchmark evaluates scientific shortlist utility and
-regret independently from action validity, deterministic repair, latency, and
-cost. Corrected deterministic evidence spans rules-only utility \RulesUtility{},
-random-valid \RandomUtility{}, similarity \SimilarityUtility{}, the best
-assay-local QSAR model \BestQSARUtility{}, and a hidden-outcome oracle
-\OracleUtility{}, demonstrating nontrivial headroom beyond eligibility
-filtering. The preregistered model experiment compares basic and descriptor-
-enriched interfaces for three current provider conditions, with post-hoc repair
-applied to the same raw outputs rather than purchased as separate calls.
+\BudgetK{} selections. We include all \NumCards{} CARA lead-optimization tasks
+that can support this top-10 action, rather than selecting the largest pools.
+Candidate outcomes are physically separated into a hash-bound scorer artifact.
+The primary outcome, \emph{feasible utility}, is the sum of hidden pChEMBL
+values recovered by valid selected candidates; invalid or missing positions
+receive zero benchmark credit. A prespecified matrix compares basic and
+descriptor-enriched interfaces for three dated provider conditions. A
+\emph{guarded} pipeline checks a parsed LLM shortlist and deterministically
+fills invalid or missing positions; it is a model-plus-software system, not the
+LLM alone.
 \ifllmresultsavailable
-The strongest guarded LLM condition achieved utility \BestLLMUtility{} and
-NDCG@10 \BestLLMNDCG{}, but the best QSAR remained higher by
-\BestQSARMinusLLMUtility{} utility points (paired 95\% CI
-\BestQSARMinusLLMUtilityCILow{}--\BestQSARMinusLLMUtilityCIHigh{}). Its raw
-action validity was \BestLLMActionValidity{} before deterministic repair.
+The strongest guarded pipeline achieved mean feasible utility
+\BestLLMUtility{} and normalized discounted cumulative gain at 10 (NDCG@10)
+\BestLLMNDCG{}, but the best assay-local quantitative structure--activity
+relationship (QSAR) model remained higher by \BestQSARMinusLLMUtility{} mean
+card-level utility points (paired 95\% CI
+\BestQSARMinusLLMUtilityCILow{}--\BestQSARMinusLLMUtilityCIHigh{}). The same
+pre-repair response stream had mean feasible utility \BestLLMRawUtility{} and
+issued a fully valid action on 72 of 91 cards. Repair was invoked on 19 cards but supplied
+only 14 of 910 final positions in that best condition; the Anthropic and
+DeepSeek conditions depended much more heavily on fallback.
 \else
 Canonical LLM results are withheld because the manuscript generator's complete
 91-card evidence gate did not pass; partial provider evidence is never promoted
@@ -88,6 +93,18 @@ distance between generated text and physical action narrows, evaluation must
 ask more than whether an answer sounds plausible: would the exact issued action
 be executable, and is it a good use of a finite experimental budget?
 
+LLMs have been studied in molecular science through several distinct routes.
+Mol-Instructions developed domain-specific instruction data spanning molecular,
+protein, and biomolecular-text tasks \cite{fang2024molinstructions}.
+ChemLLMBench and ChemBench assessed chemical knowledge and reasoning across
+heterogeneous tasks and showed substantial dependence on task and evaluation
+setting \cite{guo2023chemllmbench,mirza2025chembench}. LLM4SD used knowledge
+extracted or inferred by an LLM as features for conventional molecular-property
+models \cite{zheng2025llm4sd}, whereas ChemCrow used an LLM to coordinate
+specialist chemistry tools \cite{bran2024chemcrow}. These results motivate
+hybrid scientific systems, but they do not establish whether direct LLM
+selection adds value over a model trained on assay-local measurements.
+
 This paper isolates one decision primitive from a future drug-discovery loop:
 choosing the next assay batch from a known pool using sparse project-local
 activity evidence. The boundary is deliberately narrow. It excludes compound
@@ -98,11 +115,15 @@ compared with transparent molecular rankers on identical information.
 
 The activity-data substrate is CARA, which organizes experimentally measured
 compound activities into assay-local virtual-screening and lead-optimization
-tasks \cite{tian2024cara,cara2024dataset}. At the inference level, our task is candidly CARA-
-style activity estimation plus eligibility filtering and top-$k$ allocation.
-We do not claim a new raw dataset or an unrelated prediction problem. The new
-unit of evaluation is the action: exactly $k$ valid identifiers whose joint
-utility and regret determine how well a finite laboratory budget was allocated.
+tasks \cite{tian2024cara,cara2024dataset}. CARA found that models trained
+separately on the support examples for an assay were strong comparators in its
+few-shot lead-optimization setting. At the inference level, our task is
+candidly CARA-style activity estimation plus eligibility filtering and
+top-$k$ allocation. We do not claim a new raw dataset or an unrelated
+prediction problem. The contribution is the action-level protocol: each system
+must issue exactly $k$ executable candidate identifiers, raw and repaired
+behavior remain separate, and LLM pipelines are compared against per-card
+fingerprint regressors on identical visible evidence.
 
 We ask three questions:
 \begin{enumerate}
@@ -124,16 +145,16 @@ not treat guardrail gains as scientific gains.
 \section{Positioning: from prediction to action}
 
 Compound-activity prediction benchmarks typically score per-compound estimates
-or rankings. CARA improves the realism of that evaluation by retaining assay-
-based tasks, sparse labels, and lead-optimization versus virtual-screening
+or rankings. CARA improves the realism of that evaluation by retaining
+assay-based tasks, sparse labels, and lead-optimization versus virtual-screening
 settings \cite{tian2024cara}. SpecGuard-Chem retains that substrate and adds an
 action contract and systems protocol at the point where predictions would be
 converted into a laboratory allocation.
 
 \begin{table}[H]
 \centering
-\caption{CARA is the data and task substrate; SpecGuard-Chem is an action-
-evaluation layer. The distinction is the evaluated output and its executable
+\caption{CARA is the data and task substrate; SpecGuard-Chem is an
+action-evaluation layer. The distinction is the evaluated output and its executable
 semantics, not a claim of unrelated molecular learning.}
 \label{tab:cara_comparison}
 \small
@@ -151,12 +172,15 @@ Artifact protocol & Activity benchmark data/splits & Separate system inputs and 
 \end{tabularx}
 \end{table}
 
-Chemistry-agent work has shown that tools and laboratory APIs can extend LLM
-capabilities \cite{boiko2023coscientist,bran2024chemcrow}. That makes interface
-quality and output reliability important, but neither demonstrates that an LLM
-should replace a task-specific molecular model. Our comparator ladder is
-therefore part of the contribution: an LLM result is meaningful only relative
-to small, reproducible rankers that use the same support evidence.
+We call each self-contained assay-level selection problem a decision card.
+SpecGuard-Chem converts CARA prediction tasks into cards with a finite budget,
+an output contract, and explicit failure semantics. It further reports
+scientific shortlist quality separately from executability and attributes any
+deterministic repair. This differs from instruction-tuning, broad chemistry
+question answering, property-prediction, and tool-coordination studies. The
+comparator ladder is therefore part of the contribution: an LLM result is
+meaningful only relative to small, reproducible rankers trained on the same
+support evidence.
 
 \section{Benchmark construction}
 
@@ -172,8 +196,8 @@ identity overlap are hard errors.
 
 An exhaustive audit resolves all 24,588 references: 5,000 support and 19,588
 query rows across 100 tasks. The previous label-based importer was incorrect;
-all historical paper-50 cards and downstream results are retired rather than
-treated as an earlier benchmark version.
+all artifacts from the earlier 50-card draft and their downstream results are
+retired rather than treated as an earlier benchmark version.
 
 \subsection{Decision cards and biological context}
 
@@ -190,10 +214,15 @@ potency. Every card and request states this scale and direction explicitly;
 endpoint labels such as IC50, Ki, EC50, and Potency retain the assay context but
 do not change the higher-is-better interpretation of the supplied pChEMBL value.
 
-Of 100 official tasks, 91 contain at least ten feasible candidates. The nine
-excluded tasks have feasible counts 0, 0, 0, 0, 0, 0, 0, 6, and 8; every
-exclusion is recorded before model evaluation. No hidden outcome is used to
-select among eligible tasks.
+All 100 official \texttt{LO\_All} tasks were considered. The sole inclusion
+rule was whether a card contained at least ten feasible candidates, because an
+exact top-10 action is otherwise impossible. Ninety-one tasks met that rule.
+The nine excluded tasks had feasible counts 0, 0, 0, 0, 0, 0, 0, 6, and 8;
+every exclusion was recorded before model evaluation, and hidden outcomes were
+never used for inclusion. No largest-pool or outcome-based subsampling was
+performed. This removes candidate-pool size as a task-selection criterion, but
+it does not make the benchmark representative of CARA virtual-screening tasks,
+the nine infeasible lead-optimization tasks, or industrial projects.
 
 \begin{table}[H]
 \centering
@@ -232,10 +261,19 @@ the task identity matches, it has length $k$, it contains unique members of
 $P_c$, it excludes support identities, and every selected candidate lies in
 $V_c$.
 
-Version 0.1.0 candidate eligibility requires parseable structures, molecular weight at
-most 500, and cLogP at most 4.5. The configured forbidden-substructure list is
-empty and is reported as such. These are simple, explicit eligibility rules;
-they are not substitutes for synthesis, medicinal-chemistry, or safety review.
+Version 0.1.0 candidate eligibility requires an RDKit-parseable structure,
+molecular weight at most 500 Da, and RDKit Crippen cLogP at most 4.5. The
+500-Da limit follows the familiar rule-of-five upper bound
+\cite{lipinski1997}. The prespecified 4.5 cLogP cutoff is a simplified benchmark
+threshold, 0.5 below the conventional rule-of-five value of 5.0; it was fixed
+before model evaluation. Across all 19,588
+official candidate records, every structure parsed, 10,039 passed both limits,
+2,433 exceeded molecular weight only, 3,765 exceeded cLogP only, and 3,351
+exceeded both. The configured forbidden-substructure list was empty. These
+thresholds provide transparent, reproducible, non-trivial constraints for
+testing specification adherence. They are benchmark design choices, not
+definitions of drug-likeness, oral bioavailability, synthesis feasibility,
+medicinal-chemistry suitability, or safety.
 
 \begin{figure}[H]
 \centering
@@ -262,56 +300,105 @@ laboratory loop is motivation, not an evaluated claim.}
 
 We include a random-valid selector; a descriptor-desirability heuristic;
 similarity to the most active support compound using Morgan fingerprints
-\cite{rogers2010ecfp}; and per-task random-forest, gradient-boosting, and linear
-support-vector regressors trained only on the 50 visible support measurements
-\cite{pedregosa2011sklearn,tropsha2010qsar}. A non-deployable oracle ranks
-feasible candidates using hidden outcomes and defines attainable headroom.
-Cheminformatic parsing, descriptors, and fingerprints use RDKit
-\cite{rdkit2024}.
+\cite{rogers2010ecfp}; and random-forest, gradient-boosting, and linear
+support-vector regressors trained separately for each card on only its 50
+visible support measurements \cite{pedregosa2011sklearn,tropsha2010qsar}.
+Structures are represented by 2,048-bit radius-2 Morgan fingerprints. Random
+forest uses 100 trees, minimum leaf size 1, and seed 7. Gradient boosting uses
+the locked scikit-learn defaults and seed 7. Linear SVR uses $C=1.0$, a linear
+kernel, and sparse-compatible standard scaling without centering. No
+card-specific hyperparameter optimization is performed. Each model predicts
+all feasible candidates, which are sorted by predicted activity with candidate
+ID as a deterministic tie-break. A non-deployable oracle ranks feasible
+candidates using hidden outcomes and defines attainable headroom. Parsing,
+descriptors, and fingerprints use RDKit \cite{rdkit2024}; exact software
+versions are recorded in the supplement and lockfile.
 
 \subsection{LLM interfaces and frozen conditions}
 
-The minimum paper matrix crosses 91 cards, two interfaces, and three model
-conditions (546 raw provider requests). The \emph{basic} interface supplies
-the action contract, assay context, support evidence, candidate IDs, structures,
-molecular weight, and cLogP. The \emph{descriptor-enriched} interface adds
-precomputed TPSA, hydrogen-bond donor/acceptor counts, and rotatable bonds. It
-does not add hidden activities or external search.
+The final matrix crosses 91 cards, two interfaces, and three model conditions
+(546 raw provider requests). Each request contains one complete card: task and
+assay identifiers; the output contract; the 50 support IDs, structures, and
+measured pChEMBL values; the ordered candidate IDs and structures; constraints;
+and budget. The \emph{basic} interface also supplies candidate molecular weight
+and cLogP. The \emph{descriptor-enriched} interface adds precomputed TPSA,
+hydrogen-bond donor/acceptor counts, and rotatable-bond count. Hidden candidate
+activities and external search are absent from both interfaces. Candidate
+ordering and prompt wording are fixed within each condition.
 
-The frozen paper conditions are a dated GPT-5.5 snapshot, Claude Opus 4.8,
-and DeepSeek V4 Pro as checked on 16 July 2026
-\cite{openai2026gpt55,anthropic2026models,deepseek2026pricing}. Exact requests are frozen before
-execution. Provider-returned model identifiers, settings, timestamps, token
-counts, latency, and errors are retained in traces. A conservative estimate
-placed the full uncached matrix at \$106.06, with an explicit \$120 stop gate.
-The authorized execution completed with \TotalLLMCost{} dollars of
-usage-derived token-pricing cost. No call occurs unless the command also
-receives \texttt{--allow-external}.
+The frozen conditions are OpenAI
+\path{gpt-5.5-2026-04-23} with low reasoning effort, Anthropic
+Claude Opus 4.8 without extended thinking, and
+\path{deepseek-v4-pro} with thinking disabled, as selected and checked on 16
+July 2026 \cite{openai2026gpt55,anthropic2026models,deepseek2026pricing}.
+Every condition allows at most 4,096 output tokens. Temperature is not set and
+therefore follows the provider default; no provider generation seed is set.
+OpenAI and DeepSeek use provider JSON-object response modes. Anthropic uses an
+explicit JSON-only prompt followed by deterministic extraction and validation
+of one JSON object. SDK retries are disabled, and the matrix contains exactly
+one successful recorded provider attempt per request. Thus ``raw'' below means
+the parsed pre-repair output of that single response, not necessarily a
+provider-native structured object.
+
+Exact requests were frozen before execution. Configured and returned model
+identifiers, response identifiers, settings, token counts, latency, finish
+reasons, and raw content are retained. A conservative estimate placed the full
+uncached matrix at \$106.06, with an explicit \$120 stop gate. The authorized
+execution completed with \TotalLLMCost{} dollars of usage-derived token-pricing
+cost. No call occurs unless the command also receives
+\texttt{--allow-external}; exact replay uses the committed cache.
 
 \subsection{Post-hoc deterministic repair}
 
-Raw behavior and guarded-system behavior are evaluated from the same provider
+A \emph{guarded LLM system} is the LLM plus deterministic software that checks
+and, when needed, repairs its action. Here ``guarded'' refers only to compliance
+with the benchmark contract; it does not imply biological, chemical, or
+clinical safety. Raw and guarded behavior are evaluated from the same provider
 response. The validator checks JSON shape, task identity, selection count,
 candidate membership, duplicates, support exclusion, and candidate constraints;
-it never reads activity outcomes. When repair is requested, valid raw IDs are
-retained in order and missing slots are filled by the deterministic rules-only
-ranking. The raw response, raw issues, repaired output, and repair operations
-remain attributable. This design avoids conflating a different repair prompt
-and an additional paid model call with deterministic harness behavior.
+it never reads activity outcomes. Valid, unique raw IDs are retained in
+serialized response order, and unoccupied positions are filled from the fixed
+rules-only ranking before revalidation. Schema or rank correction can therefore
+count as a repaired card without replacing a candidate identity. The raw
+response, raw issues, repaired output, and repair attribution remain stored.
+This design avoids conflating a different repair prompt or an additional paid
+model call with deterministic harness behavior. The outcome-blind fallback
+formula is given in the supplement; it computes TPSA even for the basic
+interface, so guarded results include software-only descriptor access that the
+corresponding raw LLM did not receive.
 
 \section{Evaluation}
 
 \subsection{Utility, ranking, and regret}
 
-Let $y_{ic}$ be the hidden pChEMBL activity for candidate $i$ in task $c$,
-with higher values better. Feasible
-utility is
+Let $s_{mcr}$ be the candidate ID returned by system $m$ for card $c$ at
+position $r$, with a missing symbol when that position was not supplied. Define
+$a_{mcr}$ as $y_{s_{mcr},c}$ only when the position exists, its ID is a feasible
+candidate with an available hidden outcome, and that ID has not occurred at an
+earlier scored position; otherwise set $a_{mcr}=0$. Only the first $k$ returned
+positions are scored. \emph{Feasible utility} is therefore
 \begin{equation}
-U_m(c)=\sum_{i\in S_m(c)} y_{ic}\,\mathbf{1}\{i\in V_c\}.
+U_m(c)=\sum_{r=1}^{k}a_{mcr}.
 \end{equation}
-Invalid selections receive no utility. NDCG@$k$ measures ordered ranking quality
-using hidden activity as graded relevance \cite{jarvelin2002dcg}. Constrained
-regret is
+Thus the first occurrence of an otherwise valid ID can score, whereas later
+duplicates, out-of-pool or infeasible IDs, missing outcomes, missing positions,
+and positions beyond $k$ receive no credit. Zero is an executability penalty,
+not an imputed activity. Because every card requires ten positions,
+$U_m(c)/10$ is the mean pChEMBL recovered per required slot.
+
+All source labels share the negative-log molar pChEMBL scale and
+higher-is-better direction, but IC50, Ki, EC50, Potency, assay conditions, and
+activity distributions are not biologically interchangeable. The primary
+comparison is therefore paired within card. For systems $A$ and $B$, we first
+calculate $\Delta_c=U_A(c)-U_B(c)$ on the same assay, support evidence, and
+candidate pool, then equally weight the 91 card-level differences. For valid
+fixed-size actions, an assay-specific additive offset cancels from this
+contrast. Aggregate utility is a benchmark summary, not a clinical or
+cross-assay physical quantity.
+
+NDCG@$k$ is a secondary, within-card normalized measure of ordered ranking
+quality relative to that card's ideal feasible top-10 ordering
+\cite{jarvelin2002dcg}; 1.0 is ideal. Constrained regret is
 \begin{equation}
 R_m(c)=\sum_{i\in O_c}y_{ic}-U_m(c),
 \end{equation}
@@ -328,12 +415,26 @@ as a partial-credit diagnostic rather than a synonym for action validity. For
 example, ten feasible selections returned under the wrong task identifier have
 selection compliance one but action validity zero. For every LLM interface we
 report raw metrics and the corresponding post-hoc-repaired metrics, plus repair
-rate and violation taxonomy. Latency, input/output tokens, cache status, and
-estimated or actual cost are reported per condition.
+rate, fallback-supplied positions, and violation taxonomy. Latency, input/output
+tokens, cache status, and estimated or actual cost are reported per condition.
 
-Means and bootstrap intervals are computed across the same 91 task cards.
-Primary comparisons use paired card-level resampling and report the LLM-minus-
-best-QSAR utility/regret difference, not only independent confidence intervals.
+\subsection{Bootstrap analysis}
+
+Every resampling unit is a complete decision card. Marginal 95\% confidence
+intervals for a system mean use 1,000 bootstrap samples from NumPy's default
+random-number generator with seed 7. Each sample draws 91 cards with
+replacement; its mean is calculated, and the 2.5th and 97.5th percentiles form
+the interval. Headline system contrasts use a paired bootstrap: the 91 matched
+card-level differences are calculated first, then resampled with replacement
+2,000 times using seed 13. The observed mean difference and the corresponding
+percentile interval are reported in the prespecified direction, including
+best-QSAR minus best-guarded-LLM. Pairing preserves shared card difficulty;
+bootstrapping estimates uncertainty but does not make assay endpoints
+biologically equivalent or correct task selection, dependence beyond the card,
+or model-selection multiplicity. Because the displayed best systems were
+identified on this benchmark, their intervals are descriptive post-selection
+intervals, not multiplicity-adjusted confirmatory tests or Bayesian posterior
+probabilities.
 
 \section{Results}
 
@@ -350,14 +451,14 @@ their separation is attributable to ranking rather than malformed actions.
 
 \begin{table}[H]
 \centering
-\caption{Corrected deterministic results on all 91 cards. Utility and NDCG
-bootstrap intervals are task-level 95\% percentile intervals. Oracle is not a
-deployable system.}
+\caption{Corrected deterministic results on all 91 cards. Utility intervals are
+task-level 95\% bootstrap percentile intervals; NDCG@10 is a point estimate.
+Oracle is not a deployable system.}
 \label{tab:baselines}
 \small
 \begin{tabularx}{\linewidth}{@{}Yrrrr@{}}
 \toprule
-\textbf{System} & \textbf{Utility (95\% CI)} & \textbf{NDCG@10} & \textbf{Regret} & \textbf{Action validity} \\
+\textbf{System} & \textbf{Mean utility (95\% CI)} & \textbf{NDCG@10} & \textbf{Regret} & \textbf{Action validity} \\
 \midrule
 \DeterministicBaselineRows
 \bottomrule
@@ -367,36 +468,66 @@ deployable system.}
 \subsection{Do LLMs add decision value?}
 
 \ifllmresultsavailable
-The strongest LLM system was \BestLLMLabel{}, with feasible utility
-\BestLLMUtility{} and NDCG@10 \BestLLMNDCG{}. The best QSAR comparator remained
-higher by \BestQSARMinusLLMUtility{} utility points (paired 95\% CI
-\BestQSARMinusLLMUtilityCILow{}--\BestQSARMinusLLMUtilityCIHigh{}), so the
-corrected result supports a QSAR-family lead rather than added decision value
-from the tested LLMs.
+The strongest final LLM pipeline was the OpenAI basic interface plus
+deterministic post-hoc repair, with mean feasible utility \BestLLMUtility{} and
+NDCG@10 \BestLLMNDCG{}. Linear-SVR QSAR remained higher by
+\BestQSARMinusLLMUtility{} mean card-level utility points (paired 95\% CI
+\BestQSARMinusLLMUtilityCILow{}--\BestQSARMinusLLMUtilityCIHigh{}). The
+corresponding QSAR-minus-guarded-LLM NDCG@10 difference was 0.0087 (95\% CI
+0.0010--0.0165). These two outcomes support a QSAR-family lead rather than added
+decision value from the tested LLM pipelines.
 
-The same OpenAI bare-interface response stream had raw utility
-\BestLLMRawUtility{} and whole-action validity \BestLLMActionValidity{}.
-Deterministic repair changed \BestLLMRepairRate{} of card actions and raised
-the guarded-system utility to \BestLLMUtility{}. That improvement belongs to
-the model-plus-harness system, not the unaided model. Descriptor enrichment did
-not improve the best-performing OpenAI condition, and effects varied by
-provider rather than supporting a general tool-summary benefit. The six raw
-conditions cost \TotalLLMCost{} dollars in total under provider-reported usage
-and the frozen token-pricing rules; the best condition accounted for
-\BestLLMCost{} dollars. Repair added no provider calls.
+The underlying pre-repair OpenAI response stream had mean feasible utility
+\BestLLMRawUtility{} and issued a fully valid action on 72 of 91 cards
+(\BestLLMActionValidity{}). Guarding raised utility to \BestLLMUtility{}, but
+this is not the performance of the LLM alone. Repair was invoked on 19 cards;
+only ten cards received a replacement identity, and deterministic fallback
+supplied 14 of 910 final positions (1.54\%). Nine repairs corrected metadata,
+schema, or ranking details without replacing an identity.
+
+Harness contribution was much larger elsewhere
+(Table~\ref{tab:repair_attribution}). Fallback supplied 25.16--27.69\% of
+Anthropic final positions and 39.01--58.68\% of DeepSeek positions. Thirty
+DeepSeek basic-interface cards received all ten final identities from fallback.
+Those guarded scores primarily characterize a model-plus-deterministic-harness
+system. Descriptor enrichment did not improve the best-performing OpenAI
+condition, and effects varied by provider rather than supporting a general
+descriptor benefit. The six raw conditions cost \TotalLLMCost{} dollars in
+total under provider-reported usage and frozen token-pricing rules; the best
+condition accounted for \BestLLMCost{} dollars. Repair added no provider calls.
 \else
 The canonical six-condition comparison failed the manuscript generator's
 completeness or provenance gate. No partial, pilot-only, substituted, or
 historical paper-50 number is reported in its place.
 \fi
 
+\begin{table}[H]
+\centering
+\caption{Pre-repair output and deterministic fallback contribution. A repaired
+card can have zero replaced identities when only schema, task metadata, or rank
+normalization changed. Final guarded rows are model-plus-harness results.}
+\label{tab:repair_attribution}
+\scriptsize
+\begin{tabularx}{\linewidth}{@{}Yrrrr@{}}
+\toprule
+\textbf{Provider, interface} &
+\textbf{Cards repaired} &
+\textbf{Cards with identity replacement} &
+\textbf{Fallback positions} &
+\textbf{All 10 from fallback} \\
+\midrule
+\RepairAttributionCompactRows
+\bottomrule
+\end{tabularx}
+\end{table}
+
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.92\linewidth]{../figures/v0.1.0/compliance_utility_frontier.png}
 \caption{Action utility versus whole-action validity. Crosses are raw LLM
 outputs; open triangles are deterministic post-hoc-repaired outputs from the
-same responses. Connecting lines therefore show harness intervention, not an
-additional model call.}
+same responses. Connecting lines show harness intervention, not an additional
+model call; repaired points must not be interpreted as model-only performance.}
 \label{fig:utility_validity_frontier}
 \end{figure}
 
@@ -405,8 +536,8 @@ additional model call.}
 \subsection{A benchmark with a deliberately simple core}
 
 The formal core of this task is filter--predict--rank--allocate. This simplicity
-does not establish a new molecular-learning problem, and the paper should not
-pretend otherwise. It does create a precise evaluation boundary at the point
+does not establish a new molecular-learning problem, and we do not claim
+otherwise. It does create a precise evaluation boundary at the point
 where a model's scores become an experimental commitment. That boundary makes
 invalid actions, opportunity cost, deterministic repair, system inputs, and
 operational cost measurable together.
@@ -415,58 +546,91 @@ The corrected evidence shows that the benchmark has independent legs:
 constraints do not collapse the task, transparent molecular models improve
 materially on heuristic selection, and oracle headroom remains. The tested LLMs
 did not beat the best assay-local QSAR systems. For this bounded action, a
-future lab should therefore route prioritization to the smaller specialized
-ranker and treat an LLM, if used, as an auditable interface rather than the
-default scientific decision engine.
+decision system should therefore retain the smaller specialized ranker as the
+strong default and treat an LLM, if used, as an auditable component rather than
+assuming it is the scientific decision engine.
+
+\subsection{Relationship to existing evidence}
+
+The strength of per-card QSAR is consistent with CARA's lead-optimization
+analysis, where models trained on assay-relevant examples performed strongly
+and performance varied among assays \cite{tian2024cara}. Variation among
+providers and interfaces is likewise consistent with chemistry benchmarks
+showing that LLM performance depends on task and evaluation setup
+\cite{guo2023chemllmbench,mirza2025chembench}. Mol-Instructions, LLM4SD, and
+ChemCrow demonstrate useful roles for domain instruction data, LLM-derived
+features, and tool coordination
+\cite{fang2024molinstructions,zheng2025llm4sd,bran2024chemcrow}; none implies
+that a directly prompted LLM should outperform a regressor fitted to local
+assay measurements. Our result is narrower: on this corrected retrospective
+top-10 benchmark, guarded pipelines produced executable shortlists, but the
+strongest conventional QSAR retained a paired advantage.
 
 \subsection{What the benchmark does not establish}
 
-Retrospective activity is not prospective validation. CARA inherits ChEMBL
-measurement and curation heterogeneity \cite{zdrazil2024chembl}. The objective
-is assay-local potency, not selectivity, mechanism, ADMET, toxicity, synthesis
-feasibility, or therapeutic value. The candidate pool is fixed; no structure is
-generated. Simple molecular thresholds are eligibility rules, not medicinal-
-chemistry judgment. One-shot allocation does not test learning across rounds,
-and snapshot-specific provider results will not generalize automatically to
-future models.
+This is a retrospective computational benchmark, not prospective lead
+optimization. It includes every one of the 91 \texttt{LO\_All} tasks that can
+support the declared top-10 action, but it does not represent CARA
+virtual-screening tasks, the nine tasks with fewer than ten feasible candidates,
+or the distribution of industrial projects. CARA also inherits ChEMBL
+measurement and curation heterogeneity \cite{zdrazil2024chembl}. Bootstrap
+intervals describe variation among these observed cards and do not license
+generalization beyond them.
 
-These limits are reasons to keep the claim narrow, not reasons to postpone the
-release indefinitely. A verified action-level unit test is a useful precursor
-to richer biological and sequential extensions, provided the paper never
-equates success here with autonomous-laboratory readiness.
+The objective is assay-local potency, not selectivity, mechanism, uncertainty,
+ADMET, toxicity, pharmacokinetics, synthesis, novelty, availability, or
+therapeutic value. The candidate pool is fixed and no structure is generated.
+The molecular thresholds are simplified eligibility rules; no structural alert
+was active, and no medicinal chemist comparator was included. Consequently,
+``feasible'' means feasible under the benchmark's rules, not suitable for
+synthesis or development.
+
+Each provider condition retains one response per card, so repeated-call
+variation is not estimated. Results are specific to the dated models, prompts,
+interfaces, parsing, settings, and deterministic fallback. CARA and ChEMBL are
+public: candidate outcomes were withheld at prompt time and from non-oracle
+ranking code, but prior model exposure to public source data cannot be excluded.
+One-shot allocation also does not test learning across rounds. These limits
+preclude claims about prospective laboratory performance, autonomous-laboratory
+readiness, or LLMs in drug discovery generally.
 
 \section{Reproducibility and release}
 
-The planned archival release will separate public cards from scorer outcomes
-and include source and transform provenance, exclusions, exact requests, model
+The frozen working release separates public cards from scorer outcomes and
+includes source and transform provenance, exclusions, exact requests, model
 configurations, traces, per-card scores, aggregate tables, costs, environment
-locks, licenses, citation metadata, a file manifest, and SHA256 checksums.
-Historical invalid result tags will remain immutable but are superseded
-explicitly. The semantic release tag will be created only after a clean-checkout
-build verifies the bundle and compiled manuscript.
+locks, licenses, citation metadata, and reproduction commands. Historical
+invalid results remain immutable but are explicitly superseded. A semantic
+release tag and the final top-level manifest/checksum freeze remain separate
+release-administration actions.
 
 \section{Conclusion}
 
-Before giving an LLM an entire automated laboratory loop, we should test one
-consequential action against strong non-language alternatives under a contract
-that can be audited exactly. SpecGuard-Chem turns CARA's assay-grounded evidence
-into such a test: a finite, constrained next-batch decision with hidden outcomes,
-measurable opportunity cost, and explicit executability. Its claim is modest
-but operationally important: in the corrected 91-card run, conventional
-assay-local QSAR retained the lead, while deterministic repair was essential
-to make many LLM actions executable.
+Across all 91 eligible CARA lead-optimization cards, the strongest
+assay-specific QSAR model outperformed the strongest tested guarded LLM
+pipeline on the paired primary outcome. Deterministic validation made final
+actions executable, but fallback supplied between 1.54\% and 58.68\% of final
+shortlist positions across conditions. Guarded performance must therefore be
+reported as model-plus-harness performance alongside the pre-repair model
+result. This study supports strong conventional comparators, paired card-level
+analysis, and explicit repair attribution when evaluating constrained LLM
+decision systems; it does not establish superiority or general utility of LLMs
+for prospective drug discovery.
 
 \section*{Data, code, and AI-use statement}
 
-Release artifacts and exact reproduction commands will be bundled with the
-tagged repository. Code is MIT licensed; CARA and CARA-derived data retain CC BY 4.0
+Release artifacts and exact reproduction commands accompany the repository.
+Code is MIT licensed; CARA and CARA-derived data retain CC BY 4.0
 terms. ChatGPT/Codex assisted with project framing, code and artifact auditing,
 manuscript structuring/editing, and LaTeX compilation. All numerical claims are
 checked against local machine-readable artifacts. No patient or clinical data
-are used. Author list, contributions, funding, competing interests, and venue-
-specific disclosure wording require human confirmation before submission.
+are used. Author list, contributions, funding, competing interests, and
+venue-specific disclosure wording require human confirmation before submission.
 
+\begingroup
+\small
 \bibliographystyle{plain}
 \bibliography{references}
+\endgroup
 
 \end{document}

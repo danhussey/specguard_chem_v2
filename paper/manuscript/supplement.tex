@@ -3,6 +3,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[margin=0.65in]{geometry}
+\usepackage{amsmath}
 \usepackage{array}
 \usepackage{booktabs}
 \usepackage{enumitem}
@@ -13,32 +14,41 @@
 \usepackage[colorlinks=true,urlcolor=blue!55!black]{hyperref}
 
 \input{generated_results.tex}
+\input{../tables/v0.1.0/repair_attribution_rows.tex}
 
 \setlist{nosep,leftmargin=*}
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\makeatletter
+\renewcommand\section{\@startsection{section}{1}{\z@}%
+  {-3.0ex \@plus -0.8ex \@minus -.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\Large\bfseries}}
+\makeatother
+\DeclareMathSizes{9}{10}{7}{5}
 
 \title{\textbf{Supplementary Methods and Artifact Record}\\
 SpecGuard-Chem 0.1.0}
 \author{Daniel Hussey}
-\date{Corrected full-matrix draft, 25 July 2026}
+\date{Final university-feedback revision, 28 July 2026}
 
 \begin{document}
 \maketitle
+\small
+\setlist[itemize]{label=\(\bullet\)}
 
 \section{Release status}
 
 This supplement accompanies the results manuscript \emph{Before the Lab Acts:
 Benchmarking Language Models for Constrained Compound Selection}. The corrected
 data, deterministic baselines, and full 546-response provider matrix are
-complete and audited. The fixed one-card pilot remains a staged-execution
-record; model comparisons use the six complete 91-card raw traces and their six
-zero-call post-hoc-repaired views. No historical paper-50 response or score is
-reported here.
-Those artifacts are invalid because positional split references were previously
+complete, committed, and audited. Model comparisons use six complete 91-card
+pre-repair traces and six zero-call post-hoc-repaired views. No historical
+response or score from the earlier 50-card draft is reported here. Those
+artifacts are invalid because positional split references were previously
 misread as dataframe labels; they remain only as immutable provenance.
-Tagging also remains blocked on the final paper, licensing, clean-checkout
-verification, and bundle checksums. Chemical-diversity extensions are deferred
-to a separately versioned future analysis.
+Archival tagging and publication remain separate release-administration
+actions. Chemical-diversity and multi-round extensions are deferred to a
+separately versioned future analysis.
 
 \section{Artifact visibility contract}
 
@@ -117,41 +127,101 @@ CHEMBL3889266\_IC50 & 8 \\
 
 The included endpoint distribution is 68 IC50, 17 Ki, 5 EC50, and one Potency
 task. Each included task has 50 support measurements and a distinct CARA target
-identifier.
+identifier. No ranking by candidate-pool size or other purposive subsampling was
+used. The feasibility rule is necessary for an exact top-10 action, but it
+limits inference to these 91 CARA lead-optimization cards; it does not establish
+representativeness of virtual-screening tasks, the excluded cards, or
+prospective projects.
 
 \section{Constraints}
 
 Output validity requires exactly ten unique candidate IDs, membership in the
 supplied candidate pool, and support-set exclusion. Candidate eligibility
-requires a parseable structure, molecular weight no greater than 500, and cLogP
-no greater than 4.5. The configured forbidden-SMARTS list is empty. These rules
-are eligibility controls, not a claim of synthesis feasibility, selectivity,
-ADMET suitability, toxicity, or medicinal-chemistry approval.
+requires an RDKit-parseable structure, molecular weight no greater than 500 Da,
+and RDKit Crippen cLogP no greater than 4.5. The molecular-weight limit follows
+the conventional rule-of-five boundary. The prespecified cLogP cutoff is a
+simplified benchmark threshold, 0.5 below the conventional value of 5.0; it was
+fixed before model evaluation. It is not a universally validated
+medicinal-chemistry cutoff. The configured forbidden-SMARTS list is empty.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Mutually exclusive candidate-constraint outcomes across all 19,588
+official \texttt{LO\_All} candidate records.}
+\label{tab:constraint_accounting}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+\textbf{Outcome} & \textbf{Candidates} & \textbf{Percentage} \\
+\midrule
+Passed both thresholds & 10,039 & 51.25\% \\
+Molecular weight $>500$ only & 2,433 & 12.42\% \\
+cLogP $>4.5$ only & 3,765 & 19.22\% \\
+Exceeded both & 3,351 & 17.11\% \\
+Unparseable structure & 0 & 0.00\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+These rules are transparent eligibility controls for specification adherence,
+not claims of synthesis feasibility, oral bioavailability, selectivity, ADMET
+suitability, toxicity, or medicinal-chemistry approval.
 
 \section{Systems and frozen provider matrix}
 
 Deterministic systems comprise a random-valid selector, descriptor-desirability
 rules, similarity to the best observed support compound, per-task random-forest,
 gradient-boosting and linear support-vector regressors, and a non-deployable
-hidden-outcome oracle.
+hidden-outcome oracle. Similarity and QSAR use 2,048-bit radius-2 Morgan
+fingerprints. Each regressor is fitted separately on one card's 50 visible
+support fingerprints and pChEMBL measurements. Random forest uses 100 trees,
+minimum leaf size 1, and seed 7. Gradient boosting uses the locked
+scikit-learn defaults and seed 7. Linear SVR uses a linear kernel, $C=1.0$, and
+\texttt{StandardScaler(with\_mean=False)}. There is no card-specific
+hyperparameter search. Predictions rank all feasible candidates in descending
+order; candidate ID breaks ties. Hidden candidate values are used only by the
+scorer and oracle.
+
+The rules-only baseline and deterministic repair fallback use the same
+outcome-blind desirability score:
+{\normalsize
+\begin{align*}
+D(i)={}&0.45\max\!\left(0,1-\frac{|\mathrm{MW}_i-350|}{350}\right)\\
+ &+0.35\max\!\left(0,1-\frac{|\mathrm{cLogP}_i-2.5|}{4.5}\right)\\
+ &+0.20\max\!\left(0,1-\frac{|\mathrm{TPSA}_i-75|}{150}\right).
+\end{align*}
+}
+Feasible candidates are sorted by decreasing $D(i)$ with candidate ID as the
+tie-break. RDKit-computed TPSA enters this software fallback even for the basic
+LLM interface, which did not expose TPSA to the model. Random-valid shuffling
+seeds Python's random-number generator with the integer represented by the first
+eight hexadecimal digits of the SHA256 digest of seed 7, task ID, and
+\texttt{random\_valid}, joined in that order by colons.
 
 The provider matrix contains three conditions and two representations across 91
 cards (546 requests):
 
 \begin{itemize}
-  \item OpenAI \texttt{gpt-5.5-2026-04-23}, low reasoning, direct JSON;
-  \item Anthropic \texttt{claude-opus-4-8}, direct JSON without extended
-  thinking; and
-  \item DeepSeek \texttt{deepseek-v4-pro}, thinking disabled, as checked on
-  16 July 2026, with the provider-returned model identifier retained in traces.
+  \item OpenAI \texttt{gpt-5.5-2026-04-23}, low reasoning effort and provider
+  JSON-object response mode;
+  \item Anthropic \texttt{claude-opus-4-8}, no extended thinking, using an
+  explicit JSON-only prompt and deterministic one-object extraction; and
+  \item DeepSeek \texttt{deepseek-v4-pro}, thinking disabled and provider
+  JSON-object response mode, as checked on 16 July 2026, with the
+  provider-returned model identifier retained in traces.
 \end{itemize}
 
 The basic interface supplies IDs, structures, molecular weight, and cLogP. The
 descriptor-enriched interface additionally supplies TPSA, hydrogen-bond donor
 and acceptor counts, and rotatable-bond count. Both receive the same action
 contract and an explicit instruction that pChEMBL is higher-is-better. The
+full ordered candidate pool is supplied on every card. Candidate outcomes are
+never supplied. Each condition uses a 4,096-token output limit; temperature and
+provider seed are unset. Provider SDK retries are disabled. Each recorded
+response therefore has one provider attempt, and malformed content remains
+part of pre-repair behavior rather than triggering a paid retry. The
 conservative uncached pre-run estimate is \$106.06, with maximum estimated
-input 158,274 tokens and a planned hard cost ceiling of \$120.
+input 158,274 tokens and a hard cost ceiling of \$120.
 
 The staged pilot completed all six calls with one recorded attempt each, full
 provenance, and \$0.449700535 aggregate usage-derived cost; cache-only replay
@@ -161,6 +231,12 @@ per card and complete model, response, usage, latency, request-hash, and retaine
 content evidence. The six repaired traces cover the same 91 cards and add zero
 provider calls. Usage-derived token-pricing cost is \TotalLLMCost{} dollars for
 the full matrix, with complete cost coverage.
+
+The locked execution environment used Python 3.12.3, RDKit 2026.3.1,
+scikit-learn 1.8.0, NumPy 2.4.4, pandas 3.0.2, OpenAI SDK 2.36.0, and
+Anthropic SDK 0.100.0. The complete transitive environment and package hashes
+are recorded in \texttt{uv.lock}; exact model requests and cached responses are
+release artifacts.
 
 \section{Deterministic post-hoc repair}
 
@@ -178,5 +254,69 @@ Repair is computed from the same raw response and adds zero provider calls:
 
 Raw metrics characterize model behavior. Repaired metrics characterize the
 model-plus-harness system and must never be relabeled as unaided model ability.
+
+``Cards repaired'' counts any contract modification. ``Fallback positions''
+counts final candidate identities that were not retained from the valid,
+unique pre-repair sequence and were instead supplied by the fixed rules
+ranking. A card can therefore be repaired without receiving a fallback
+identity.
+
+\begin{table}[h]
+\centering
+\caption{Complete deterministic repair attribution. The per-repaired-card
+column reports mean; median (range) fallback positions.}
+\label{tab:supp_repair_attribution}
+\scriptsize
+\begin{tabularx}{\linewidth}{@{}Yrrrrrr@{}}
+\toprule
+\textbf{Condition} &
+\textbf{Repaired} &
+\textbf{Identity changed} &
+\textbf{Fallback positions} &
+\textbf{Per repaired card} &
+\textbf{Zero fallback} &
+\textbf{All 10 fallback} \\
+\midrule
+\RepairAttributionRows
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Utility and statistical analysis}
+
+Let $s_{mcr}$ be the ID returned by system $m$ for card $c$ at position $r$.
+Define $a_{mcr}$ as $y_{s_{mcr},c}$ only when that position exists, the ID is a
+feasible candidate with an available hidden outcome, and the ID has not appeared
+at an earlier scored position; otherwise $a_{mcr}=0$. Only the first $k$
+positions are scored, and feasible utility is
+{\normalsize
+\[
+U_m(c)=\sum_{r=1}^{k}a_{mcr},
+\]
+}
+so only the first occurrence of an otherwise valid ID can score. Later
+duplicates, out-of-pool or infeasible IDs, unavailable outcomes, missing
+positions, and positions beyond $k$ receive no credit. All labels have the
+common pChEMBL negative-log molar direction, but endpoint type and assay
+conditions differ. Absolute utility is therefore not interpreted as a
+biologically interchangeable cross-assay quantity.
+
+System contrasts are paired within card. For systems $A$ and $B$, the analysis
+first calculates $\Delta_c=U_A(c)-U_B(c)$ after both systems saw the same
+support set and candidate pool, then averages the 91 equally weighted
+differences. For valid fixed-size top-10 actions, a card-specific additive
+offset cancels from this contrast. NDCG@10 supplies a secondary within-card
+normalization against the ideal feasible ranking.
+
+Marginal confidence intervals use 1,000 card-level bootstrap samples and
+NumPy's default random-number generator with seed 7. Each sample draws 91 cards
+with replacement, and the 2.5th and 97.5th percentiles of the sample means form
+the 95\% interval. Headline contrasts use 2,000 paired bootstrap samples with
+seed 13: the 91 observed card-level differences are resampled with replacement,
+preserving pairing, and percentile limits are taken from the bootstrap mean
+differences. The reported proportion of bootstrap means above zero is a
+bootstrap replicate proportion, not a posterior probability. Intervals do not
+correct task selection, dependence beyond the card, repeated-call variation,
+or post-selection of the displayed best systems.
 
 \end{document}

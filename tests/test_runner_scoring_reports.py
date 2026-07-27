@@ -154,6 +154,8 @@ def test_model_matrix_requests_and_offline_run(tmp_path: Path) -> None:
     assert records[0].metadata["prompt_profile"] == "default"
     assert records[0].raw_output is not None
     assert records[0].repaired is True
+    assert records[0].raw_output.metadata["cache_path"].endswith(".json")
+    assert records[0].raw_output.metadata["external_skipped"] is True
     summary_scores = score_run(cards_path, tmp_path / "trace.jsonl", tmp_path / "scores")
     assert summary_scores[0].system_name == "llm_tools_validator__openai_fast"
     assert summary_scores[0].raw_feasible_utility is not None

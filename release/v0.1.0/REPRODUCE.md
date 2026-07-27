@@ -118,16 +118,20 @@ python3 paper/manuscript/generate_results.py --check
 
 The second command is a no-write release check and fails if either generated
 file is stale. With [Tectonic](https://tectonic-typesetting.github.io/) installed,
-compile the manuscript and supplement using ordinary public commands:
+compile the manuscript and supplement with the frozen build epoch
+`1784937600` (25 July 2026 00:00:00 UTC). Fixing `SOURCE_DATE_EPOCH` prevents
+the PDF creation timestamp from changing an otherwise identical build:
 
 ```bash
 cd paper/manuscript
-tectonic -X compile --outdir build main.tex
-tectonic -X compile --outdir build supplement.tex
+mkdir -p build
+SOURCE_DATE_EPOCH=1784937600 tectonic -X compile --outdir build main.tex
+SOURCE_DATE_EPOCH=1784937600 tectonic -X compile --outdir build supplement.tex
 ```
 
-A TeX Live installation may instead use `latexmk -pdf -outdir=build main.tex`
-and the corresponding command for `supplement.tex`.
+A TeX Live installation may instead use
+`SOURCE_DATE_EPOCH=1784937600 latexmk -pdf -outdir=build main.tex` and the
+corresponding command for `supplement.tex`.
 
 ## 6. Reproduce and verify the no-call LLM request export
 
@@ -162,17 +166,46 @@ uv run sgchem estimate-llm-cost \
   --model-conditions openai_gpt_5_5_2026_04_23_selector,anthropic_opus_4_8_selector,deepseek_v4_pro_2026_07_16_selector \
   --cache-dir release/v0.1.0/experiments/llm/matrix/cache \
   --out-run-dir runs/reproduce-v0.1.0-llm-matrix \
+  --force \
   --out runs/reproduce-v0.1.0-cost-estimate.json
 ```
 
-The current estimate must report 546 cached or completed requests, zero missing
-live calls, and zero incremental cost. The committed
+`--force` makes the estimator ignore any previously reproduced trace and prove
+coverage from the committed response cache itself. The current estimate must
+report 546 cached requests, zero missing live calls, and zero incremental cost.
+The committed
 `experiments/llm/pre_run_cost_estimate.json` is deliberately historical: before
 any live call it reported 546 missing requests, a USD 106.059394070
 conservative upper bound, and a maximum estimated request size of 158,274 input
 tokens. Provider pricing is the dated snapshot in
 `configs/provider_pricing.toml`; no pricing refresh is needed for cache-only
 replay.
+
+Verify the current estimate as an executable zero-call precondition rather than
+relying on the live-execution limit flags:
+
+```bash
+python3 - <<'PY'
+import json
+from pathlib import Path
+
+path = Path("runs/reproduce-v0.1.0-cost-estimate.json")
+estimate = json.loads(path.read_text(encoding="utf-8"))
+assert estimate["total_requests"] == 546
+assert estimate["cached_or_completed_calls"] == 546
+assert estimate["missing_live_calls"] == 0
+assert float(estimate["estimated_incremental_cost_usd"]) == 0.0
+assert int(estimate["max_missing_input_tokens"]) == 0
+assert len(estimate["rows"]) == 546
+assert {row["status"] for row in estimate["rows"]} == {"response_cache"}
+print("verified 546 cached requests, zero missing calls, zero incremental cost")
+PY
+```
+
+The replay commands below also pass `--require-cost-estimate`,
+`--max-live-calls 0`, and `--max-estimated-cost-usd 0`. These gates are enforced
+even without `--allow-external`; a cache miss therefore stops the run before
+trace generation instead of being silently tolerated.
 
 ## 7. Verify and replay the fixed one-card pilot
 
@@ -238,11 +271,13 @@ content, response/model identifiers, usage, latency, and scores are under
 `experiments/llm/pilot/`; the six content-addressed response records are under
 `experiments/llm/matrix/cache/`.
 
-Replay those responses without credentials or provider access by omitting
-`--allow-external` and writing to a new output directory:
+Replay those responses without credentials or provider access by removing the
+three provider-key variables, omitting `--allow-external`, and writing to a new
+output directory:
 
 ```bash
-uv run --extra providers sgchem run-llm-matrix \
+env -u OPENAI_API_KEY -u ANTHROPIC_API_KEY -u DEEPSEEK_API_KEY \
+  uv run --extra providers sgchem run-llm-matrix \
   data/releases/v0.1.0/system_input_cards.jsonl \
   --scorer-outcomes data/releases/v0.1.0/scorer_outcomes.jsonl \
   --systems bare_llm,llm_tools \
@@ -252,14 +287,16 @@ uv run --extra providers sgchem run-llm-matrix \
   --cache-dir release/v0.1.0/experiments/llm/matrix/cache \
   --out runs/reproduce-v0.1.0-pilot-replay \
   --require-cost-estimate \
-  --max-estimated-cost-usd 1 \
-  --max-live-calls 6 \
+  --max-estimated-cost-usd 0 \
+  --max-live-calls 0 \
   --max-input-tokens-per-call 30000
 ```
 
 The replay must require zero live calls and reproduce all six score directories.
-The committed pilot passed this check; trace differences are limited to the
-expected replay `cache_path` field, while score artifacts are byte-identical.
+Successful cache replay preserves the provider response record without adding a
+machine-specific cache path, so the six replay traces and score artifacts can be
+compared literally with the committed pilot artifacts. A `cache_path` is retained
+only in a diagnostic row when a required cache entry is missing.
 
 The pilot and full run deliberately share the matrix cache. The committed
 `experiments/llm/post_pilot_cost_estimate.json` captures the historical state at
@@ -271,11 +308,14 @@ reproducing that earlier state.
 
 ## 8. Replay and verify the completed full LLM matrix
 
-The live matrix is complete. Reproduction must use the committed cache without
-`--allow-external` and with zero-cost and zero-call gates:
+The live matrix is complete. The verified estimate in Section 6 is the
+executable zero-cost and zero-missing-call precondition. Replay uses the
+committed cache with provider credentials removed and without
+`--allow-external`:
 
 ```bash
-uv run --extra providers sgchem run-llm-matrix \
+env -u OPENAI_API_KEY -u ANTHROPIC_API_KEY -u DEEPSEEK_API_KEY \
+  uv run --extra providers sgchem run-llm-matrix \
   data/releases/v0.1.0/system_input_cards.jsonl \
   --scorer-outcomes data/releases/v0.1.0/scorer_outcomes.jsonl \
   --systems bare_llm,llm_tools \
@@ -289,11 +329,62 @@ uv run --extra providers sgchem run-llm-matrix \
   --max-input-tokens-per-call 175000
 ```
 
-The preflight must find 546 cached requests, zero missing requests, and zero
-incremental cost. It then writes six raw traces and six separately attributed
-post-hoc repair traces, each containing 91 rows. The following checks should
-print `546`, followed by six raw counts of `91` and six repaired counts of
-`91`:
+`run-llm-matrix` writes and scores the six raw replay traces. Post-hoc repair is
+a separate, zero-provider-call transform, so reproduce and score each of the six
+repaired views explicitly:
+
+```bash
+uv run sgchem repair-llm-trace \
+  data/releases/v0.1.0/system_input_cards.jsonl \
+  runs/reproduce-v0.1.0-llm-matrix/openai_gpt_5_5_2026_04_23_selector/bare_llm/trace.jsonl \
+  --out runs/reproduce-v0.1.0-llm-matrix/openai_gpt_5_5_2026_04_23_selector/bare_llm/posthoc_repair.trace.jsonl \
+  --scores-out runs/reproduce-v0.1.0-llm-matrix/openai_gpt_5_5_2026_04_23_selector/bare_llm/posthoc_scores \
+  --scorer-outcomes data/releases/v0.1.0/scorer_outcomes.jsonl \
+  --pricing configs/provider_pricing.toml
+
+uv run sgchem repair-llm-trace \
+  data/releases/v0.1.0/system_input_cards.jsonl \
+  runs/reproduce-v0.1.0-llm-matrix/openai_gpt_5_5_2026_04_23_selector/llm_tools/trace.jsonl \
+  --out runs/reproduce-v0.1.0-llm-matrix/openai_gpt_5_5_2026_04_23_selector/llm_tools/posthoc_repair.trace.jsonl \
+  --scores-out runs/reproduce-v0.1.0-llm-matrix/openai_gpt_5_5_2026_04_23_selector/llm_tools/posthoc_scores \
+  --scorer-outcomes data/releases/v0.1.0/scorer_outcomes.jsonl \
+  --pricing configs/provider_pricing.toml
+
+uv run sgchem repair-llm-trace \
+  data/releases/v0.1.0/system_input_cards.jsonl \
+  runs/reproduce-v0.1.0-llm-matrix/anthropic_opus_4_8_selector/bare_llm/trace.jsonl \
+  --out runs/reproduce-v0.1.0-llm-matrix/anthropic_opus_4_8_selector/bare_llm/posthoc_repair.trace.jsonl \
+  --scores-out runs/reproduce-v0.1.0-llm-matrix/anthropic_opus_4_8_selector/bare_llm/posthoc_scores \
+  --scorer-outcomes data/releases/v0.1.0/scorer_outcomes.jsonl \
+  --pricing configs/provider_pricing.toml
+
+uv run sgchem repair-llm-trace \
+  data/releases/v0.1.0/system_input_cards.jsonl \
+  runs/reproduce-v0.1.0-llm-matrix/anthropic_opus_4_8_selector/llm_tools/trace.jsonl \
+  --out runs/reproduce-v0.1.0-llm-matrix/anthropic_opus_4_8_selector/llm_tools/posthoc_repair.trace.jsonl \
+  --scores-out runs/reproduce-v0.1.0-llm-matrix/anthropic_opus_4_8_selector/llm_tools/posthoc_scores \
+  --scorer-outcomes data/releases/v0.1.0/scorer_outcomes.jsonl \
+  --pricing configs/provider_pricing.toml
+
+uv run sgchem repair-llm-trace \
+  data/releases/v0.1.0/system_input_cards.jsonl \
+  runs/reproduce-v0.1.0-llm-matrix/deepseek_v4_pro_2026_07_16_selector/bare_llm/trace.jsonl \
+  --out runs/reproduce-v0.1.0-llm-matrix/deepseek_v4_pro_2026_07_16_selector/bare_llm/posthoc_repair.trace.jsonl \
+  --scores-out runs/reproduce-v0.1.0-llm-matrix/deepseek_v4_pro_2026_07_16_selector/bare_llm/posthoc_scores \
+  --scorer-outcomes data/releases/v0.1.0/scorer_outcomes.jsonl \
+  --pricing configs/provider_pricing.toml
+
+uv run sgchem repair-llm-trace \
+  data/releases/v0.1.0/system_input_cards.jsonl \
+  runs/reproduce-v0.1.0-llm-matrix/deepseek_v4_pro_2026_07_16_selector/llm_tools/trace.jsonl \
+  --out runs/reproduce-v0.1.0-llm-matrix/deepseek_v4_pro_2026_07_16_selector/llm_tools/posthoc_repair.trace.jsonl \
+  --scores-out runs/reproduce-v0.1.0-llm-matrix/deepseek_v4_pro_2026_07_16_selector/llm_tools/posthoc_scores \
+  --scorer-outcomes data/releases/v0.1.0/scorer_outcomes.jsonl \
+  --pricing configs/provider_pricing.toml
+```
+
+The following checks print `546`, followed by six raw counts of `91` and six
+repaired counts of `91`:
 
 ```bash
 find release/v0.1.0/experiments/llm/matrix/cache \
@@ -302,15 +393,80 @@ wc -l runs/reproduce-v0.1.0-llm-matrix/*/*/trace.jsonl
 wc -l runs/reproduce-v0.1.0-llm-matrix/*/*/posthoc_repair.trace.jsonl
 ```
 
+Verify the no-external manifest and the hash binding from each repaired replay
+trace to its own raw replay trace:
+
+```bash
+python3 - <<'PY'
+import hashlib
+import json
+from pathlib import Path
+
+root = Path("runs/reproduce-v0.1.0-llm-matrix")
+manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+assert manifest["allow_external"] is False
+assert len(manifest["runs"]) == 6
+
+raw_paths = sorted(root.glob("*/*/trace.jsonl"))
+assert len(raw_paths) == 6
+for raw_path in raw_paths:
+    repaired_path = raw_path.with_name("posthoc_repair.trace.jsonl")
+    source_digest = hashlib.sha256(raw_path.read_bytes()).hexdigest()
+    repaired_rows = [
+        json.loads(line)
+        for line in repaired_path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    assert len(repaired_rows) == 91
+    for row in repaired_rows:
+        metadata = row["metadata"]
+        assert metadata["repair_source_trace_sha256"] == source_digest
+        assert metadata["provider_calls_added"] == 0
+
+print("verified offline manifest and six zero-call, source-bound repaired traces")
+PY
+```
+
 Regenerate the 19-system comparison from the seven deterministic/oracle
 summaries, six raw LLM summaries, and six repaired summaries:
 
 ```bash
 uv run sgchem compare-runs \
-  release/v0.1.0/experiments/baselines/*/scores/summary.json \
+  runs/reproduce-v0.1.0-baselines/*/scores/summary.json \
   runs/reproduce-v0.1.0-llm-matrix/*/*/scores/summary.json \
   runs/reproduce-v0.1.0-llm-matrix/*/*/posthoc_scores/summary.json \
   --out runs/reproduce-v0.1.0-llm-comparison
+```
+
+The committed canonical matrix was refrozen from the same cache-only path used
+above. Successful cache hits therefore produce byte-identical raw traces and
+scores; deterministic repair produces byte-identical repaired traces and scores;
+and the regenerated comparison directory is byte-identical. The matrix
+`manifest.json` is not part of this literal comparison because it records the
+chosen output directory and run time.
+
+```bash
+for relative in \
+  anthropic_opus_4_8_selector/bare_llm \
+  anthropic_opus_4_8_selector/llm_tools \
+  deepseek_v4_pro_2026_07_16_selector/bare_llm \
+  deepseek_v4_pro_2026_07_16_selector/llm_tools \
+  openai_gpt_5_5_2026_04_23_selector/bare_llm \
+  openai_gpt_5_5_2026_04_23_selector/llm_tools
+do
+  cmp \
+    "release/v0.1.0/experiments/llm/matrix/$relative/trace.jsonl" \
+    "runs/reproduce-v0.1.0-llm-matrix/$relative/trace.jsonl"
+  diff -ru \
+    "release/v0.1.0/experiments/llm/matrix/$relative/scores" \
+    "runs/reproduce-v0.1.0-llm-matrix/$relative/scores"
+  cmp \
+    "release/v0.1.0/experiments/llm/matrix/$relative/posthoc_repair.trace.jsonl" \
+    "runs/reproduce-v0.1.0-llm-matrix/$relative/posthoc_repair.trace.jsonl"
+  diff -ru \
+    "release/v0.1.0/experiments/llm/matrix/$relative/posthoc_scores" \
+    "runs/reproduce-v0.1.0-llm-matrix/$relative/posthoc_scores"
+done
 
 diff -ru \
   release/v0.1.0/experiments/llm/comparison \
@@ -367,10 +523,10 @@ uv build --out-dir runs/reproduce-v0.1.0-dist
 The candidate bundle contains:
 
 - `specguard_chem_v2-0.1.0-py3-none-any.whl`, SHA256
-  `33e348ebdbbcbc610fe22df9322c8bc4566c173a56cda5e815ea1f3d0329881d`;
+  `34bae13a70c56a3047f0ccc6435dec076bdd89392d5c649d43f712811deca8f1`;
   and
 - `specguard_chem_v2-0.1.0.tar.gz`, SHA256
-  `8d1c8580d3ae0a72b0ffe57f6480be28889e8689361f51e35ed46046e48ba2d8`.
+  `92ea68da9522f4a3494e27f8db3ca89679769837b7c7a0b173bdd3eb3a2f1a55`.
 
 Install the wheel in a fresh environment, then run at least `sgchem --help`,
 `sgchem list-systems`, and fixture-card validation. The bundled wheel was

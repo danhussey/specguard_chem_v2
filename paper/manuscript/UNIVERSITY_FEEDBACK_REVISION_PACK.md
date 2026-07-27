@@ -30,10 +30,11 @@ applies only to eligible CARA `LO_All` tasks under the simplified constraints,
 not to virtual screening, prospective medicinal chemistry, or drug discovery
 generally.
 
-The completed 91-card LLM analysis currently exists in a separate, uncommitted
-working tree. Its headline values and repair attribution have been independently
-recounted, but that work must be frozen, merged, and regenerated from a clean
-checkout before the values are described as an archival release.
+The completed 91-card LLM analysis is frozen in the submission branch. Its
+headline values and repair attribution have been independently recounted, and
+all 546 requests have been replayed from the committed content-addressed cache
+without a provider call. The final clean-checkout reproduction gate is recorded
+in the execution log named under Evidence and provenance below.
 
 ## Suggested response to the university
 
@@ -97,7 +98,7 @@ medicinal-chemist comparator, and lack of prospective laboratory validation.
 | Define technical terms | Add one-sentence definitions at first use; state that *guarded* does not mean biologically safe | Abstract/Introduction and Methods |
 | Justify the 50 largest pools | Do not retain this policy. Replace it with all 91 eligible tasks from all 100 official tasks | Data sources and task inclusion |
 | Acknowledge generalisability | Limit inference to eligible CARA `LO_All` tasks and the tested constraints and provider snapshots | Task inclusion and Limitations |
-| Justify constraints | Relate MW 500 to the conventional Rule-of-Five boundary; explain cLogP 4.5 as a slightly stricter, prespecified stress-test threshold; state what the rules omit | Task constraints |
+| Justify constraints | Relate MW 500 to the conventional Rule-of-Five boundary; describe cLogP 4.5 as a prespecified simplified eligibility threshold fixed before evaluation; state what the rules omit | Task constraints |
 | Make QSAR and LLM methods reproducible | Report fingerprints, hyperparameters, package versions, exact model snapshots, reasoning/thinking settings, output cap, prompt fields, calls, cache, and repair policy | Systems and Reproducibility |
 | Explain utility across cards | Clarify common pChEMBL transformation, paired within-card contrasts, equal card weighting, offset cancellation for valid fixed-size lists, and the NDCG sensitivity analysis | Outcomes and statistical analysis |
 | Add bootstrap detail | State 1,000 marginal or 2,000 paired resamples, seeds 7 and 13, sampling cards with replacement, and 2.5th/97.5th percentiles | Statistical analysis |
@@ -134,8 +135,8 @@ medicinal-chemist comparator, and lack of prospective laboratory validation.
 > in the Anthropic and DeepSeek conditions, so their guarded scores were
 > substantially determined by the combined model-and-harness pipeline.
 
-The result values above are suitable only after the completed corrected matrix
-has been frozen into the submission branch.
+These values are generated from the corrected matrix frozen in the submission
+branch.
 
 ### Introduction: expanded literature and study contribution
 
@@ -219,25 +220,24 @@ each assay card.”
 > Candidate eligibility required a structure that RDKit could parse, molecular
 > weight no greater than 500 Da, and calculated logP no greater than 4.5. The
 > 500-Da boundary is the conventional molecular-weight component of Lipinski's
-> Rule of Five \cite{lipinski1997}. The cLogP limit of 4.5 is deliberately
-> slightly stricter than the conventional value of 5 and was fixed before the
-> corrected model evaluation. These two thresholds were chosen as simple,
-> deterministic rules with which to test contract-following; they were not
-> tuned against hidden candidate activity and should not be interpreted as a
-> validated medicinal-chemistry filter. The forbidden-substructure list was
+> Rule of Five \cite{lipinski1997}. The cLogP limit of 4.5 was a prespecified
+> simplified eligibility threshold fixed before model evaluation; it is 0.5
+> below the conventional Rule-of-Five boundary of 5. These two thresholds were
+> simple, deterministic rules with which to test contract-following; they were
+> not tuned against hidden candidate activity and should not be interpreted as
+> a validated medicinal-chemistry filter. The forbidden-substructure list was
 > empty. The benchmark therefore does not assess synthesis, selectivity, ADMET,
 > toxicity, pharmacokinetics, compound availability, or expert medicinal-
 > chemistry judgement.
 >
-> All 18,205 released candidate structures parsed successfully. The numerical
-> thresholds excluded 8,180 candidates (44.93%): 4,494 exceeded the molecular-
-> weight limit, 5,881 exceeded the cLogP limit, and 2,195 exceeded both. No salt
-> stripping, neutralisation, or other structure-standardisation step was
-> applied beyond RDKit parsing and canonical-SMILES calculation.
-
-If “deliberately slightly stricter” cannot be supported from contemporaneous
-notes, use the more conservative sentence: “The cLogP limit of 4.5 was a
-prespecified simplified eligibility threshold fixed before model evaluation.”
+> All 19,588 official candidate records parsed successfully. Of these, 10,039
+> passed both numerical limits and 9,549 failed at least one. The mutually
+> exclusive failure counts were 2,433 for molecular weight only, 3,765 for cLogP
+> only, and 3,351 for both; equivalently, 5,784 exceeded the molecular-weight
+> limit and 7,116 exceeded the cLogP limit. The 91 included cards contain 18,205
+> of the official candidate records. No salt stripping, neutralisation, or
+> other structure-standardisation step was applied beyond RDKit parsing and
+> canonical-SMILES calculation.
 
 ### QSAR reproducibility
 
@@ -297,6 +297,13 @@ prespecified simplified eligibility threshold fixed before model evaluation.”
 > Empty positions were then filled from the fixed rule-based ranking, excluding
 > candidates already retained, and the resulting action was validated again.
 > Neither validation nor repair accessed hidden candidate activity.
+> The fixed fallback score was
+> \(0.45\max(0,1-|MW-350|/350)
+> +0.35\max(0,1-|cLogP-2.5|/4.5)
+> +0.20\max(0,1-|TPSA-75|/150)\).
+> Feasible candidates were ranked by decreasing score with candidate identifier
+> as the deterministic tie-break. TPSA was computed by the software fallback
+> even for the basic LLM interface, where it was not shown to the model.
 >
 > “Cards repaired” counts any action whose output contract was modified.
 > “Fallback-supplied positions” gives the more direct measure of scientific
@@ -340,11 +347,18 @@ Suggested Results wording:
 > EC50, and Potency, and assay conditions and activity distributions differ.
 > These endpoints are therefore not treated as biologically interchangeable.
 >
-> For system \(m\) on card \(c\), feasible utility was
-> \(U_m(c)=\sum_{i\in S_m(c)}y_{ic}I(i\in V_c)\), where \(S_m(c)\) is the
-> returned shortlist, \(y_{ic}\) is hidden pChEMBL activity, and \(V_c\) is the
-> feasible candidate set. An invalid or missing entry contributed zero. The
-> main comparison between systems A and B was not a biological comparison of
+> Let \(s_{mcr}\) be the identifier returned by system \(m\) at position \(r\)
+> on card \(c\), \(V_c\) the feasible candidate set, and \(y_{ic}\) hidden
+> pChEMBL activity. Feasible utility was
+> \(U_m(c)=\sum_{r=1}^{k} y_{s_{mcr},c}
+> I[s_{mcr}\in V_c\ \text{and}\ s_{mcr}\notin
+> \{s_{mc1},\ldots,s_{mc,r-1}\}]\).
+> A missing, invalid, infeasible, or repeated entry contributed zero, and
+> entries beyond the first \(k=10\) positions received no credit. Thus the
+> first valid occurrence of an identifier can score, but a later duplicate
+> cannot.
+>
+> The main comparison between systems A and B was not a biological comparison of
 > card A with card B. It was the within-card difference
 > \(\Delta_c=U_A(c)-U_B(c)\), calculated after both systems saw the same
 > support evidence and candidate pool, followed by the equally weighted mean of
@@ -495,8 +509,9 @@ machine-readable artifacts.
 9. Correct the methods sentence that currently says “LLM minus best QSAR”:
    the reported positive 1.0027 effect is **QSAR minus LLM**.
 10. Freeze the completed full matrix into the submission branch, regenerate
-   tables and figures from machine-readable artifacts, and reproduce the report
-   from a clean checkout before submission.
+    tables and figures from machine-readable artifacts, and reproduce the
+    report from a clean checkout before submission. **Completed; see the final
+    gate log under Evidence and provenance.**
 
 ## Evidence and provenance
 
@@ -521,3 +536,5 @@ machine-readable artifacts.
   `release/v0.1.0/experiments/llm/comparison/paired_bootstrap_key_deltas.csv`
 - Raw and repaired traces after integration:
   `release/v0.1.0/experiments/llm/matrix/`
+- Final clean-checkout reproduction log:
+  `plans/logs/2026-07-28-0040-final-manuscript-and-reproduction-gate.md`

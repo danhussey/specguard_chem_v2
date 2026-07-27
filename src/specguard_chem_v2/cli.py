@@ -403,7 +403,7 @@ def run_llm_matrix(
     pricing_config = load_pricing_config(pricing)
     effective_cache_dir = cache_dir or (out / "cache")
     loaded_cards = _select_cli_task(load_evaluation_cards(cards), task_id)
-    if allow_external and (
+    if (
         require_cost_estimate
         or max_estimated_cost_usd is not None
         or max_live_calls is not None

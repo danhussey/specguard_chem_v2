@@ -121,20 +121,6 @@ def estimate_message_tokens(
     return int(math.ceil((len(serialized) / chars_per_token) * safety_multiplier))
 
 
-def _usage_value(usage: dict[str, Any], *keys: str) -> int:
-    total = 0
-    for key in keys:
-        value: Any = usage
-        for part in key.split("."):
-            if not isinstance(value, dict):
-                value = None
-                break
-            value = value.get(part)
-        if isinstance(value, (int, float)):
-            total += int(value)
-    return total
-
-
 def _actual_usage_from_cache(
     cache_path: Path, entry: PricingEntry
 ) -> dict[str, int | float] | None:
@@ -145,30 +131,24 @@ def _actual_usage_from_cache(
     if not isinstance(usage, dict):
         return None
 
-    input_tokens = _usage_value(
+    # Import lazily because operational accounting depends on the pricing models
+    # defined in this module. Reusing its normalization keeps cache estimates
+    # from summing synonymous provider fields as if they were separate usage.
+    from .operational import normalize_provider_usage, usage_cost_usd
+
+    provider = metadata.get("llm_provider") or metadata.get("provider")
+    request = payload.get("request")
+    if provider is None and isinstance(request, dict):
+        provider = request.get("provider")
+    normalized = normalize_provider_usage(
+        str(provider) if provider is not None else None,
         usage,
-        "prompt_tokens",
-        "input_tokens",
-        "cache_creation_input_tokens",
-    )
-    output_tokens = _usage_value(usage, "completion_tokens", "output_tokens")
-    cached_input_tokens = _usage_value(
-        usage,
-        "prompt_tokens_details.cached_tokens",
-        "prompt_cache_hit_tokens",
-        "cache_read_input_tokens",
-    )
-    uncached_input_tokens = max(0, input_tokens - cached_input_tokens)
-    cost = (
-        (uncached_input_tokens / 1_000_000) * entry.input_per_1m_usd
-        + (cached_input_tokens / 1_000_000) * entry.cached_input_per_1m_usd
-        + (output_tokens / 1_000_000) * entry.output_per_1m_usd
     )
     return {
-        "actual_input_tokens": input_tokens,
-        "actual_cached_input_tokens": cached_input_tokens,
-        "actual_output_tokens": output_tokens,
-        "actual_cost_usd": cost,
+        "actual_input_tokens": normalized["input_tokens"],
+        "actual_cached_input_tokens": normalized["cached_input_tokens"],
+        "actual_output_tokens": normalized["output_tokens"],
+        "actual_cost_usd": usage_cost_usd(normalized, entry),
     }
 
 

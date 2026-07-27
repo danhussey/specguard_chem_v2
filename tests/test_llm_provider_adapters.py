@@ -493,3 +493,20 @@ def test_provider_evidence_is_preserved_in_trace_and_cache(
     assert cached_metadata["provider_attempt_count"] == 1
     assert cached_metadata["raw_response_text"] == raw_text
     assert cached_metadata["response_contract_issues"]
+
+    provider_trace_bytes = trace_path.read_bytes()
+    replay_trace_path = tmp_path / "replay.trace.jsonl"
+    run_system_file(
+        FIXTURES / "cards.jsonl",
+        "bare_llm",
+        replay_trace_path,
+        cache_dir=cache_dir,
+        allow_external=False,
+        model_config=config,
+        run_label="bare_llm__openai_test",
+        task_id="fixture_A1",
+    )
+
+    assert len(state["create_calls"]) == 1
+    assert replay_trace_path.read_bytes() == provider_trace_bytes
+    assert "cache_path" not in read_jsonl(replay_trace_path)[0]["output"]["metadata"]

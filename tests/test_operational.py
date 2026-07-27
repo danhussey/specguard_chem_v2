@@ -5,7 +5,11 @@ from pathlib import Path
 
 import pytest
 
-from specguard_chem_v2.costing import PricingConfig, PricingEntry
+from specguard_chem_v2.costing import (
+    PricingConfig,
+    PricingEntry,
+    _actual_usage_from_cache,
+)
 from specguard_chem_v2.io import load_models, write_json, write_jsonl
 from specguard_chem_v2.operational import (
     normalize_provider_usage,
@@ -108,6 +112,66 @@ def test_anthropic_usage_adds_separate_cache_counters() -> None:
         "output_tokens": 5,
         "reasoning_output_tokens": 0,
         "total_tokens": 135,
+    }
+
+
+def test_cached_cost_avoids_synonymous_cached_token_double_counting(
+    tmp_path: Path,
+) -> None:
+    cache = tmp_path / "deepseek-cache.json"
+    write_json(
+        cache,
+        {
+            "request": {"provider": "deepseek"},
+            "response": {
+                "metadata": {
+                    "usage": {
+                        "prompt_tokens": 100,
+                        "completion_tokens": 10,
+                        "prompt_tokens_details": {"cached_tokens": 20},
+                        "prompt_cache_hit_tokens": 20,
+                    }
+                }
+            },
+        },
+    )
+
+    actual = _actual_usage_from_cache(cache, _pricing().entry_for("test_model"))
+
+    assert actual == {
+        "actual_input_tokens": 100,
+        "actual_cached_input_tokens": 20,
+        "actual_output_tokens": 10,
+        "actual_cost_usd": pytest.approx(0.00021),
+    }
+
+
+def test_cached_cost_uses_anthropic_separate_cache_accounting(tmp_path: Path) -> None:
+    cache = tmp_path / "anthropic-cache.json"
+    write_json(
+        cache,
+        {
+            "response": {
+                "metadata": {
+                    "llm_provider": "anthropic",
+                    "usage": {
+                        "input_tokens": 100,
+                        "cache_creation_input_tokens": 10,
+                        "cache_read_input_tokens": 20,
+                        "output_tokens": 5,
+                    },
+                }
+            }
+        },
+    )
+
+    actual = _actual_usage_from_cache(cache, _pricing().entry_for("test_model"))
+
+    assert actual == {
+        "actual_input_tokens": 130,
+        "actual_cached_input_tokens": 20,
+        "actual_output_tokens": 5,
+        "actual_cost_usd": pytest.approx(0.00025),
     }
 
 

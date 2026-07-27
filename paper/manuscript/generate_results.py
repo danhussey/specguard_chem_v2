@@ -11,8 +11,10 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import io
 import json
 import math
+import statistics
 import sys
 from pathlib import Path
 from typing import Any
@@ -55,6 +57,15 @@ PRIMARY_LLM_CONDITIONS = (
     "anthropic_opus_4_8_selector",
     "deepseek_v4_pro_2026_07_16_selector",
 )
+CONDITION_PROVIDERS = {
+    "openai_gpt_5_5_2026_04_23_selector": ("openai", "OpenAI"),
+    "anthropic_opus_4_8_selector": ("anthropic", "Anthropic"),
+    "deepseek_v4_pro_2026_07_16_selector": ("deepseek", "DeepSeek"),
+}
+REPAIR_INTERFACE_LABELS = {
+    "bare_llm": "basic",
+    "llm_tools": "descriptors",
+}
 POSTHOC_REPAIR_SUFFIX = "posthoc_repair"
 LLM_RESULT_FIELDS = (
     "num_cards",
@@ -68,6 +79,27 @@ LLM_RESULT_FIELDS = (
     "repaired_rate",
 )
 PAIRED_METRICS = ("feasible_utility", "ndcg_at_k", "action_validity")
+REPAIR_ATTRIBUTION_FIELDS = (
+    "provider",
+    "interface",
+    "n_cards",
+    "cards_repaired",
+    "repair_rate",
+    "cards_with_replaced_identity",
+    "fallback_supplied_slots",
+    "total_final_slots",
+    "fallback_slot_rate",
+    "mean_fallback_slots_all_cards",
+    "median_fallback_slots_all_cards",
+    "min_fallback_slots_all_cards",
+    "max_fallback_slots_all_cards",
+    "mean_fallback_slots_repaired_cards",
+    "median_fallback_slots_repaired_cards",
+    "min_fallback_slots_repaired_cards",
+    "max_fallback_slots_repaired_cards",
+    "repaired_cards_with_zero_fallback_slots",
+    "cards_with_all_10_fallback_slots",
+)
 
 
 def _read_json(path: Path) -> Any:
@@ -406,6 +438,336 @@ def _validate_llm_artifacts(
                         )
 
 
+def _selection_ids(
+    path: Path,
+    row: dict[str, Any],
+    *,
+    field: str,
+    expected_slots: int | None = None,
+) -> list[str]:
+    output = row.get(field)
+    if not isinstance(output, dict):
+        raise ValueError(f"{path}: {row.get('task_id', '<unknown>')}.{field} must be an object")
+    selections = output.get("selections")
+    if not isinstance(selections, list):
+        raise ValueError(
+            f"{path}: {row.get('task_id', '<unknown>')}.{field}.selections must be an array"
+        )
+    if expected_slots is not None and len(selections) != expected_slots:
+        raise ValueError(
+            f"{path}: {row.get('task_id', '<unknown>')} must contain exactly "
+            f"{expected_slots} final selections, got {len(selections)}"
+        )
+
+    candidate_ids: list[str] = []
+    ranks: list[int] = []
+    for index, selection in enumerate(selections, start=1):
+        if not isinstance(selection, dict):
+            raise ValueError(
+                f"{path}: {row.get('task_id', '<unknown>')}.{field}.selections[{index}] "
+                "must be an object"
+            )
+        candidate_id = selection.get("candidate_id")
+        if not isinstance(candidate_id, str) or not candidate_id:
+            raise ValueError(
+                f"{path}: {row.get('task_id', '<unknown>')}.{field}.selections[{index}] "
+                "must contain a non-empty candidate_id"
+            )
+        candidate_ids.append(candidate_id)
+        rank = selection.get("rank")
+        if isinstance(rank, bool) or not isinstance(rank, int):
+            ranks.append(-1)
+        else:
+            ranks.append(rank)
+
+    if expected_slots is not None:
+        if len(candidate_ids) != len(set(candidate_ids)):
+            raise ValueError(
+                f"{path}: {row.get('task_id', '<unknown>')} final selections "
+                "contain duplicate candidate identities"
+            )
+        if ranks != list(range(1, expected_slots + 1)):
+            raise ValueError(
+                f"{path}: {row.get('task_id', '<unknown>')} final selection ranks "
+                f"must be exactly 1 through {expected_slots}"
+            )
+    return candidate_ids
+
+
+def _repair_attribution_sources(
+    repo_root: Path,
+    *,
+    expected_cards: int,
+    final_slots_per_card: int,
+) -> tuple[list[dict[str, Any]], list[tuple[Path, str, Path, str]]]:
+    cards_path = repo_root / "data/releases/v0.1.0/system_input_cards.jsonl"
+    card_rows = _read_jsonl(cards_path)
+    task_ids = [row.get("task_id") for row in card_rows]
+    if not all(isinstance(task_id, str) and task_id for task_id in task_ids):
+        raise ValueError(f"{cards_path}: every row must contain a non-empty task_id")
+    expected_tasks = set(task_ids)
+    if len(task_ids) != expected_cards or len(expected_tasks) != expected_cards:
+        raise ValueError(
+            f"{cards_path}: expected {expected_cards} unique frozen task IDs, "
+            f"got {len(task_ids)} rows and {len(expected_tasks)} unique IDs"
+        )
+
+    matrix_root = repo_root / "release/v0.1.0/experiments/llm/matrix"
+    rows: list[dict[str, Any]] = []
+    sources: list[tuple[Path, str, Path, str]] = []
+    for condition in PRIMARY_LLM_CONDITIONS:
+        provider_id, provider_label = CONDITION_PROVIDERS[condition]
+        for interface in PRIMARY_LLM_INTERFACES:
+            raw_name = _raw_llm_name(interface, condition)
+            repaired_name = _repaired_llm_name(interface, condition)
+            run_root = matrix_root / condition / interface
+            raw_path = run_root / "trace.jsonl"
+            repaired_path = run_root / "posthoc_repair.trace.jsonl"
+            raw_rows = _read_jsonl(raw_path)
+            repaired_rows = _read_jsonl(repaired_path)
+            _require_exact_task_coverage(
+                raw_path,
+                raw_rows,
+                expected_tasks=expected_tasks,
+                expected_system_name=raw_name,
+            )
+            _require_exact_task_coverage(
+                repaired_path,
+                repaired_rows,
+                expected_tasks=expected_tasks,
+                expected_system_name=repaired_name,
+            )
+            _require_metadata(
+                raw_path,
+                raw_rows,
+                expected={
+                    "base_system_name": interface,
+                    "llm_model_config_id": condition,
+                    "llm_provider": provider_id,
+                },
+            )
+            _require_metadata(
+                repaired_path,
+                repaired_rows,
+                expected={
+                    "base_system_name": interface,
+                    "llm_model_config_id": condition,
+                    "llm_provider": provider_id,
+                    "repair_mode": "posthoc",
+                    "repair_source_system_name": raw_name,
+                    "repair_source_trace_sha256": _sha256(raw_path),
+                    "provider_calls_added": 0,
+                },
+            )
+
+            raw_by_task = {str(row["task_id"]): row for row in raw_rows}
+            repaired_by_task = {str(row["task_id"]): row for row in repaired_rows}
+            if set(raw_by_task) != set(repaired_by_task):
+                raise ValueError(
+                    f"{raw_path} and {repaired_path}: raw/repaired task pairing differs"
+                )
+
+            fallback_by_card: list[int] = []
+            repaired_flags: list[bool] = []
+            for task_id in task_ids:
+                raw_row = raw_by_task[str(task_id)]
+                repaired_row = repaired_by_task[str(task_id)]
+                if raw_row.get("repaired") is not False:
+                    raise ValueError(f"{raw_path}: {task_id} must be an unrepaired source record")
+                repaired = repaired_row.get("repaired")
+                metadata = repaired_row.get("metadata")
+                repair_applied = (
+                    metadata.get("repair_applied") if isinstance(metadata, dict) else None
+                )
+                if not isinstance(repaired, bool) or repair_applied is not repaired:
+                    raise ValueError(
+                        f"{repaired_path}: {task_id} repaired and "
+                        "metadata.repair_applied must be matching booleans"
+                    )
+                if raw_row.get("raw_output") != repaired_row.get("raw_output"):
+                    raise ValueError(
+                        f"{raw_path} and {repaired_path}: preserved raw output differs "
+                        f"for {task_id}"
+                    )
+
+                raw_ids = _selection_ids(raw_path, raw_row, field="raw_output")
+                final_ids = _selection_ids(
+                    repaired_path,
+                    repaired_row,
+                    field="output",
+                    expected_slots=final_slots_per_card,
+                )
+                final_id_set = set(final_ids)
+                retained_ids: list[str] = []
+                seen_raw_ids: set[str] = set()
+                for candidate_id in raw_ids:
+                    if candidate_id in seen_raw_ids:
+                        continue
+                    seen_raw_ids.add(candidate_id)
+                    if candidate_id in final_id_set:
+                        retained_ids.append(candidate_id)
+                if final_ids[: len(retained_ids)] != retained_ids:
+                    raise ValueError(
+                        f"{repaired_path}: {task_id} does not retain valid unique raw "
+                        "candidate identities as an ordered prefix"
+                    )
+
+                fallback_slots = final_slots_per_card - len(retained_ids)
+                if fallback_slots > 0 and not repaired:
+                    raise ValueError(
+                        f"{repaired_path}: {task_id} has fallback-supplied positions "
+                        "without repair_applied"
+                    )
+                fallback_by_card.append(fallback_slots)
+                repaired_flags.append(repaired)
+
+            repaired_fallback = [
+                fallback
+                for fallback, repaired in zip(fallback_by_card, repaired_flags, strict=True)
+                if repaired
+            ]
+            cards_repaired = sum(repaired_flags)
+            if not repaired_fallback:
+                repaired_fallback = [0]
+            total_final_slots = sum(final_slots_per_card for _ in fallback_by_card)
+            fallback_supplied_slots = sum(fallback_by_card)
+            rows.append(
+                {
+                    "provider": provider_label,
+                    "interface": REPAIR_INTERFACE_LABELS[interface],
+                    "n_cards": len(fallback_by_card),
+                    "cards_repaired": cards_repaired,
+                    "repair_rate": cards_repaired / len(fallback_by_card),
+                    "cards_with_replaced_identity": sum(
+                        fallback > 0 for fallback in fallback_by_card
+                    ),
+                    "fallback_supplied_slots": fallback_supplied_slots,
+                    "total_final_slots": total_final_slots,
+                    "fallback_slot_rate": fallback_supplied_slots / total_final_slots,
+                    "mean_fallback_slots_all_cards": statistics.mean(fallback_by_card),
+                    "median_fallback_slots_all_cards": statistics.median(fallback_by_card),
+                    "min_fallback_slots_all_cards": min(fallback_by_card),
+                    "max_fallback_slots_all_cards": max(fallback_by_card),
+                    "mean_fallback_slots_repaired_cards": statistics.mean(repaired_fallback),
+                    "median_fallback_slots_repaired_cards": statistics.median(repaired_fallback),
+                    "min_fallback_slots_repaired_cards": min(repaired_fallback),
+                    "max_fallback_slots_repaired_cards": max(repaired_fallback),
+                    "repaired_cards_with_zero_fallback_slots": sum(
+                        repaired and fallback == 0
+                        for fallback, repaired in zip(fallback_by_card, repaired_flags, strict=True)
+                    ),
+                    "cards_with_all_10_fallback_slots": sum(
+                        fallback == final_slots_per_card for fallback in fallback_by_card
+                    ),
+                }
+            )
+            sources.append(
+                (
+                    raw_path.relative_to(repo_root),
+                    _sha256(raw_path),
+                    repaired_path.relative_to(repo_root),
+                    _sha256(repaired_path),
+                )
+            )
+    return rows, sources
+
+
+def _format_compact_number(value: Any) -> str:
+    number = float(value)
+    if math.isclose(number, round(number), rel_tol=0.0, abs_tol=1e-12):
+        return str(round(number))
+    return f"{number:.10f}".rstrip("0").rstrip(".")
+
+
+def render_repair_attribution_csv(repo_root: Path) -> str:
+    rows, _ = _repair_attribution_sources(
+        repo_root,
+        expected_cards=91,
+        final_slots_per_card=10,
+    )
+    rendered_rows: list[dict[str, Any]] = []
+    decimal_fields = {
+        "repair_rate",
+        "fallback_slot_rate",
+        "mean_fallback_slots_all_cards",
+        "mean_fallback_slots_repaired_cards",
+    }
+    for row in rows:
+        rendered_rows.append(
+            {
+                field: (
+                    f"{float(row[field]):.10f}"
+                    if field in decimal_fields
+                    else _format_compact_number(row[field])
+                    if field.startswith("median_")
+                    else row[field]
+                )
+                for field in REPAIR_ATTRIBUTION_FIELDS
+            }
+        )
+
+    buffer = io.StringIO(newline="")
+    writer = csv.DictWriter(
+        buffer,
+        fieldnames=list(REPAIR_ATTRIBUTION_FIELDS),
+        lineterminator="\n",
+    )
+    writer.writeheader()
+    writer.writerows(rendered_rows)
+    return buffer.getvalue()
+
+
+def render_repair_attribution_rows(repo_root: Path) -> str:
+    rows, sources = _repair_attribution_sources(
+        repo_root,
+        expected_cards=91,
+        final_slots_per_card=10,
+    )
+    output = [
+        "% Generated by paper/manuscript/generate_results.py; do not edit by hand.",
+        "% Canonical sources are the six matched raw/post-hoc-repaired trace pairs:",
+    ]
+    for raw_path, raw_sha256, repaired_path, repaired_sha256 in sources:
+        output.extend(
+            [
+                f"% {raw_path.as_posix()} SHA256: {raw_sha256}",
+                f"% {repaired_path.as_posix()} SHA256: {repaired_sha256}",
+            ]
+        )
+    output.append(r"\newcommand{\RepairAttributionRows}{%")
+    for row in rows:
+        repaired_mean = float(row["mean_fallback_slots_repaired_cards"])
+        repaired_median = _format_compact_number(row["median_fallback_slots_repaired_cards"])
+        repaired_min = _format_compact_number(row["min_fallback_slots_repaired_cards"])
+        repaired_max = _format_compact_number(row["max_fallback_slots_repaired_cards"])
+        output.append(
+            f"{row['provider']}, {row['interface']} & "
+            f"{row['cards_repaired']}/{row['n_cards']} "
+            f"({100 * float(row['repair_rate']):.2f}\\%) & "
+            f"{row['cards_with_replaced_identity']}/{row['n_cards']} & "
+            f"{row['fallback_supplied_slots']}/{row['total_final_slots']} "
+            f"({100 * float(row['fallback_slot_rate']):.2f}\\%) & "
+            f"{repaired_mean:.2f}; {repaired_median} "
+            f"({repaired_min}--{repaired_max}) & "
+            f"{row['repaired_cards_with_zero_fallback_slots']} & "
+            f"{row['cards_with_all_10_fallback_slots']} \\\\%"
+        )
+    output.append("}")
+    output.append(r"\newcommand{\RepairAttributionCompactRows}{%")
+    for row in rows:
+        output.append(
+            f"{row['provider']}, {row['interface']} & "
+            f"{row['cards_repaired']}/{row['n_cards']} "
+            f"({100 * float(row['repair_rate']):.2f}\\%) & "
+            f"{row['cards_with_replaced_identity']}/{row['n_cards']} & "
+            f"{row['fallback_supplied_slots']}/{row['total_final_slots']} "
+            f"({100 * float(row['fallback_slot_rate']):.2f}\\%) & "
+            f"{row['cards_with_all_10_fallback_slots']} \\\\%"
+        )
+    output.append("}")
+    return "\n".join(output) + "\n"
+
+
 def _validate_paired_outputs(
     comparison_root: Path,
     *,
@@ -732,7 +1094,15 @@ def main(argv: list[str] | None = None) -> int:
     repo_root = Path(__file__).resolve().parents[2]
     outputs = {
         repo_root / "paper/manuscript/generated_results.tex": render_results(repo_root),
+        repo_root
+        / "paper/manuscript/revision_repair_attribution.csv": render_repair_attribution_csv(
+            repo_root
+        ),
         repo_root / "paper/tables/v0.1.0/deterministic_baseline_rows.tex": render_baseline_rows(
+            repo_root
+        ),
+        repo_root
+        / "paper/tables/v0.1.0/repair_attribution_rows.tex": render_repair_attribution_rows(
             repo_root
         ),
     }
