@@ -1,0 +1,7 @@
+provider,interface,n_cards,cards_repaired,repair_rate,cards_with_replaced_identity,fallback_supplied_slots,total_final_slots,fallback_slot_rate,mean_fallback_slots_all_cards,median_fallback_slots_all_cards,min_fallback_slots_all_cards,max_fallback_slots_all_cards,mean_fallback_slots_repaired_cards,median_fallback_slots_repaired_cards,min_fallback_slots_repaired_cards,max_fallback_slots_repaired_cards,repaired_cards_with_zero_fallback_slots,cards_with_all_10_fallback_slots
+OpenAI,basic,91,19,0.2087912088,10,14,910,0.0153846154,0.1538461538,0,0,4,0.7368421053,1,0,4,9,0
+OpenAI,descriptors,91,23,0.2527472527,10,15,910,0.0164835165,0.1648351648,0,0,4,0.6521739130,0,0,4,13,0
+Anthropic,basic,91,74,0.8131868132,71,252,910,0.2769230769,2.7692307692,2,0,10,3.4054054054,2,0,10,3,1
+Anthropic,descriptors,91,69,0.7582417582,68,229,910,0.2516483516,2.5164835165,2,0,10,3.3188405797,3,0,10,1,1
+DeepSeek,basic,91,83,0.9120879121,81,534,910,0.5868131868,5.8681318681,6,0,10,6.4337349398,7,0,10,2,30
+DeepSeek,descriptors,91,69,0.7582417582,69,355,910,0.3901098901,3.9010989011,3,0,10,5.1449275362,4,1,10,0,12

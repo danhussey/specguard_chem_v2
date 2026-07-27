@@ -334,3 +334,32 @@ was run, what happened, and what to do next.
 - Follow-up: retain the pilot as operational case-study evidence, require
   separate explicit approval before the residual 540 calls, then perform the
   prespecified 91-card paired uncertainty and raw-versus-repaired analysis.
+
+## 2026-07-28 university-feedback and corrected repair-attribution audit
+
+- Artifacts:
+  `paper/manuscript/UNIVERSITY_FEEDBACK_REVISION_PACK.md`,
+  `paper/manuscript/revision_repair_attribution.csv`, and
+  `plans/logs/2026-07-28-0039-university-feedback-revision.md`.
+- Scope: the supplied manuscript v0.5; all six raw and deterministic post-hoc
+  conditions in the completed corrected 91-card matrix; 546 raw/repaired
+  record pairs and 5,460 final shortlist positions.
+- Question: address the university feedback using corrected evidence and
+  quantify how much final shortlist content was supplied by repair rather than
+  only how many cards triggered repair.
+- Status: revision and read-only audit complete; no live provider call. The
+  completed matrix is still uncommitted in its source working tree and must be
+  frozen before archival citation.
+- Headline: QSAR SVM remained above the best guarded LLM by `1.0027` feasible-
+  utility points (paired 95% interval `0.4049` to `1.6475`). In the best
+  OpenAI-basic condition, repair applied on `19/91` actions but deterministic
+  fallback supplied only `14/910` final IDs (`1.54%`). Fallback supplied
+  `25.16%`--`58.68%` of final Anthropic and DeepSeek IDs.
+- Surprise / interpretation: repair-trigger rate is not a reliable measure of
+  harness contribution. Nine of 19 OpenAI-basic repairs corrected schema or
+  rank details without replacing an identity, whereas 44 Anthropic/DeepSeek
+  card-condition cases received all ten final identities from fallback.
+- Follow-up: freeze and merge the corrected full matrix, persist the slot-level
+  attribution calculation in the report generator, regenerate the manuscript,
+  tables, and figures, and verify the bundle from a clean checkout before
+  submission.
