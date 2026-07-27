@@ -133,6 +133,8 @@ cd paper/manuscript
 mkdir -p build
 SOURCE_DATE_EPOCH=1784937600 tectonic -X compile --outdir build main.tex
 SOURCE_DATE_EPOCH=1784937600 tectonic -X compile --outdir build supplement.tex
+cmp main.pdf build/main.pdf
+cmp supplement.pdf build/supplement.pdf
 ```
 
 A TeX Live installation may instead use
@@ -433,12 +435,13 @@ print("verified offline manifest and six zero-call, source-bound repaired traces
 PY
 ```
 
-Regenerate the 19-system comparison from the seven deterministic/oracle
-summaries, six raw LLM summaries, and six repaired summaries:
+Regenerate the canonical 19-system comparison from the independently verified
+frozen deterministic/oracle summaries, six replayed raw LLM summaries, and six
+replayed repaired summaries:
 
 ```bash
 uv run sgchem compare-runs \
-  runs/reproduce-v0.1.0-baselines/*/scores/summary.json \
+  release/v0.1.0/experiments/baselines/*/scores/summary.json \
   runs/reproduce-v0.1.0-llm-matrix/*/*/scores/summary.json \
   runs/reproduce-v0.1.0-llm-matrix/*/*/posthoc_scores/summary.json \
   --out runs/reproduce-v0.1.0-llm-comparison
@@ -447,7 +450,11 @@ uv run sgchem compare-runs \
 The committed canonical matrix was refrozen from the same cache-only path used
 above. Successful cache hits therefore produce byte-identical raw traces and
 scores; deterministic repair produces byte-identical repaired traces and scores;
-and the regenerated comparison directory is byte-identical. The matrix
+and combining those summaries with the frozen baseline summaries produces a
+byte-identical comparison directory. A wholly recomputed baseline suite was
+also checked independently: all candidate IDs and ranks matched exactly, while
+numeric text differed only at floating-point round-off (maximum absolute
+difference \(3.55\times10^{-14}\), below the \(10^{-12}\) gate). The matrix
 `manifest.json` is not part of this literal comparison because it records the
 chosen output directory and run time.
 
@@ -523,21 +530,50 @@ than adding `--allow-external` or raising a gate.
 Build both distribution formats from the release candidate:
 
 ```bash
-uv build --out-dir runs/reproduce-v0.1.0-dist
+SOURCE_DATE_EPOCH=1784937600 \
+  uv build --out-dir runs/reproduce-v0.1.0-dist
 ```
 
 The candidate bundle contains:
 
 - `specguard_chem_v2-0.1.0-py3-none-any.whl`, SHA256
-  `363d0272c13ad90c8a594888c9a70f51dfa4f5eb95863a77583520c3bf4365e7`;
+  `87ee2830655def0c999e14c199c9f68e1bdba34f8bed7311557d6b4e8cd9a820`;
   and
 - `specguard_chem_v2-0.1.0.tar.gz`, SHA256
-  `eec74005e9221148571f2fb75a128202706bc55e1256a491902a89206e645189`.
+  `c8852809f4da6447fae96f9bf576dc833390bcce6fe4d794904697f75e30b6aa`.
+
+The epoch-normalised wheel is byte-reproducible. Setuptools preserves
+checkout-specific owner and modification-time metadata in the source archive,
+so compare the source-distribution payload rather than its container bytes:
+
+```bash
+cmp \
+  release/v0.1.0/software/specguard_chem_v2-0.1.0-py3-none-any.whl \
+  runs/reproduce-v0.1.0-dist/specguard_chem_v2-0.1.0-py3-none-any.whl
+
+python3 - <<'PY'
+import tarfile
+from pathlib import Path
+
+def payload(path: Path) -> dict[str, bytes | None]:
+    with tarfile.open(path, "r:gz") as archive:
+        result = {}
+        for member in archive.getmembers():
+            extracted = archive.extractfile(member) if member.isfile() else None
+            result[member.name] = extracted.read() if extracted is not None else None
+        return result
+
+committed = Path("release/v0.1.0/software/specguard_chem_v2-0.1.0.tar.gz")
+rebuilt = Path("runs/reproduce-v0.1.0-dist/specguard_chem_v2-0.1.0.tar.gz")
+assert payload(committed) == payload(rebuilt)
+print("verified byte-identical wheel and identical source-distribution payload")
+PY
+```
 
 Install the wheel in a fresh environment, then run at least `sgchem --help`,
-`sgchem list-systems`, and fixture-card validation. The bundled wheel was
-verified this way under Python 3.12; its installed metadata reports version
-`0.1.0` and the action-level benchmark description.
+`sgchem list-systems`, and fixture-card validation. The bundled wheel passed
+this independent smoke test; its installed metadata reports version `0.1.0`
+and the action-level benchmark description.
 
 ## 10. Final-release verification gate
 

@@ -122,11 +122,14 @@ candidate IDs should a system select for the next assay batch?
   `results/cara-lo-paper-50-*` tags without deleting or moving them.
 - [ ] Add `DATA_LICENSE.md` and `THIRD_PARTY_NOTICES.md` distinguishing MIT code
   from CC BY 4.0 CARA/CARA-derived data and the chosen manuscript license.
-- [ ] Include methods, limitations, model reporting, data provenance, licenses,
-  citation metadata, and an exact reproduction guide.
+- [x] Include methods, limitations, model reporting, data provenance, citation
+  metadata, and an exact reproduction guide.
 - [ ] Generate a manifest containing file sizes and SHA256 checksums.
 - [x] Include the committed environment lock and package distributions.
-- [ ] Verify all bundle paths and commands from a clean checkout.
+- [x] Verify the current candidate's data, traces, scores, reports, manuscript,
+  supplement, and package distributions from a clean checkout.
+- [ ] Repeat manifest-bound verification after the pending license notices and
+  final bundle checksums are added.
 
 ### 5. Version and tag
 

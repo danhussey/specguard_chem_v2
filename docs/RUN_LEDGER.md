@@ -501,3 +501,35 @@ was run, what happened, and what to do next.
 - Follow-up: persist the slot-level attribution calculation in the report
   generator, revise and regenerate the manuscript, and verify the bundle from
   a clean checkout before submission.
+
+## 2026-07-28 final manuscript and clean-checkout reproduction gate
+
+- Artifacts: `paper/manuscript/{main,supplement}.{tex,pdf}`,
+  `paper/manuscript/UNIVERSITY_FEEDBACK_REVISION_PACK.md`,
+  `release/v0.1.0/REPRODUCE.md`, epoch-normalised package distributions, and
+  execution log
+  `plans/logs/2026-07-28-0040-final-manuscript-and-reproduction-gate.md`.
+- Scope: all 91 corrected cards; seven deterministic/oracle systems; six raw
+  and six repaired LLM conditions; all generated reports, tables, figures, and
+  PDFs; no provider calls.
+- Question: close the remaining university-submission gate by proving that the
+  corrected evidence and final manuscript reproduce from a clean checkout.
+- Status: complete for the scientific/manuscript candidate. A fresh locked
+  worktree passed 72 tests, Ruff, lock and 91-card validation; all 546 cached
+  requests replayed under zero-call/zero-cost gates; all raw/repaired LLM
+  artifacts reproduced byte-for-byte; and report, figure, table, PDF, and wheel
+  builds were synchronized.
+- Headline: QSAR SVM remained at `74.9664`, the best guarded LLM at `73.9637`,
+  and the paired difference at `1.0027` (`0.4049`--`1.6475`). The exact replay
+  recovered USD `58.95671601` of historical usage-derived cost and required
+  zero incremental spend.
+- Surprise / interpretation: the gate caught wall-clock report timestamps, a
+  stale embedded frontier figure, and archive metadata that prevented naive
+  byte comparisons. Generated report time and wheel timestamps are now frozen;
+  the main PDF was recompiled; the wheel is byte-reproducible; and the source
+  archive is verified by identical payload. Fully regenerated baseline values
+  differed only at `3.55e-14` floating-point round-off, with identical selected
+  IDs and ranks.
+- Follow-up: submit the near-term university revision. Keep licensing notices,
+  manifest/checksums, DOI/date fields, annotated release notes, tag, and
+  publication as the remaining archival-release administration.
